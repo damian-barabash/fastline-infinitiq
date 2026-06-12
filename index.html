@@ -1,0 +1,1952 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Fastline InfinitiQ — AI-Native Agency</title>
+<meta name="description" content="Fastline InfinitiQ to agencja zbudowana od zera wokół sztucznej inteligencji. Nie wdrażamy AI do starych procesów — projektujemy strategie, treści i systemy komunikacji, które bez AI nie byłyby możliwe.">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32.png">
+<link rel="icon" type="image/png" sizes="192x192" href="assets/favicon/favicon-192.png">
+<link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;600;700&family=Archivo:wdth,wght@125,600..900&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --black: #0D0D0D;
+    --green: #B8FF00;
+    --white: #F5F5F0;
+    --grey: #1A1A1A;
+    --mid: #2E2E2E;
+    --muted: #666;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { background: var(--black); }
+  html.mode-3d { scroll-snap-type: y proximity; }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'Schibsted Grotesk', sans-serif;
+    font-weight: 400;
+    overflow-x: hidden;
+  }
+
+  html.mode-3d body, html.mode-3d a, html.mode-3d button { cursor: none; }
+
+  ::selection { background: var(--green); color: var(--black); }
+
+  /* ===== Neural canvas ===== */
+  #neural {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  /* ===== Custom cursor (desktop only) ===== */
+  .cursor-dot, .cursor-ring {
+    position: fixed;
+    top: 0; left: 0;
+    pointer-events: none;
+    z-index: 9999;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    display: none;
+  }
+  html.mode-3d .cursor-dot, html.mode-3d .cursor-ring { display: block; }
+  html.coarse .cursor-dot, html.coarse .cursor-ring { display: none !important; }
+  html.coarse body, html.coarse a, html.coarse button { cursor: auto; }
+  .cursor-dot {
+    width: 6px; height: 6px;
+    background: var(--green);
+  }
+  .cursor-ring {
+    width: 36px; height: 36px;
+    border: 1px solid rgba(184,255,0,0.55);
+    transition: width 0.25s ease, height 0.25s ease, border-color 0.25s ease, background 0.25s ease;
+  }
+  .cursor-ring.link {
+    width: 56px; height: 56px;
+    border-color: var(--green);
+    background: rgba(184,255,0,0.08);
+  }
+
+  /* ===== Page wipe transition ===== */
+  #wipe {
+    position: fixed;
+    left: 0; right: 0;
+    top: -2vh; bottom: -2vh;
+    background: var(--black);
+    z-index: 5000;
+    transform: scaleY(0);
+    pointer-events: none;
+    transition: transform 0.65s cubic-bezier(0.76, 0, 0.24, 1);
+  }
+  #wipe.cover { transform: scaleY(1); }
+  #wipe.noanim { transition: none; }
+  #wipe::after {
+    content: '';
+    position: absolute;
+    left: 0; right: 0;
+    height: 2px;
+    background: var(--green);
+    box-shadow: 0 0 28px rgba(184,255,0,0.8);
+  }
+  #wipe.w-out { transform-origin: bottom; }
+  #wipe.w-out::after { top: 0; }
+  #wipe.w-in { transform-origin: top; }
+  #wipe.w-in::after { bottom: 0; }
+
+  /* ===== Noise ===== */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 1000;
+    opacity: 0.4;
+  }
+
+  /* ===== NAV ===== */
+  nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 20px 48px;
+    border: 1px solid transparent;
+    border-bottom-color: rgba(255,255,255,0.06);
+    /* матовое стекло: полупрозрачный фон + сильный blur с насыщением */
+    background: rgba(20,20,20,0.5);
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    transition: top 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                left 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                right 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                padding 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                background 0.45s, border-color 0.45s, box-shadow 0.45s;
+  }
+
+  /* сжатая плавающая шапка при скролле вниз */
+  nav.shrunk {
+    top: 16px;
+    left: 28px;
+    right: 28px;
+    padding: 11px 24px;
+    background: rgba(24,24,24,0.55);
+    border-color: rgba(184,255,0,0.22);
+    box-shadow: 0 14px 44px rgba(0,0,0,0.55);
+  }
+
+  .nav-logo {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    display: flex;
+    align-items: center;
+    text-decoration: none;
+  }
+  .nav-logo img { height: 44px; width: auto; display: block; transition: height 0.45s cubic-bezier(0.22, 1, 0.36, 1); }
+  nav.shrunk .nav-logo img { height: 32px; }
+
+  .nav-cta {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--black);
+    background: var(--green);
+    border: none;
+    padding: 10px 22px;
+    text-decoration: none;
+    transition: box-shadow 0.25s, transform 0.25s;
+  }
+  .nav-cta:hover { box-shadow: 0 0 24px rgba(184,255,0,0.45); transform: translateY(-1px); }
+  .cta-short { display: none; }
+
+  /* ===== Progress rail (desktop 3d) ===== */
+  .rail {
+    position: fixed;
+    right: 36px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 90;
+    display: none;
+    flex-direction: column;
+    gap: 18px;
+    align-items: flex-end;
+  }
+  html.mode-3d .rail { display: flex; }
+
+  .rail-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: none;
+    border: none;
+    padding: 2px 0;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(245,245,240,0.3);
+    transition: color 0.3s;
+  }
+  .rail-item .rail-name {
+    opacity: 0;
+    transform: translateX(6px);
+    transition: opacity 0.3s, transform 0.3s;
+  }
+  .rail-item:hover .rail-name, .rail-item.on .rail-name { opacity: 1; transform: translateX(0); }
+  .rail-item .rail-tick {
+    width: 18px; height: 1px;
+    background: rgba(245,245,240,0.25);
+    transition: width 0.3s, background 0.3s;
+  }
+  .rail-item:hover { color: rgba(245,245,240,0.7); }
+  .rail-item.on { color: var(--green); }
+  .rail-item.on .rail-tick { width: 34px; background: var(--green); }
+
+  /* ===== Slide counter ===== */
+  .counter {
+    position: fixed;
+    left: 48px;
+    bottom: 32px;
+    z-index: 90;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.22em;
+    color: rgba(245,245,240,0.35);
+    display: none;
+    align-items: baseline;
+    gap: 6px;
+  }
+  html.mode-3d .counter { display: flex; }
+  .counter .cur { color: var(--green); font-size: 13px; }
+
+  /* ===== Scroll hint ===== */
+  .scroll-hint {
+    position: fixed;
+    right: 48px;
+    bottom: 32px;
+    z-index: 90;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px;
+    letter-spacing: 0.26em;
+    text-transform: uppercase;
+    color: rgba(245,245,240,0.4);
+    display: none;
+    align-items: center;
+    gap: 12px;
+    transition: opacity 0.5s;
+  }
+  html.mode-3d .scroll-hint { display: flex; }
+  .scroll-hint.gone { opacity: 0; }
+  .scroll-hint::after {
+    content: '';
+    width: 1px; height: 36px;
+    background: linear-gradient(to bottom, var(--green), transparent);
+    animation: hintDrop 1.6s ease-in-out infinite;
+  }
+  @keyframes hintDrop {
+    0% { transform: scaleY(0); transform-origin: top; }
+    50% { transform: scaleY(1); transform-origin: top; }
+    51% { transform-origin: bottom; }
+    100% { transform: scaleY(0); transform-origin: bottom; }
+  }
+
+  /* ===== 3D scroll machinery ===== */
+  #track { position: relative; z-index: 1; }
+  #track .snap { height: 100vh; scroll-snap-align: start; }
+
+  #stage {
+    position: fixed;
+    inset: 0;
+    z-index: 2;
+    perspective: 1500px;
+    overflow: hidden;
+  }
+
+  #drum {
+    position: absolute;
+    inset: 0;
+    transform-style: preserve-3d;
+  }
+
+  .slide {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backface-visibility: hidden;
+    will-change: transform, opacity;
+    visibility: hidden;
+  }
+  .slide.shown { visibility: visible; }
+
+  /* слайд выше вьюпорта: контент прижат к верху, докручивается внутри (translateY из JS) */
+  .slide.tall { align-items: flex-start; }
+  .slide.tall .slide-inner { will-change: transform; }
+
+  .slide-inner {
+    width: 100%;
+    max-width: 1320px;
+    padding: 110px 88px 64px 48px;
+  }
+
+  /* ===== Flat mode (mobile / reduced motion) ===== */
+  html.mode-flat #track { display: none; }
+  html.mode-flat #stage {
+    position: static;
+    perspective: none;
+    overflow: visible;
+  }
+  html.mode-flat #drum { position: static; transform: none !important; }
+  html.mode-flat .slide {
+    position: static;
+    visibility: visible;
+    min-height: auto;
+    transform: none !important;
+    opacity: 1 !important;
+    display: block;
+  }
+  html.mode-flat .slide-inner { padding: 96px 24px; max-width: 100%; }
+  html.mode-flat .slide:first-child .slide-inner { padding-top: 140px; }
+
+  /* ===== Reveal-in for active slide ===== */
+  .rv {
+    opacity: 0;
+    transform: translateY(26px);
+    transition: opacity 0.7s ease, transform 0.7s ease;
+  }
+  .slide.active .rv { opacity: 1; transform: translateY(0); }
+  .slide.active .rv:nth-child(1), .slide.active .rv1 { transition-delay: 0.05s; }
+  .slide.active .rv2 { transition-delay: 0.15s; }
+  .slide.active .rv3 { transition-delay: 0.25s; }
+  .slide.active .rv4 { transition-delay: 0.35s; }
+  .slide.active .rv5 { transition-delay: 0.45s; }
+  .slide.active .rv6 { transition-delay: 0.55s; }
+
+  /* ===== Section label ===== */
+  .section-label {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 36px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .section-label::before {
+    content: '';
+    display: block;
+    width: 32px; height: 1px;
+    background: var(--green);
+  }
+
+  /* ===== HERO ===== */
+  .hero-bg-text {
+    position: absolute;
+    top: 50%;
+    left: -20px;
+    transform: translateY(-50%);
+    font-family: 'Archivo', sans-serif;
+    font-stretch: 125%;
+    font-weight: 900;
+    font-size: clamp(90px, 14vw, 210px);
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(184,255,0,0.07);
+    pointer-events: none;
+    user-select: none;
+    white-space: nowrap;
+    z-index: 0;
+  }
+
+  .hero-content { position: relative; z-index: 2; }
+
+  .hero-eyebrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 28px;
+  }
+
+  .hero-h1 {
+    font-family: 'Archivo', sans-serif;
+    font-stretch: 125%;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: clamp(32px, 5vw, 76px);
+    line-height: 1.08;
+    letter-spacing: -0.01em;
+    color: var(--white);
+    max-width: 900px;
+  }
+
+  .hero-h1 em { font-style: normal; color: var(--green); }
+
+  .hero-sub {
+    margin-top: 32px;
+    font-size: 18px;
+    font-weight: 400;
+    line-height: 1.6;
+    color: rgba(245,245,240,0.65);
+    max-width: 560px;
+  }
+  .hero-sub strong { color: var(--white); font-weight: 600; }
+
+  .hero-actions {
+    margin-top: 44px;
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+
+  .btn-primary {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--black);
+    background: var(--green);
+    border: none;
+    padding: 16px 36px;
+    text-decoration: none;
+    transition: transform 0.25s, box-shadow 0.25s;
+    display: inline-block;
+  }
+  .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 0 32px rgba(184,255,0,0.4); }
+
+  .btn-ghost {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12px;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--white);
+    background: transparent;
+    border: 1px solid rgba(255,255,255,0.2);
+    padding: 16px 36px;
+    text-decoration: none;
+    transition: border-color 0.25s, color 0.25s;
+    display: inline-block;
+  }
+  .btn-ghost:hover { border-color: var(--green); color: var(--green); }
+
+  /* ===== Ticker (inside hero slide) ===== */
+  .ticker {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    overflow: hidden;
+    padding: 13px 0;
+    white-space: nowrap;
+    background: rgba(13,13,13,0.5);
+  }
+  html.mode-flat .ticker { position: relative; margin-top: 48px; }
+
+  .ticker-inner { display: inline-flex; animation: ticker 28s linear infinite; }
+
+  .ticker-item {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--muted);
+    padding: 0 32px;
+  }
+  .ticker-item span { color: var(--green); margin-right: 32px; }
+
+  @keyframes ticker {
+    from { transform: translateX(0); }
+    to { transform: translateX(-50%); }
+  }
+
+  /* ===== WHAT ===== */
+  .what-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 72px;
+    align-items: start;
+  }
+
+  .what-left h2 {
+    font-family: 'Archivo', sans-serif;
+    font-stretch: 125%;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: clamp(24px, 3vw, 44px);
+    line-height: 1.12;
+    color: var(--white);
+    margin-bottom: 28px;
+  }
+
+  .what-left p {
+    font-size: 16px;
+    line-height: 1.7;
+    color: rgba(245,245,240,0.6);
+    max-width: 440px;
+  }
+  .what-left p + p { margin-top: 18px; }
+
+  .diff-item {
+    border-top: 1px solid var(--mid);
+    padding: 22px 0;
+    display: flex;
+    gap: 24px;
+    align-items: flex-start;
+  }
+
+  .diff-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: var(--green);
+    letter-spacing: 0.12em;
+    padding-top: 4px;
+    flex-shrink: 0;
+    width: 28px;
+  }
+
+  .diff-text h3 {
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 7px;
+    letter-spacing: 0.02em;
+  }
+
+  .diff-text p {
+    font-size: 13.5px;
+    line-height: 1.6;
+    color: rgba(245,245,240,0.5);
+  }
+
+  /* ===== SERVICES (interactive demos) ===== */
+  .services-head {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 40px;
+    margin-bottom: 24px;
+  }
+
+  .services-head h2 {
+    font-family: 'Archivo', sans-serif;
+    font-stretch: 125%;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: clamp(22px, 2.8vw, 40px);
+    line-height: 1.1;
+    color: var(--white);
+  }
+
+  .svc-hint {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(245,245,240,0.3);
+    padding-bottom: 10px;
+  }
+
+  .svc-wrap {
+    display: grid;
+    grid-template-columns: 0.85fr 1.15fr;
+    gap: 1px;
+    border: 1px solid var(--mid);
+    background: var(--mid);
+  }
+
+  .svc-list {
+    background: rgba(13,13,13,0.9);
+    display: flex;
+    flex-direction: column;
+  }
+
+  .svc-row {
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    padding: 0 24px;
+    flex: 1;
+    min-height: 46px;
+    background: none;
+    border: none;
+    border-bottom: 1px solid var(--mid);
+    font-family: 'Schibsted Grotesk', sans-serif;
+    font-weight: 400;
+    text-align: left;
+    color: rgba(245,245,240,0.55);
+    transition: color 0.25s, background 0.25s, padding-left 0.25s;
+  }
+  .svc-row:last-child { border-bottom: none; }
+  .svc-num {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    color: rgba(184,255,0,0.5);
+    width: 24px;
+    flex-shrink: 0;
+  }
+  .svc-name { font-size: 15px; letter-spacing: 0.02em; flex: 1; }
+  .svc-arrow {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 13px;
+    color: var(--green);
+    opacity: 0;
+    transform: translateX(-6px);
+    transition: opacity 0.25s, transform 0.25s;
+  }
+  .svc-row:hover { color: var(--white); background: rgba(184,255,0,0.04); }
+  .svc-row.on { color: var(--white); background: rgba(184,255,0,0.07); padding-left: 32px; }
+  .svc-row.on .svc-num { color: var(--green); }
+  .svc-row.on .svc-arrow { opacity: 1; transform: translateX(0); }
+
+  .svc-demo {
+    background: rgba(13,13,13,0.92);
+    padding: 22px 28px 24px;
+    display: flex;
+    flex-direction: column;
+    /* жёсткая высота: контент демо не должен менять высоту панели,
+       иначе flex-строки списка съезжают под курсором → mouseenter
+       перескакивает на соседнюю услугу и демо дёргается по кругу */
+    height: 400px;
+    overflow: hidden;
+    contain: layout paint;
+  }
+  .svc-demo-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: var(--green);
+    margin-bottom: 12px;
+  }
+  .svc-live { animation: liveBlink 1.6s steps(2) infinite; }
+  @keyframes liveBlink { 50% { opacity: 0.25; } }
+  .svc-demo-desc {
+    font-size: 13px;
+    color: rgba(245,245,240,0.5);
+    line-height: 1.6;
+    margin-bottom: 14px;
+    min-height: 42px;
+  }
+  .svc-demo-body {
+    flex: 1;
+    position: relative;
+    border-top: 1px solid var(--mid);
+    padding: 18px 0 42px;
+    font-family: 'IBM Plex Mono', monospace;
+    overflow: hidden;
+  }
+
+  /* demo building blocks */
+  .d-row { display: flex; align-items: center; gap: 10px; }
+  .d-mono { font-size: 12px; letter-spacing: 0.04em; color: rgba(245,245,240,0.7); line-height: 1.8; }
+  .d-dim { color: rgba(245,245,240,0.35); }
+  .d-acc { color: var(--green); }
+  .d-foot {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(245,245,240,0.3);
+    border-top: 1px dashed rgba(255,255,255,0.1);
+    padding-top: 10px;
+  }
+  .d-step { display: flex; gap: 14px; align-items: flex-start; padding: 9px 0; opacity: 0.22; transition: opacity 0.5s; }
+  .d-step.on { opacity: 1; }
+  .d-dot { width: 8px; height: 8px; border: 1px solid var(--green); margin-top: 4px; flex-shrink: 0; transition: background 0.4s, box-shadow 0.4s; }
+  .d-step.on .d-dot { background: var(--green); box-shadow: 0 0 12px rgba(184,255,0,0.6); }
+  .d-step .d-mono { line-height: 1.4; }
+  .d-bubble {
+    max-width: 80%;
+    padding: 10px 14px;
+    font-size: 12.5px;
+    line-height: 1.55;
+    font-family: 'Schibsted Grotesk', sans-serif;
+    border: 1px solid var(--mid);
+    color: rgba(245,245,240,0.78);
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.4s, transform 0.4s;
+    margin-bottom: 10px;
+  }
+  .d-bubble.me { margin-left: auto; background: rgba(184,255,0,0.08); border-color: rgba(184,255,0,0.3); }
+  .d-bubble.show { opacity: 1; transform: none; }
+  .d-tabs { display: flex; gap: 8px; margin-bottom: 16px; flex-wrap: wrap; }
+  .d-tab {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(245,245,240,0.5);
+    background: none;
+    border: 1px solid var(--mid);
+    padding: 7px 12px;
+    transition: color 0.25s, border-color 0.25s, background 0.25s;
+  }
+  .d-tab:hover { border-color: rgba(184,255,0,0.5); color: var(--white); }
+  .d-tab.on { color: var(--black); background: var(--green); border-color: var(--green); }
+  .d-vtext { font-family: 'Schibsted Grotesk', sans-serif; font-size: 15px; line-height: 1.65; color: rgba(245,245,240,0.85); transition: opacity 0.3s; min-height: 76px; }
+  .d-node {
+    border: 1px solid var(--mid);
+    padding: 10px 12px;
+    font-size: 9.5px;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(245,245,240,0.6);
+    white-space: nowrap;
+    transition: border-color 0.3s, color 0.3s, background 0.3s;
+  }
+  .d-node.hot { border-color: var(--green); color: var(--green); background: rgba(184,255,0,0.06); }
+  .d-bar { height: 4px; background: var(--mid); position: relative; flex: 1; overflow: hidden; }
+  .d-bar i { position: absolute; top: 0; bottom: 0; left: 0; width: 0%; background: var(--green); transition: width 1.1s cubic-bezier(0.22, 1, 0.36, 1); }
+  .d-frame {
+    flex: 1;
+    aspect-ratio: 9 / 14;
+    max-height: 120px;
+    background: #161616;
+    border: 1px solid var(--mid);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: transparent;
+    font-size: 14px;
+    transition: border-color 0.4s, color 0.4s;
+    position: relative;
+    overflow: hidden;
+  }
+  /* shimmer через transform (композитный слой) — background-position
+     перерисовывал кадры каждый фрейм и страница дёргалась */
+  .d-frame::after {
+    content: '';
+    position: absolute;
+    top: 0; bottom: 0;
+    left: 0;
+    width: 55%;
+    background: linear-gradient(100deg, transparent, rgba(255,255,255,0.06), transparent);
+    transform: translateX(-110%);
+    animation: shimmer 1.6s linear infinite;
+    will-change: transform;
+  }
+  @keyframes shimmer { to { transform: translateX(300%); } }
+  .d-frame.done {
+    background: linear-gradient(135deg, rgba(184,255,0,0.16), rgba(184,255,0,0.03) 55%, #141414);
+    border-color: rgba(184,255,0,0.45);
+    color: var(--green);
+  }
+  .d-frame.done::after { display: none; }
+  .d-ab { display: flex; gap: 12px; }
+  .d-ad {
+    flex: 1;
+    border: 1px solid var(--mid);
+    padding: 12px 14px;
+    transition: border-color 0.4s, background 0.4s;
+  }
+  .d-ad.win { border-color: var(--green); background: rgba(184,255,0,0.05); }
+  .d-ad .d-adcopy { font-family: 'Schibsted Grotesk', sans-serif; font-size: 12.5px; line-height: 1.5; color: rgba(245,245,240,0.75); min-height: 38px; margin: 6px 0 10px; }
+
+  /* ===== MODEL ===== */
+  .model-panel {
+    background: var(--green);
+    padding: clamp(40px, 6vh, 72px) clamp(32px, 5vw, 72px);
+    display: grid;
+    grid-template-columns: 1fr 1.2fr;
+    gap: 64px;
+    align-items: center;
+  }
+
+  .model-panel .section-label { color: var(--black); margin-bottom: 24px; }
+  .model-panel .section-label::before { background: var(--black); }
+
+  .model-panel h2 {
+    font-family: 'Archivo', sans-serif;
+    font-stretch: 125%;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: clamp(26px, 3.4vw, 50px);
+    line-height: 1.1;
+    color: var(--black);
+  }
+
+  .model-right p {
+    font-size: 16px;
+    line-height: 1.7;
+    color: rgba(13,13,13,0.7);
+    margin-bottom: 16px;
+  }
+  .model-right p strong { color: var(--black); font-weight: 500; }
+
+  .model-points { list-style: none; margin-top: 28px; }
+
+  .model-points li {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    color: var(--black);
+    letter-spacing: 0.06em;
+    padding: 11px 0;
+    border-bottom: 1px solid rgba(13,13,13,0.15);
+    display: flex;
+    align-items: center;
+    gap: 14px;
+  }
+  .model-points li::before { content: '→'; font-size: 14px; flex-shrink: 0; }
+
+  /* ===== WHO ===== */
+  .who-h2 {
+    font-family: 'Archivo', sans-serif;
+    font-stretch: 125%;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: clamp(24px, 3vw, 44px);
+    line-height: 1.12;
+    color: var(--white);
+    margin-bottom: 48px;
+    max-width: 600px;
+  }
+
+  .who-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 28px;
+  }
+
+  .who-item {
+    padding: 32px;
+    border: 1px solid var(--mid);
+    position: relative;
+    background: rgba(13,13,13,0.55);
+  }
+
+  .who-item::before {
+    content: attr(data-n);
+    font-family: 'Archivo', sans-serif;
+    font-stretch: 125%;
+    font-weight: 800;
+    font-size: 40px;
+    color: rgba(184,255,0,0.08);
+    position: absolute;
+    top: 14px; right: 20px;
+    line-height: 1;
+  }
+
+  .who-item h3 {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--white);
+    margin-bottom: 12px;
+    max-width: 80%;
+  }
+
+  .who-item p {
+    font-size: 13.5px;
+    color: rgba(245,245,240,0.5);
+    line-height: 1.65;
+  }
+
+  /* ===== PARENT ===== */
+  .parent-inner {
+    text-align: center;
+    max-width: 640px;
+    margin: 0 auto;
+  }
+
+  .parent-inner img {
+    height: 96px;
+    width: auto;
+    margin-bottom: 40px;
+    opacity: 0.95;
+  }
+
+  .parent-inner p {
+    font-size: 16px;
+    color: rgba(245,245,240,0.55);
+    line-height: 1.75;
+  }
+
+  .parent-inner p a {
+    color: var(--green);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(184,255,0,0.3);
+    transition: border-color 0.25s;
+  }
+  .parent-inner p a:hover { border-color: var(--green); }
+
+  .parent-sign {
+    margin-top: 36px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    color: rgba(245,245,240,0.3);
+  }
+
+  /* ===== CTA FINAL ===== */
+  .cta-slide-inner { text-align: center; position: relative; }
+
+  .cta-bg {
+    content: '';
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%);
+    font-family: 'Archivo', sans-serif;
+    font-stretch: 125%;
+    font-weight: 900;
+    font-size: clamp(160px, 22vw, 380px);
+    line-height: 1;
+    color: transparent;
+    -webkit-text-stroke: 1px rgba(184,255,0,0.05);
+    pointer-events: none;
+    user-select: none;
+    z-index: 0;
+  }
+
+  .cta-slide-inner .section-label { justify-content: center; }
+  .cta-slide-inner .section-label::before { display: none; }
+
+  .cta-slide-inner h2 {
+    font-family: 'Archivo', sans-serif;
+    font-stretch: 125%;
+    font-weight: 800;
+    text-transform: uppercase;
+    font-size: clamp(30px, 4.4vw, 68px);
+    line-height: 1.08;
+    color: var(--white);
+    margin-bottom: 24px;
+    position: relative;
+    z-index: 1;
+  }
+  .cta-slide-inner h2 em { font-style: normal; color: var(--green); }
+
+  .cta-slide-inner > p {
+    font-size: 17px;
+    color: rgba(245,245,240,0.5);
+    max-width: 420px;
+    margin: 0 auto 44px;
+    line-height: 1.65;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cta-slide-inner .btn-primary {
+    font-size: 13px;
+    padding: 18px 48px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .cta-note {
+    margin-top: 20px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.18em;
+    text-transform: uppercase;
+    color: rgba(245,245,240,0.3);
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ===== FOOTER (inside last slide) ===== */
+  .footer-bar {
+    position: absolute;
+    left: 0; right: 0; bottom: 0;
+    padding: 24px 48px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-top: 1px solid rgba(255,255,255,0.07);
+    background: rgba(13,13,13,0.5);
+  }
+  html.mode-flat .footer-bar { position: relative; margin-top: 64px; }
+
+  .footer-bar p {
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px;
+    letter-spacing: 0.14em;
+    color: var(--muted);
+    text-transform: uppercase;
+  }
+  .footer-bar a { color: rgba(184,255,0,0.7); text-decoration: none; }
+  .footer-bar a:hover { color: var(--green); }
+
+  /* ===== Compact heights ===== */
+  @media (max-height: 760px) and (min-width: 901px) {
+    .slide-inner { padding-top: 90px; }
+    .hero-h1 { font-size: clamp(28px, 4.2vw, 58px); }
+    .hero-sub { margin-top: 22px; font-size: 16px; }
+    .hero-actions { margin-top: 30px; }
+    .svc-demo { height: 320px; }
+    .svc-row { min-height: 38px; }
+    .svc-demo-desc { display: none; }
+    .what-left p { font-size: 14.5px; }
+    .diff-item { padding: 16px 0; }
+    .model-points li { padding: 8px 0; }
+    .parent-inner img { height: 72px; }
+  }
+
+  /* ===== Mobile layout ===== */
+  @media (max-width: 900px) {
+    nav { padding: 14px 20px; }
+    nav.shrunk { top: 10px; left: 12px; right: 12px; padding: 9px 16px; }
+    .nav-logo img { height: 32px; }
+    nav.shrunk .nav-logo img { height: 26px; }
+    .nav-cta { padding: 9px 14px; }
+    .cta-full { display: none; }
+    .cta-short { display: inline; }
+    .rail, .counter { display: none !important; }
+    .scroll-hint { right: 20px; bottom: 20px; }
+    .slide-inner { padding: 96px 20px 56px; }
+    .hero-h1 { font-size: clamp(25px, 6.6vw, 38px); }
+    .hero-actions { flex-direction: column; align-items: flex-start; }
+    .what-grid, .model-panel { grid-template-columns: 1fr; gap: 40px; }
+    .svc-wrap { grid-template-columns: 1fr; }
+    .svc-row { min-height: 46px; }
+    .svc-demo { height: 380px; }
+    .services-head { flex-direction: column; align-items: flex-start; gap: 12px; }
+    .who-grid { grid-template-columns: 1fr; }
+    .footer-bar { flex-direction: column; gap: 10px; padding: 24px 20px; text-align: center; }
+    .cta-bg { font-size: 44vw; }
+  }
+  @media (max-width: 560px) {
+    .d-ab { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<div id="wipe" class="cover w-in noanim"></div>
+<canvas id="neural"></canvas>
+<div class="cursor-dot" id="cursorDot"></div>
+<div class="cursor-ring" id="cursorRing"></div>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#" id="navHome" aria-label="Fastline InfinitiQ">
+    <img src="assets/logo/LOGO.png" alt="Fastline InfinitiQ">
+  </a>
+  <a href="kontakt.html" class="nav-cta"><span class="cta-full">Umów briefing</span><span class="cta-short">Briefing</span></a>
+</nav>
+
+<!-- PROGRESS RAIL -->
+<div class="rail" id="rail" role="navigation" aria-label="Sekcje">
+  <button class="rail-item" data-i="0"><span class="rail-name">Start</span><span class="rail-tick"></span></button>
+  <button class="rail-item" data-i="1"><span class="rail-name">Czym jesteśmy</span><span class="rail-tick"></span></button>
+  <button class="rail-item" data-i="2"><span class="rail-name">Oferta</span><span class="rail-tick"></span></button>
+  <button class="rail-item" data-i="3"><span class="rail-name">Model</span><span class="rail-tick"></span></button>
+  <button class="rail-item" data-i="4"><span class="rail-name">Dla kogo</span><span class="rail-tick"></span></button>
+  <button class="rail-item" data-i="5"><span class="rail-name">Grupa</span><span class="rail-tick"></span></button>
+  <button class="rail-item" data-i="6"><span class="rail-name">Kontakt</span><span class="rail-tick"></span></button>
+</div>
+
+<div class="counter" id="counter"><span class="cur">01</span><span>/ 07</span></div>
+<div class="scroll-hint" id="scrollHint">Scroll</div>
+
+<!-- Scroll driver (3d mode) -->
+<div id="track"></div>
+
+<!-- STAGE -->
+<div id="stage">
+  <div id="drum">
+
+    <!-- 0 / HERO -->
+    <section class="slide" id="start">
+      <div class="hero-bg-text">INFINITI</div>
+      <div class="slide-inner hero-content">
+        <div class="hero-eyebrow rv rv1">★ AI-Native Agency — Retainer Only</div>
+        <h1 class="hero-h1 rv rv2">Nie używamy AI.<br>Myślimy <em>przez AI.</em></h1>
+        <p class="hero-sub rv rv3">
+          Fastline InfinitiQ to agencja zbudowana od zera wokół sztucznej inteligencji.
+          <strong>Nie wdrażamy AI do starych procesów.</strong>
+          Projektujemy strategie, treści i systemy komunikacji, które bez AI nie byłyby możliwe.
+        </p>
+        <div class="hero-actions rv rv4">
+          <a href="kontakt.html" class="btn-primary">Zacznij współpracę</a>
+          <a href="#czym-jestesmy" class="btn-ghost" data-goto="1">Dowiedz się więcej</a>
+        </div>
+      </div>
+      <div class="ticker">
+        <div class="ticker-inner">
+          <span class="ticker-item"><span>★</span> AI Strategy</span>
+          <span class="ticker-item"><span>★</span> Generative Content</span>
+          <span class="ticker-item"><span>★</span> Brand Voice AI</span>
+          <span class="ticker-item"><span>★</span> LLM Integration</span>
+          <span class="ticker-item"><span>★</span> Marketing Automation AI</span>
+          <span class="ticker-item"><span>★</span> CRM &amp; Sales AI</span>
+          <span class="ticker-item"><span>★</span> Performance Marketing AI</span>
+          <span class="ticker-item"><span>★</span> AI Video &amp; Visual Production</span>
+          <span class="ticker-item"><span>★</span> AI Strategy</span>
+          <span class="ticker-item"><span>★</span> Generative Content</span>
+          <span class="ticker-item"><span>★</span> Brand Voice AI</span>
+          <span class="ticker-item"><span>★</span> LLM Integration</span>
+          <span class="ticker-item"><span>★</span> Marketing Automation AI</span>
+          <span class="ticker-item"><span>★</span> CRM &amp; Sales AI</span>
+          <span class="ticker-item"><span>★</span> Performance Marketing AI</span>
+          <span class="ticker-item"><span>★</span> AI Video &amp; Visual Production</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 1 / WHAT -->
+    <section class="slide" id="czym-jestesmy">
+      <div class="slide-inner">
+        <div class="what-grid">
+          <div class="what-left">
+            <div class="section-label rv rv1">01 — Czym jesteśmy</div>
+            <h2 class="rv rv2">Agencja<br>AI-native.<br>Tylko.</h2>
+            <p class="rv rv3">
+              Większość agencji mówi, że „używa AI". My jesteśmy z AI zbudowani.
+              Każdy proces, każda strategia, każdy system komunikacji — zaprojektowane
+              z myślą o możliwościach, które AI otwiera, a nie tych, które ogranicza.
+            </p>
+            <p class="rv rv4">
+              To nie kwestia narzędzi. To fundamentalna różnica w sposobie myślenia
+              o marketingu, treści i brandzie w erze generatywnej.
+            </p>
+          </div>
+          <div class="what-right">
+            <div class="diff-item rv rv2">
+              <div class="diff-num">01</div>
+              <div class="diff-text">
+                <h3>AI-native, nie AI-assisted</h3>
+                <p>Nie doklejamy AI do sprawdzonych metod. Budujemy od zera modele operacyjne, w których AI jest rdzeniem, a nie dodatkiem.</p>
+              </div>
+            </div>
+            <div class="diff-item rv rv3">
+              <div class="diff-num">02</div>
+              <div class="diff-text">
+                <h3>Strategia, nie prompt-crafting</h3>
+                <p>Nasz wkład to architektura systemów komunikacji. Generatywna egzekucja jest ich konsekwencją, nie punktem wyjścia.</p>
+              </div>
+            </div>
+            <div class="diff-item rv rv4">
+              <div class="diff-num">03</div>
+              <div class="diff-text">
+                <h3>Wyłącznie retainer</h3>
+                <p>Pracujemy tylko w modelu długoterminowego partnerstwa. Prawdziwa transformacja AI zajmuje miesiące, nie tygodnie.</p>
+              </div>
+            </div>
+            <div class="diff-item rv rv5">
+              <div class="diff-num">04</div>
+              <div class="diff-text">
+                <h3>Danych, umysłu, egzekucji</h3>
+                <p>Data driven. Mind created. AI executed. Trzy filary każdego projektu — równoważne, wzajemnie zależne.</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2 / SERVICES -->
+    <section class="slide" id="oferta">
+      <div class="slide-inner">
+        <div class="services-head">
+          <div>
+            <div class="section-label rv rv1">02 — Obszary kompetencji</div>
+            <h2 class="rv rv2">To, co robimy.</h2>
+          </div>
+          <div class="svc-hint rv rv3">// wybierz usługę — przykład na żywo</div>
+        </div>
+        <div class="svc-wrap rv rv3">
+          <div class="svc-list" id="svcList">
+            <button class="svc-row" data-desc="Mapujemy potencjał AI dla Twojej marki i budujemy roadmapę transformacji komunikacyjnej.">
+              <span class="svc-num">01</span><span class="svc-name">AI Strategy</span><span class="svc-arrow">→</span>
+            </button>
+            <button class="svc-row" data-desc="Systemy produkcji treści w skali. Spójne, brandowane, wydajne — niemożliwe bez AI.">
+              <span class="svc-num">02</span><span class="svc-name">Generative Content</span><span class="svc-arrow">→</span>
+            </button>
+            <button class="svc-row" data-desc="Uczymy AI mówić głosem Twojej marki. Tworzmy modele językowe zasilone tożsamością brandu.">
+              <span class="svc-num">03</span><span class="svc-name">Brand Voice AI</span><span class="svc-arrow">→</span>
+            </button>
+            <button class="svc-row" data-desc="Wdrażamy duże modele językowe w procesy marketingowe, sprzedażowe i obsługi klienta.">
+              <span class="svc-num">04</span><span class="svc-name">LLM Integration</span><span class="svc-arrow">→</span>
+            </button>
+            <button class="svc-row" data-desc="Inteligentne lejki, personalizacja w czasie rzeczywistym, kampanie reagujące na dane.">
+              <span class="svc-num">05</span><span class="svc-name">Marketing Automation AI</span><span class="svc-arrow">→</span>
+            </button>
+            <button class="svc-row" data-desc="AI w procesach sprzedażowych: scoring, follow-upy, analiza pipeline'u i przewidywanie churnu.">
+              <span class="svc-num">06</span><span class="svc-name">CRM &amp; Sales AI</span><span class="svc-arrow">→</span>
+            </button>
+            <button class="svc-row" data-desc="Generatywne kreacje reklamowe, dynamiczny copy i optymalizacja kampanii prowadzona przez modele.">
+              <span class="svc-num">07</span><span class="svc-name">Performance Marketing AI</span><span class="svc-arrow">→</span>
+            </button>
+            <button class="svc-row" data-desc="Produkcja wideo i wizualizacji w skali. Od konceptu do dystrybucji — AI w każdym etapie.">
+              <span class="svc-num">08</span><span class="svc-name">AI Video &amp; Visual</span><span class="svc-arrow">→</span>
+            </button>
+          </div>
+          <div class="svc-demo">
+            <div class="svc-demo-head"><span id="svcDemoTitle">Demo</span><span class="svc-live">● live</span></div>
+            <p class="svc-demo-desc" id="svcDemoDesc"></p>
+            <div class="svc-demo-body" id="svcDemoBody"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3 / MODEL -->
+    <section class="slide" id="model">
+      <div class="slide-inner">
+        <div class="model-panel rv rv1">
+          <div class="model-left">
+            <div class="section-label">03 — Model współpracy</div>
+            <h2>Tylko<br>retainer.</h2>
+          </div>
+          <div class="model-right">
+            <p>
+              Nie realizujemy projektów jednorazowych. Nie dlatego, że nie chcemy — ale dlatego,
+              że <strong>prawdziwa wartość AI pojawia się w czasie</strong>. Systemy uczą się, modele dojrzewają,
+              strategie ewoluują.
+            </p>
+            <p>Wybieramy klientów z ambicją na lata, nie tygodnie.</p>
+            <ul class="model-points">
+              <li>Minimalny okres współpracy: 6 miesięcy</li>
+              <li>Dedykowany zespół AI — strategy + execution</li>
+              <li>Regularne przeglądy strategiczne i optymalizacje</li>
+              <li>Dostęp do nowych modeli AI natychmiast po premierze</li>
+              <li>Priorytetowy onboarding dla klientów Fastline Advertising</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4 / WHO -->
+    <section class="slide" id="dla-kogo">
+      <div class="slide-inner">
+        <div class="section-label rv rv1">04 — Dla kogo</div>
+        <h2 class="who-h2 rv rv2">Szukamy<br>konkretnych<br>partnerów.</h2>
+        <div class="who-grid">
+          <div class="who-item rv rv3" data-n="01">
+            <h3>CMO i Marketing Directorzy</h3>
+            <p>W firmach 50M+ PLN przychodu, którzy widzą AI jako zmianę strukturalną — nie taktyczny eksperyment.</p>
+          </div>
+          <div class="who-item rv rv4" data-n="02">
+            <h3>Scale-upy i firmy technologiczne</h3>
+            <p>Z dużym wolumenem komunikacji, potrzebą skali i otwartością na niekonwencjonalne podejście do brandu.</p>
+          </div>
+          <div class="who-item rv rv5" data-n="03">
+            <h3>Klienci Fastline Advertising</h3>
+            <p>Gotowi na następny poziom — z dotychczasową współpracy jako fundamentem zaufania i znajomości marki.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5 / PARENT -->
+    <section class="slide" id="grupa">
+      <div class="slide-inner">
+        <div class="parent-inner">
+          <img class="rv rv1" src="assets/Greywolf/logo_greywolf.png" alt="Greywolf Group">
+          <p class="rv rv2">
+            Fastline InfinitiQ jest częścią <a href="https://greywolfgroup.pl/" target="_blank" rel="noopener">Greywolf Group</a> — ekosystemu agencji
+            i kompetencji marketingowych budowanego z myślą o firmach, które chcą więcej niż standardowe usługi.
+            Działamy wspólnie tam, gdzie projekty wymagają synergii kompetencji.
+          </p>
+          <div class="parent-sign rv rv3">Parent company</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 6 / CTA -->
+    <section class="slide" id="kontakt">
+      <div class="slide-inner cta-slide-inner">
+        <div class="cta-bg">IQ</div>
+        <div class="section-label rv rv1">05 — Zacznij</div>
+        <h2 class="rv rv2">Gotowi<br>na <em>AI-native?</em></h2>
+        <p class="rv rv3">
+          Pierwsze spotkanie to briefing strategiczny — bez umów, bez zobowiązań.
+          Sprawdzamy, czy do siebie pasujemy.
+        </p>
+        <a href="kontakt.html" class="btn-primary rv rv4">Umów briefing strategiczny</a>
+        <div class="cta-note rv rv5">Odpowiadamy w 24h roboczych</div>
+      </div>
+      <div class="footer-bar">
+        <p>© 2026 Fastline InfinitiQ — <a href="https://greywolfgroup.pl/" target="_blank" rel="noopener">Greywolf Group</a></p>
+        <p>Data driven. Mind created. <span style="color: var(--green)">AI executed.</span></p>
+      </div>
+    </section>
+
+  </div>
+</div>
+
+<script>
+(() => {
+  'use strict';
+
+  /* ===== Mode detection =====
+     prefers-reduced-motion игнорируем сознательно (урок HORIN):
+     Windows с выключенными «эффектами анимации» репортит reduce
+     и юзер получил бы мёртвую статичную страницу.
+     Барабан слайдов работает везде; от типа указателя зависят только
+     курсор и реакция узлов на мышь. */
+  const COARSE = matchMedia('(hover: none), (pointer: coarse)').matches;
+  document.documentElement.classList.add('mode-3d');
+  if (COARSE) document.documentElement.classList.add('coarse');
+
+  const slides = Array.from(document.querySelectorAll('.slide'));
+  const inners = slides.map(s => s.querySelector('.slide-inner'));
+  const N = slides.length;
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+
+  /* ===== Page wipe transition ===== */
+  const wipe = document.getElementById('wipe');
+  requestAnimationFrame(() => requestAnimationFrame(() => {
+    wipe.classList.remove('noanim');
+    wipe.classList.remove('cover');
+  }));
+  addEventListener('pageshow', e => {
+    if (e.persisted) { wipe.classList.add('noanim'); wipe.classList.remove('cover', 'w-out'); wipe.classList.add('w-in'); }
+  });
+  document.querySelectorAll('a[href$=".html"]').forEach(a => {
+    a.addEventListener('click', e => {
+      if (e.metaKey || e.ctrlKey || e.shiftKey || e.altKey || a.target === '_blank') return;
+      e.preventDefault();
+      wipe.classList.remove('w-in');
+      wipe.classList.add('w-out', 'cover');
+      setTimeout(() => { location.href = a.getAttribute('href'); }, 680);
+    });
+  });
+
+  /* ===== Viewport (vh фиксируем — iOS toolbar дёргает innerHeight) ===== */
+  let lockedVh = innerHeight, lastW = innerWidth;
+  let vh = lockedVh, vw = innerWidth;
+
+  /* ===== Mouse ===== */
+  const mouse = { x: vw / 2, y: vh / 2, ix: vw / 2, iy: vh / 2, active: false };
+  addEventListener('mousemove', e => {
+    mouse.x = e.clientX; mouse.y = e.clientY; mouse.active = true;
+  }, { passive: true });
+  document.addEventListener('mouseleave', () => { mouse.active = false; });
+
+  /* ===== Custom cursor (только точный указатель) ===== */
+  const dot = document.getElementById('cursorDot');
+  const ring = document.getElementById('cursorRing');
+  let rx = vw / 2, ry = vh / 2;
+  if (!COARSE) {
+    document.addEventListener('mouseover', e => {
+      if (e.target.closest('a, button')) ring.classList.add('link');
+    });
+    document.addEventListener('mouseout', e => {
+      if (e.target.closest('a, button')) ring.classList.remove('link');
+    });
+  }
+
+  /* ===== Nav shrink ===== */
+  const navEl = document.querySelector('nav');
+  let navShrunk = false;
+  function updateNav() {
+    const s = scrollY > 40;
+    if (s !== navShrunk) { navShrunk = s; navEl.classList.toggle('shrunk', s); }
+  }
+
+  /* ===== 3D drum + внутренний докрут длинных слайдов ===== */
+  const track = document.getElementById('track');
+  const drum = document.getElementById('drum');
+  const FACE = 72; // deg between faces
+  let R = 0;
+  let extras = slides.map(() => 0); // лишняя высота контента сверх vh
+  let starts = [0];                  // scrollY, с которого начинается слайд
+  let maxScroll = 0;
+  let ySmooth = 0, lastApplied = -1, pSmooth = 0;
+
+  function measure() {
+    vh = lockedVh; vw = innerWidth;
+    R = (vh / 2) / Math.tan((FACE / 2) * Math.PI / 180);
+    drum.style.transform = `translateZ(${-R}px)`;
+    extras = slides.map((s, i) => {
+      let h = inners[i].offsetHeight;
+      const tick = s.querySelector('.ticker'); if (tick) h += tick.offsetHeight;
+      const fb = s.querySelector('.footer-bar'); if (fb) h += fb.offsetHeight;
+      const ex = Math.max(0, Math.ceil(h - vh));
+      s.classList.toggle('tall', ex > 0);
+      if (ex === 0) inners[i].style.transform = '';
+      return ex;
+    });
+    starts = [0];
+    for (let i = 0; i < N; i++) starts.push(starts[i] + vh + extras[i]);
+    maxScroll = starts[N - 1] + extras[N - 1];
+    track.innerHTML = '';
+    for (let i = 0; i < N; i++) {
+      const d = document.createElement('div');
+      d.className = 'snap';
+      d.style.height = (vh + extras[i]) + 'px';
+      track.appendChild(d);
+    }
+    lastApplied = -1;
+  }
+
+  function mapScroll(y) {
+    let i = 0;
+    while (i < N - 1 && y >= starts[i + 1]) i++;
+    const local = y - starts[i];
+    const flip = clamp((local - extras[i]) / vh, 0, 1);
+    return { i, flip };
+  }
+
+  /* ===== Rail / counter / hint ===== */
+  const railItems = Array.from(document.querySelectorAll('.rail-item'));
+  const counterCur = document.querySelector('#counter .cur');
+  const hint = document.getElementById('scrollHint');
+  let activeIdx = -1;
+
+  function goTo(i) {
+    scrollTo({ top: starts[i], behavior: 'smooth' });
+  }
+  railItems.forEach(b => b.addEventListener('click', () => goTo(+b.dataset.i)));
+  document.getElementById('navHome').addEventListener('click', e => { e.preventDefault(); goTo(0); });
+  document.querySelectorAll('[data-goto]').forEach(a => {
+    a.addEventListener('click', e => { e.preventDefault(); goTo(+a.dataset.goto); });
+  });
+
+  function setActive(idx) {
+    if (idx === activeIdx) return;
+    const first = activeIdx === -1;
+    activeIdx = idx;
+    railItems.forEach((b, i) => b.classList.toggle('on', i === idx));
+    counterCur.textContent = String(idx + 1).padStart(2, '0');
+    slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    fxIdx = idx;
+    if (!first) kickColumn(); // нейро-столп реагирует на смену слайда
+    if (idx === 2) startSvcAuto(); else stopSvcAuto();
+  }
+
+  function updateDrum() {
+    const yT = clamp(scrollY, 0, maxScroll);
+    ySmooth = lerp(ySmooth, yT, 0.14);
+    if (Math.abs(ySmooth - yT) < 0.3) ySmooth = yT;
+    // не пишем стили, когда барабан замер (урок HORIN: DOM-записи только при изменении)
+    if (ySmooth === lastApplied) return;
+    lastApplied = ySmooth;
+    const m = mapScroll(ySmooth);
+    const pF = m.i + m.flip;
+    pSmooth = pF;
+    for (let k = 0; k < N; k++) {
+      const d = k - pF;
+      const el = slides[k];
+      if (Math.abs(d) > 1.1) { el.classList.remove('shown'); continue; }
+      el.classList.add('shown');
+      el.style.transform = `rotateX(${(-d * FACE).toFixed(3)}deg) translateZ(${R.toFixed(1)}px)`;
+      el.style.opacity = (1 - clamp(Math.abs(d), 0, 1) * 0.85).toFixed(3);
+      if (extras[k] > 0) {
+        const off = clamp(ySmooth - starts[k], 0, extras[k]);
+        inners[k].style.transform = `translateY(${(-off).toFixed(1)}px)`;
+      }
+    }
+    setActive(m.flip > 0.5 ? Math.min(m.i + 1, N - 1) : m.i);
+    hint.classList.toggle('gone', scrollY > vh * 0.3);
+  }
+
+  /* ===== Interactive service demos ===== */
+  const svcRows = Array.from(document.querySelectorAll('.svc-row'));
+  const svcTitle = document.getElementById('svcDemoTitle');
+  const svcDesc = document.getElementById('svcDemoDesc');
+  const svcBody = document.getElementById('svcDemoBody');
+  const SVC_NAMES = svcRows.map(r => r.querySelector('.svc-name').textContent);
+
+  let demoTimers = [];
+  const dt = (fn, ms) => { const id = setTimeout(fn, ms); demoTimers.push(id); return id; };
+  const di = (fn, ms) => { const id = setInterval(fn, ms); demoTimers.push(id); return id; };
+  function el(tag, cls, html) {
+    const e = document.createElement(tag);
+    if (cls) e.className = cls;
+    if (html != null) e.innerHTML = html;
+    return e;
+  }
+  const foot = t => el('div', 'd-foot', t);
+  function typeTo(node, txt, sp, done) {
+    let i = 0;
+    const id = di(() => {
+      node.textContent = txt.slice(0, ++i);
+      if (i >= txt.length) { clearInterval(id); done && done(); }
+    }, sp);
+  }
+
+  function demoStrategy(b) {
+    const steps = [['Q1', 'Audyt danych i procesów'], ['Q2', 'Pilot: silnik treści AI'], ['Q3', 'Automatyzacja lejka'], ['Q4', 'Skala — operacje AI-native']];
+    const list = el('div');
+    const els = steps.map(([q, t]) => {
+      const s = el('div', 'd-step');
+      s.append(el('div', 'd-dot'), el('div', 'd-mono', `<span class="d-acc">${q}</span>&nbsp;&nbsp;${t}`));
+      list.append(s);
+      return s;
+    });
+    b.append(list, foot('roadmapa transformacji · 4 kwartały'));
+    let k = 0;
+    const cyc = () => {
+      if (k < els.length) { els[k++].classList.add('on'); }
+      else if (k === els.length) {
+        k++;
+        dt(() => { els.forEach(e => e.classList.remove('on')); k = 0; }, 1500);
+      }
+    };
+    cyc();
+    di(cyc, 900);
+  }
+
+  function demoGen(b) {
+    const prompt = el('div', 'd-mono');
+    const pr = el('span', 'd-acc');
+    prompt.append(el('span', 'd-dim', '&gt; brief:&nbsp;'), pr);
+    const out = el('div');
+    out.style.marginTop = '12px';
+    b.append(prompt, out, foot('3 warianty · 1,4 s · spójne z brand voice'));
+    const lines = ['„Zima należy do odważnych."', '„Ciepło, które wygląda jak projekt."', '„FW26 — na temperatury i spojrzenia."'];
+    typeTo(pr, 'premiera kolekcji FW26 — ton: pewny, minimal', 24, () => {
+      lines.forEach((t, i) => dt(() => {
+        const l = el('div', 'd-mono');
+        l.innerHTML = `<span class="d-acc">H${i + 1}</span>&nbsp;&nbsp;`;
+        const sp = el('span');
+        l.append(sp);
+        out.append(l);
+        typeTo(sp, t, 13);
+      }, 400 + i * 700));
+      dt(() => { b.innerHTML = ''; demoGen(b); }, 400 + 3 * 700 + 3000);
+    });
+  }
+
+  function demoVoice(b) {
+    const tones = [
+      ['Korporacyjny', 'Szanowni Państwo, z przyjemnością informujemy o premierze nowej kolekcji.'],
+      ['Social', 'Drop jest. Nowa kolekcja właśnie wylądowała — leć, zanim zniknie.'],
+      ['Twój brand', 'Nowa kolekcja. Bez kompromisów — dokładnie tak, jak lubisz.']
+    ];
+    const tabs = el('div', 'd-tabs');
+    const txt = el('div', 'd-vtext');
+    let cur = 0, paused = false;
+    const tabEls = tones.map(([t], i) => {
+      const tb = el('button', 'd-tab', t);
+      tb.addEventListener('click', () => { paused = true; show(i); });
+      tabs.append(tb);
+      return tb;
+    });
+    function show(i) {
+      cur = i;
+      tabEls.forEach((t, k) => t.classList.toggle('on', k === i));
+      txt.style.opacity = 0;
+      dt(() => { txt.textContent = tones[i][1]; txt.style.opacity = 1; }, 240);
+    }
+    b.append(tabs, txt, foot('jeden komunikat · trzy głosy · 100% spójności'));
+    show(0);
+    di(() => { if (!paused) show((cur + 1) % tones.length); }, 2600);
+  }
+
+  function demoLLM(b) {
+    const chat = el('div');
+    b.append(chat, foot('asystent na danych marki · 24/7'));
+    const seq = [
+      ['me', 'Macie ten model w rozmiarze M?'],
+      ['ai', 'Tak — ostatnie 3 sztuki. Rezerwuję na 30 minut?'],
+      ['me', 'Poproszę.'],
+      ['ai', 'Zarezerwowane ✓ Link do płatności już u Ciebie.']
+    ];
+    function run() {
+      chat.innerHTML = '';
+      let delay = 300;
+      seq.forEach(([who, t]) => {
+        dt(() => {
+          const bb = el('div', 'd-bubble' + (who === 'me' ? ' me' : ''), t);
+          chat.append(bb);
+          requestAnimationFrame(() => bb.classList.add('show'));
+        }, delay);
+        delay += who === 'ai' ? 1600 : 1100;
+      });
+      dt(run, delay + 2400);
+    }
+    run();
+  }
+
+  function demoAuto(b) {
+    const flow = el('div', 'd-row');
+    flow.style.cssText = 'gap:8px;flex-wrap:wrap;';
+    const nodes = ['Nowy lead', 'Scoring AI', 'Segment', 'Kampania 1:1'].map(t => el('div', 'd-node', t));
+    nodes.forEach((n, i) => {
+      flow.append(n);
+      if (i < nodes.length - 1) flow.append(el('span', 'd-acc', '→'));
+    });
+    const stats = el('div', 'd-mono');
+    stats.style.marginTop = '18px';
+    let leads = 214, hot = 38, conv = 12, k = 0;
+    const paint = () => {
+      stats.innerHTML = `leady: <span class="d-acc">${leads}</span> · hot: <span class="d-acc">${hot}</span> · konwersje: <span class="d-acc">${conv}</span>`;
+    };
+    paint();
+    b.append(flow, stats, foot('lejek pracuje sam · realtime'));
+    di(() => {
+      nodes.forEach((n, i) => n.classList.toggle('hot', i === k % nodes.length));
+      if (k % nodes.length === nodes.length - 1) {
+        leads += 1 + Math.floor(Math.random() * 3);
+        hot += 1;
+        if (k % (nodes.length * 2) === nodes.length * 2 - 1) conv += 1;
+        paint();
+      }
+      k++;
+    }, 650);
+  }
+
+  function demoCRM(b) {
+    const data = [['Anna · TechCo', 92], ['Marek · RetailX', 61], ['Julia · FinApp', 34]];
+    const rows = data.map(([name, score], i) => {
+      const r = el('div', 'd-row');
+      r.style.cssText = 'gap:14px;margin-bottom:14px;';
+      const nm = el('span', 'd-mono', name);
+      nm.style.cssText = 'width:42%;flex-shrink:0;font-size:11.5px;';
+      const bar = el('div', 'd-bar');
+      const fill = el('i');
+      bar.append(fill);
+      const sc = el('span', 'd-mono d-dim', '0');
+      sc.style.cssText = 'width:54px;text-align:right;font-size:11.5px;';
+      r.append(nm, bar, sc);
+      b.append(r);
+      return { fill, sc, score, nm, hot: i === 0 };
+    });
+    const ft = foot('');
+    b.append(ft);
+    rows.forEach(({ fill, sc, score, nm, hot }) => {
+      dt(() => { fill.style.width = score + '%'; }, 200);
+      let v = 0;
+      const id = di(() => {
+        v = Math.min(score, v + 3);
+        sc.textContent = v + (hot && v === score ? ' · HOT' : '');
+        if (v >= score) {
+          clearInterval(id);
+          if (hot) { sc.classList.add('d-acc'); sc.classList.remove('d-dim'); nm.classList.add('d-acc'); }
+        }
+      }, 36);
+    });
+    dt(() => {
+      const sp = el('span');
+      ft.append(sp);
+      typeTo(sp, 'AI: follow-up do Anny dziś 14:00 · szansa 87%', 22);
+    }, 1500);
+    dt(() => { b.innerHTML = ''; demoCRM(b); }, 7200);
+  }
+
+  function demoPerf(b) {
+    const ab = el('div', 'd-ab');
+    const mk = (label, copy) => {
+      const card = el('div', 'd-ad');
+      card.append(el('div', 'd-mono d-dim', label), el('div', 'd-adcopy', copy));
+      const ctr = el('div', 'd-mono', 'CTR: <span class="d-dim">0,0%</span>');
+      card.append(ctr);
+      ab.append(card);
+      return { card, ctr };
+    };
+    const A = mk('Wariant A', 'Kup teraz — dostawa w 24h.');
+    const B = mk('Wariant B', 'Zostały 3 sztuki. Dziś dostawa gratis.');
+    const ft = foot('');
+    b.append(ab, ft);
+    let a = 0, bb = 0;
+    const id = di(() => {
+      a = Math.min(1.2, a + 0.06);
+      bb = Math.min(3.8, bb + 0.19);
+      A.ctr.innerHTML = `CTR: <span class="d-dim">${a.toFixed(1).replace('.', ',')}%</span>`;
+      B.ctr.innerHTML = `CTR: <span class="d-acc">${bb.toFixed(1).replace('.', ',')}%</span>`;
+      if (bb >= 3.8) {
+        clearInterval(id);
+        B.card.classList.add('win');
+        ft.innerHTML = '→ wygrywa <span class="d-acc">wariant B</span> · ROAS 4,7×';
+      }
+    }, 90);
+    dt(() => { b.innerHTML = ''; demoPerf(b); }, 8000);
+  }
+
+  function demoVideo(b) {
+    const row = el('div', 'd-row');
+    row.style.gap = '10px';
+    const frames = [0, 1, 2, 3].map(() => {
+      const f = el('div', 'd-frame', '▶');
+      row.append(f);
+      return f;
+    });
+    const prog = el('div', 'd-mono');
+    prog.style.marginTop = '14px';
+    b.append(row, prog, foot('4 ujęcia · 12 s · 9:16 · brand-safe'));
+    let p = 0;
+    const id = di(() => {
+      p = Math.min(100, p + 2);
+      const blocks = Math.round(p / 100 * 14);
+      prog.innerHTML = `render: <span class="d-acc">${'█'.repeat(blocks)}</span><span class="d-dim">${'░'.repeat(14 - blocks)}</span> ${p}%`;
+      frames.forEach((f, i) => { if (p >= (i + 1) * 25) f.classList.add('done'); });
+      if (p >= 100) clearInterval(id);
+    }, 70);
+    dt(() => { b.innerHTML = ''; demoVideo(b); }, 7400);
+  }
+
+  const DEMOS = [demoStrategy, demoGen, demoVoice, demoLLM, demoAuto, demoCRM, demoPerf, demoVideo];
+
+  let svcIdx = -1, svcAutoId = null, svcTouched = false;
+  function selectSvc(i, user) {
+    if (user) { svcTouched = true; stopSvcAuto(); }
+    if (i === svcIdx) return;
+    svcIdx = i;
+    svcRows.forEach((r, k) => r.classList.toggle('on', k === i));
+    svcTitle.textContent = `Demo — 0${i + 1} / ${SVC_NAMES[i]}`;
+    svcDesc.textContent = svcRows[i].dataset.desc;
+    demoTimers.forEach(id => { clearTimeout(id); clearInterval(id); });
+    demoTimers = [];
+    svcBody.innerHTML = '';
+    DEMOS[i](svcBody);
+  }
+  function startSvcAuto() {
+    if (svcTouched || svcAutoId) return;
+    svcAutoId = setInterval(() => selectSvc((svcIdx + 1) % SVC_NAMES.length, false), 5200);
+  }
+  function stopSvcAuto() {
+    if (svcAutoId) { clearInterval(svcAutoId); svcAutoId = null; }
+  }
+  let svcHoverT = null;
+  svcRows.forEach((r, i) => {
+    r.addEventListener('click', () => selectSvc(i, true));
+    // debounce: пролёт мыши по списку не должен щёлкать демо подряд
+    r.addEventListener('mouseenter', () => {
+      if (COARSE) return;
+      clearTimeout(svcHoverT);
+      svcHoverT = setTimeout(() => selectSvc(i, true), 120);
+    });
+    r.addEventListener('mouseleave', () => clearTimeout(svcHoverT));
+  });
+  selectSvc(0, false);
+
+  /* ===== Neural column canvas ===== */
+  const canvas = document.getElementById('neural');
+  const ctx = canvas.getContext('2d');
+  const DPR = Math.min(devicePixelRatio || 1, 2);
+
+  const COUNT = COARSE ? 90 : 150;
+  const nodes = [];
+  function buildNodes() {
+    nodes.length = 0;
+    for (let i = 0; i < COUNT; i++) {
+      const t = i / COUNT;
+      nodes.push({
+        a: i * 2.39996,                       // golden angle helix
+        y: (t - 0.5),                          // -0.5..0.5 (scaled later)
+        rr: 0.78 + 0.3 * Math.sin(i * 1.7),    // radius variation
+        ph: Math.random() * Math.PI * 2,       // pulse phase
+        ox: 0, oy: 0,                          // mouse offsets
+        sx: 0, sy: 0, depth: 0                 // projected (filled per frame)
+      });
+    }
+  }
+  buildNodes();
+
+  function sizeCanvas() {
+    canvas.width = vw * DPR;
+    canvas.height = vh * DPR;
+    canvas.style.width = vw + 'px';
+    canvas.style.height = vh + 'px';
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  const pulses = []; // signals travelling along links
+
+  /* ===== Column reacts to slides =====
+     cx — позиция по X, r — множитель радиуса, tint — 0 зелёный / 1 золотой (Greywolf),
+     dim — приглушение (зелёный MODEL-слайд), ex — «возбуждение» (частота импульсов) */
+  const SLIDE_FX = [
+    { cx: 0.70, r: 1.00, tint: 0, dim: 0,    ex: 1.0 }, // hero
+    { cx: 0.78, r: 0.80, tint: 0, dim: 0,    ex: 1.0 }, // czym jesteśmy — узкий, у правого края
+    { cx: 0.72, r: 1.18, tint: 0, dim: 0,    ex: 1.6 }, // oferta — широкая сеть, живее
+    { cx: 0.70, r: 1.00, tint: 0, dim: 0.65, ex: 0.5 }, // model — приглушён за зелёной панелью
+    { cx: 0.74, r: 0.55, tint: 0, dim: 0,    ex: 1.0 }, // dla kogo — тугой луч
+    { cx: 0.50, r: 0.95, tint: 1, dim: 0,    ex: 0.8 }, // greywolf — в центр + золотой
+    { cx: 0.50, r: 1.28, tint: 0, dim: 0,    ex: 2.6 }, // CTA — широкий, разогнанный
+  ];
+  let fxIdx = 0;
+  const fx = { cx: COARSE ? 0.5 : 0.70, r: 1, tint: 0, dim: 0, ex: 1 };
+  let surge = 0, rotKick = 0, rotExtra = 0;
+
+  function kickColumn() {
+    surge = 1;
+    rotKick += 0.012;
+    for (let k = 0; k < 10 && pulses.length < 26; k++) {
+      const i = Math.floor(Math.random() * (COUNT - 4));
+      pulses.push({ i, j: i + 1 + Math.floor(Math.random() * 3), t: 0, sp: 0.02 + Math.random() * 0.025 });
+    }
+  }
+
+  function drawNeural(time) {
+    ctx.clearRect(0, 0, vw, vh);
+
+    // плавный перелёт столпа к параметрам текущего слайда
+    const tg = SLIDE_FX[fxIdx] || SLIDE_FX[0];
+    fx.cx = lerp(fx.cx, COARSE ? (tg.cx === 0.5 ? 0.5 : 0.62) : tg.cx, 0.05);
+    fx.r = lerp(fx.r, tg.r, 0.05);
+    fx.tint = lerp(fx.tint, tg.tint, 0.05);
+    fx.dim = lerp(fx.dim, tg.dim, 0.07);
+    fx.ex = lerp(fx.ex, tg.ex, 0.05);
+    rotExtra += rotKick; rotKick *= 0.95;
+    surge *= 0.965;
+
+    // цвет: зелёный → золото Greywolf
+    const cr = Math.round(lerp(184, 214, fx.tint));
+    const cg = Math.round(lerp(255, 182, fx.tint));
+    const cb = Math.round(lerp(0, 107, fx.tint));
+
+    const cx = vw * fx.cx;
+    const cy = vh * 0.5;
+    const baseR = Math.min(vw, vh) * (COARSE ? 0.34 : 0.26) * fx.r;
+    const H = vh * 1.5;
+    const f = 900;
+    const rot = pSmooth * 1.1 + time * 0.00004 + rotExtra;
+
+    // project
+    for (const n of nodes) {
+      const ang = n.a + rot;
+      const r3 = baseR * n.rr;
+      const x3 = Math.cos(ang) * r3;
+      const z3 = Math.sin(ang) * r3;
+      const s = f / (f + z3 + baseR * 1.4);
+      let sx = cx + x3 * s;
+      let sy = cy + n.y * H * s;
+
+      // mouse repulsion (точный указатель)
+      if (!COARSE && mouse.active) {
+        const dx = sx + n.ox - mouse.x, dy = sy + n.oy - mouse.y;
+        const d2 = dx * dx + dy * dy;
+        const RAD = 150;
+        if (d2 < RAD * RAD && d2 > 1) {
+          const d = Math.sqrt(d2);
+          const force = (1 - d / RAD) * 16;
+          n.ox += (dx / d) * force * 0.18;
+          n.oy += (dy / d) * force * 0.18;
+        }
+      }
+      n.ox *= 0.88; n.oy *= 0.88;
+      n.sx = sx + n.ox;
+      n.sy = sy + n.oy;
+      n.depth = clamp(1 - (z3 + baseR) / (2 * baseR), 0, 1); // 1 = front
+    }
+
+    const dimK = (1 - fx.dim) * (1 + surge * 0.55);
+
+    // links between close nodes
+    const L = Math.min(120, Math.max(80, vw * 0.07));
+    const L2 = L * L;
+    ctx.lineWidth = 1;
+    const spawnP = 0.0015 * fx.ex;
+    for (let i = 0; i < COUNT; i++) {
+      const a = nodes[i];
+      for (let j = i + 1; j < COUNT; j++) {
+        const b = nodes[j];
+        const dx = a.sx - b.sx, dy = a.sy - b.sy;
+        const d2 = dx * dx + dy * dy;
+        if (d2 > L2) continue;
+        const near = 1 - Math.sqrt(d2) / L;
+        const dep = (a.depth + b.depth) * 0.5;
+        const alpha = near * (0.06 + dep * 0.22) * dimK;
+        ctx.strokeStyle = `rgba(${cr},${cg},${cb},${alpha.toFixed(3)})`;
+        ctx.beginPath();
+        ctx.moveTo(a.sx, a.sy);
+        ctx.lineTo(b.sx, b.sy);
+        ctx.stroke();
+        // spawn travelling signal occasionally
+        if (pulses.length < 14 && Math.random() < spawnP) {
+          pulses.push({ i, j, t: 0, sp: 0.018 + Math.random() * 0.02 });
+        }
+      }
+    }
+
+    // mouse synapses — cursor joins the network
+    if (!COARSE && mouse.active) {
+      const MR = 180, MR2 = MR * MR;
+      for (const n of nodes) {
+        const dx = n.sx - mouse.ix, dy = n.sy - mouse.iy;
+        const d2 = dx * dx + dy * dy;
+        if (d2 > MR2) continue;
+        const near = 1 - Math.sqrt(d2) / MR;
+        ctx.strokeStyle = `rgba(245,245,240,${(near * 0.22 * Math.min(1, dimK)).toFixed(3)})`;
+        ctx.beginPath();
+        ctx.moveTo(mouse.ix, mouse.iy);
+        ctx.lineTo(n.sx, n.sy);
+        ctx.stroke();
+      }
+    }
+
+    // travelling pulses
+    for (let k = pulses.length - 1; k >= 0; k--) {
+      const p = pulses[k];
+      p.t += p.sp;
+      if (p.t >= 1) { pulses.splice(k, 1); continue; }
+      const a = nodes[p.i], b = nodes[p.j];
+      const x = lerp(a.sx, b.sx, p.t);
+      const y = lerp(a.sy, b.sy, p.t);
+      const tw = Math.sin(p.t * Math.PI);
+      ctx.fillStyle = `rgba(${cr},${cg},${cb},${Math.min(1, tw * 0.9 * dimK).toFixed(3)})`;
+      ctx.beginPath();
+      ctx.arc(x, y, 1.6 + tw * 1.4, 0, Math.PI * 2);
+      ctx.fill();
+    }
+
+    // nodes
+    const flickSpeed = 0.0011 * (1 + (fx.ex - 1) * 0.4);
+    for (const n of nodes) {
+      const flicker = 0.65 + 0.35 * Math.sin(time * flickSpeed + n.ph);
+      const a = Math.min(1, (0.12 + n.depth * 0.55) * flicker * dimK);
+      const sz = 1 + n.depth * 1.8;
+      ctx.fillStyle = n.ph % 1 < 0.22
+        ? `rgba(${cr},${cg},${cb},${a.toFixed(3)})`
+        : `rgba(245,245,240,${(a * 0.8).toFixed(3)})`;
+      ctx.beginPath();
+      ctx.arc(n.sx, n.sy, sz, 0, Math.PI * 2);
+      ctx.fill();
+    }
+  }
+
+  /* ===== Main loop ===== */
+  function frame(time) {
+    // mouse easing (shared by canvas + cursor)
+    mouse.ix = lerp(mouse.ix, mouse.x, 0.2);
+    mouse.iy = lerp(mouse.iy, mouse.y, 0.2);
+
+    updateNav();
+    updateDrum();
+
+    if (!COARSE) {
+      dot.style.transform = `translate(${mouse.x}px, ${mouse.y}px) translate(-50%, -50%)`;
+      rx = lerp(rx, mouse.x, 0.16);
+      ry = lerp(ry, mouse.y, 0.16);
+      ring.style.transform = `translate(${rx}px, ${ry}px) translate(-50%, -50%)`;
+    }
+
+    drawNeural(time);
+    requestAnimationFrame(frame);
+  }
+
+  /* ===== Init ===== */
+  measure();
+  sizeCanvas();
+  // перемер после шрифтов и полной загрузки (высоты слайдов меняются)
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => measure());
+  addEventListener('load', () => measure());
+  addEventListener('resize', () => {
+    // iOS toolbar дёргает innerHeight — пересобираем только при реальном изменении
+    if (innerWidth !== lastW || Math.abs(innerHeight - lockedVh) > 120) {
+      lastW = innerWidth;
+      lockedVh = innerHeight;
+      const cur = Math.max(0, activeIdx);
+      measure();
+      sizeCanvas();
+      scrollTo(0, starts[cur]);
+    }
+  });
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>
