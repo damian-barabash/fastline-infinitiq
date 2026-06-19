@@ -3,7 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Fastline InfinitiQ — AI-Native Agency</title>
+<title>Edytor — Fastline InfinitiQ</title>
+<meta name="robots" content="noindex, nofollow">
 <meta name="description" content="Fastline InfinitiQ to agencja zbudowana od zera wokół sztucznej inteligencji. Nie wdrażamy AI do starych procesów — projektujemy strategie, treści i systemy komunikacji, które bez AI nie byłyby możliwe.">
 <link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="assets/favicon/favicon-192.png">
@@ -1025,9 +1026,146 @@
   @media (max-width: 560px) {
     .d-ab { flex-direction: column; }
   }
+
+  /* ============ РЕДАКТОР (накладка) ============ */
+  html.mode-flat, html.mode-flat body { cursor: auto; }
+  html.mode-flat body { padding-bottom: 96px; }
+
+  /* подсветка редактируемого текста */
+  body.fiq-edit [data-edit]:not([data-edit-type="image"]) {
+    outline: 1px dashed rgba(184,255,0,0.28);
+    outline-offset: 3px;
+    border-radius: 2px;
+    cursor: text;
+    transition: outline-color .15s, background .15s;
+  }
+  body.fiq-edit [data-edit]:not([data-edit-type="image"]):hover {
+    outline-color: rgba(184,255,0,0.7);
+    background: rgba(184,255,0,0.05);
+  }
+  body.fiq-edit [data-edit][contenteditable="true"]:focus {
+    outline: 1px solid var(--green);
+    background: rgba(184,255,0,0.08);
+  }
+
+  /* лого / картинки — клик заменяет файл */
+  body.fiq-edit [data-edit-type="image"] {
+    cursor: pointer;
+    outline: 1px dashed rgba(184,255,0,0.45);
+    outline-offset: 5px;
+    transition: outline .15s;
+  }
+  body.fiq-edit [data-edit-type="image"]:hover { outline: 2px solid var(--green); }
+
+  /* ссылки внутри редактора не навигируют (клик = правка), но editable остаются активны */
+  body.fiq-edit a { pointer-events: none; }
+  body.fiq-edit [data-edit] { pointer-events: auto; }
+
+  /* секцию Oferta в редакторе показываем как список с описаниями (демо-панель скрыта) */
+  body.fiq-edit .svc-demo { display: none; }
+  body.fiq-edit .svc-wrap { grid-template-columns: 1fr; }
+  body.fiq-edit .svc-row {
+    flex-direction: column; align-items: flex-start;
+    min-height: auto; padding: 16px 24px; gap: 6px; cursor: default;
+  }
+  body.fiq-edit .svc-row .svc-arrow { display: none; }
+  body.fiq-edit .svc-row .svc-num { color: var(--green); }
+  body.fiq-edit .svc-name { flex: none; }
+  body.fiq-edit .svc-desc {
+    display: block; flex: none;
+    font-size: 13px; line-height: 1.55;
+    color: rgba(245,245,240,0.55);
+  }
+
+  /* нижняя панель сохранения */
+  #fiqBar {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 6000;
+    display: flex; align-items: center; gap: 18px;
+    padding: 12px 24px;
+    background: rgba(16,16,16,0.92);
+    backdrop-filter: blur(20px) saturate(140%);
+    -webkit-backdrop-filter: blur(20px) saturate(140%);
+    border-top: 1px solid rgba(184,255,0,0.18);
+    font-family: 'IBM Plex Mono', monospace;
+  }
+  #fiqBar .fiq-brand {
+    font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase;
+    color: rgba(245,245,240,0.45);
+  }
+  #fiqStatus {
+    display: flex; align-items: center; gap: 9px;
+    font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase;
+    color: rgba(245,245,240,0.8);
+  }
+  #fiqStatus .dot { width: 9px; height: 9px; border-radius: 50%; background: #888; flex-shrink: 0; }
+  #fiqStatus.saved  .dot { background: var(--green); box-shadow: 0 0 10px rgba(184,255,0,.6); }
+  #fiqStatus.draft  .dot { background: #ffb020; box-shadow: 0 0 10px rgba(255,176,32,.55); }
+  #fiqStatus.dirty  .dot { background: #ff5470; box-shadow: 0 0 10px rgba(255,84,112,.55); }
+  #fiqStatus.saving .dot { background: var(--green); animation: fiqPulse .8s infinite; }
+  @keyframes fiqPulse { 50% { opacity: .25; } }
+  #fiqBar .fiq-spacer { flex: 1; }
+  #fiqBar .fiq-user { font-size: 10px; letter-spacing: .06em; color: rgba(245,245,240,0.35); }
+  .fiq-btn {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    letter-spacing: 0.14em; text-transform: uppercase;
+    padding: 11px 22px; border: 1px solid rgba(255,255,255,0.2);
+    background: transparent; color: var(--white); cursor: pointer;
+    transition: border-color .2s, color .2s, background .2s, box-shadow .2s, transform .2s;
+  }
+  .fiq-btn:hover { border-color: var(--green); color: var(--green); transform: translateY(-1px); }
+  .fiq-btn:disabled { opacity: .4; cursor: default; transform: none; }
+  .fiq-btn.primary { background: var(--green); color: var(--black); border-color: var(--green); }
+  .fiq-btn.primary:hover { box-shadow: 0 0 22px rgba(184,255,0,.45); color: var(--black); }
+  .fiq-btn.logout { border: none; color: rgba(245,245,240,0.4); padding: 11px 12px; }
+  .fiq-btn.logout:hover { color: #ff5470; transform: none; }
+
+  @media (max-width: 760px) {
+    #fiqBar { flex-wrap: wrap; gap: 10px; padding: 10px 14px; }
+    #fiqBar .fiq-brand, #fiqBar .fiq-user { display: none; }
+    #fiqBar .fiq-spacer { display: none; }
+    #fiqStatus { flex-basis: 100%; }
+    .fiq-btn { padding: 10px 14px; font-size: 10px; flex: 1; }
+    .fiq-btn.logout { flex: 0; }
+  }
+
+  /* загрузочный / auth-экран */
+  #fiqGate {
+    position: fixed; inset: 0; z-index: 7000; background: var(--black);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    letter-spacing: 0.2em; text-transform: uppercase; color: rgba(245,245,240,0.5);
+  }
+  #fiqGate.hidden { display: none; }
+
+  /* тост */
+  #fiqToast {
+    position: fixed; left: 50%; bottom: 104px; transform: translateX(-50%) translateY(20px);
+    z-index: 6500; padding: 12px 22px;
+    background: rgba(16,16,16,0.96); border: 1px solid rgba(184,255,0,0.45);
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .06em;
+    color: var(--white); opacity: 0; pointer-events: none;
+    transition: opacity .3s, transform .3s;
+  }
+  #fiqToast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+  #fiqToast.err { border-color: #ff5470; }
+
 </style>
 </head>
 <body>
+
+<!-- ===== РЕДАКТОР: оверлеи и панель ===== -->
+<div id="fiqGate">Ładowanie edytora…</div>
+<input type="file" id="fiqFile" accept="image/*" style="display:none">
+<div id="fiqToast"></div>
+<div id="fiqBar" style="display:none">
+  <span class="fiq-brand">InfinitiQ · Edytor</span>
+  <span id="fiqStatus" class="saved"><span class="dot"></span><span id="fiqStatusText">Zapisano</span></span>
+  <span class="fiq-spacer"></span>
+  <span class="fiq-user" id="fiqUser"></span>
+  <button class="fiq-btn" id="fiqSaveDraft">Zapisz jako wersję roboczą</button>
+  <button class="fiq-btn primary" id="fiqSave">Zapisz</button>
+  <button class="fiq-btn logout" id="fiqLogout" title="Wyloguj się">Wyloguj</button>
+</div>
 
 <div id="wipe" class="cover w-in noanim"></div>
 <canvas id="neural"></canvas>
@@ -1294,6 +1432,11 @@
      и юзер получил бы мёртвую статичную страницу.
      Барабан слайдов работает везде; от типа указателя зависят только
      курсор и реакция узлов на мышь. */
+  // === РЕДАКТОР: плоский режим, без 3D-движка / перехвата скролла / курсора ===
+  document.documentElement.classList.add('mode-flat');
+  const _wipe = document.getElementById('wipe'); if (_wipe) _wipe.remove();
+  return; // ниже — движок лендинга, в редакторе не исполняется
+  /* eslint-disable */
   const COARSE = matchMedia('(hover: none), (pointer: coarse)').matches;
   document.documentElement.classList.add('mode-3d');
   if (COARSE) document.documentElement.classList.add('coarse');
@@ -1953,41 +2096,147 @@
 })();
 </script>
 
-<!-- ===== Подгрузка опубликованного контента из Supabase (CMS) ===== -->
+<!-- ===== Supabase + логика редактора ===== -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
 (() => {
   'use strict';
   const SB_URL = 'https://ogxajgbrbkfwsactlsyj.supabase.co';
   const SB_KEY = 'sb_publishable_LIxIzg1U34aKQ-wXBSaDHg_xzv8SyMM';
-  if (!window.supabase) return;
-  const sb = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: false } });
 
-  function apply(content) {
-    if (!content || typeof content !== 'object') return;
-    let changed = false;
-    document.querySelectorAll('[data-edit]').forEach(el => {
-      const key = el.getAttribute('data-edit');
-      if (!(key in content)) return;
-      const val = content[key];
-      if (val == null) return;
-      const type = el.getAttribute('data-edit-type');
-      if (type === 'image') {
-        if (el.tagName === 'IMG' && val) { el.src = val; changed = true; }
-      } else if (type === 'html') {
-        el.innerHTML = val; changed = true;
-      } else {
-        el.textContent = val; changed = true;
-      }
-    });
-    if (changed && typeof window.fiqRemeasure === 'function') {
-      requestAnimationFrame(() => window.fiqRemeasure());
-    }
+  const $ = id => document.getElementById(id);
+  const gate = $('fiqGate'), bar = $('fiqBar'), fileInput = $('fiqFile');
+  const statusEl = $('fiqStatus'), statusText = $('fiqStatusText');
+  const userEl = $('fiqUser'), toast = $('fiqToast');
+
+  if (!window.supabase) { gate.textContent = 'Błąd: nie udało się załadować Supabase'; return; }
+  const sb = window.supabase.createClient(SB_URL, SB_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, storageKey: 'fiq-editor-auth' }
+  });
+
+  const editables = Array.from(document.querySelectorAll('[data-edit]'));
+  let session = null, baseline = '', loadedFrom = 'published', imgTarget = null;
+
+  function showToast(msg, err) {
+    toast.textContent = msg; toast.classList.toggle('err', !!err);
+    toast.classList.add('show'); clearTimeout(showToast._t);
+    showToast._t = setTimeout(() => toast.classList.remove('show'), 2600);
   }
 
-  sb.from('site_content').select('published').eq('id', 'index').maybeSingle()
-    .then(({ data }) => { if (data && data.published) apply(data.published); })
-    .catch(() => {});
+  function collect() {
+    const o = {};
+    editables.forEach(el => {
+      const k = el.getAttribute('data-edit'), t = el.getAttribute('data-edit-type');
+      if (t === 'image') o[k] = el.tagName === 'IMG' ? (el.getAttribute('src') || '') : '';
+      else if (t === 'html') o[k] = el.innerHTML.trim();
+      else o[k] = el.textContent.trim();
+    });
+    return o;
+  }
+  function apply(content) {
+    if (!content) return;
+    editables.forEach(el => {
+      const k = el.getAttribute('data-edit');
+      if (!(k in content)) return;
+      const v = content[k]; if (v == null) return;
+      const t = el.getAttribute('data-edit-type');
+      if (t === 'image') { if (el.tagName === 'IMG' && v) el.src = v; }
+      else if (t === 'html') el.innerHTML = v;
+      else el.textContent = v;
+    });
+  }
+  const serialize = o => JSON.stringify(o);
+
+  function setStatus(state) {
+    statusEl.className = state;
+    statusText.textContent =
+      state === 'saved' ? 'Zapisano' :
+      state === 'draft' ? 'Wersja robocza' :
+      state === 'saving' ? 'Zapisywanie…' : 'Niezapisane';
+  }
+  function checkDirty() {
+    if (serialize(collect()) === baseline) setStatus(loadedFrom === 'draft' ? 'draft' : 'saved');
+    else setStatus('dirty');
+  }
+
+  function enableEditing() {
+    document.body.classList.add('fiq-edit');
+    editables.forEach(el => {
+      const t = el.getAttribute('data-edit-type');
+      if (t === 'image') {
+        el.addEventListener('click', e => { e.preventDefault(); imgTarget = el; fileInput.click(); });
+      } else {
+        el.setAttribute('contenteditable', 'true');
+        el.setAttribute('spellcheck', 'false');
+        el.addEventListener('input', checkDirty);
+        if (el.tagName === 'A') el.addEventListener('click', e => e.preventDefault());
+        el.addEventListener('keydown', e => {
+          if (e.key === 'Enter' && t !== 'html') { e.preventDefault(); el.blur(); }
+        });
+        el.addEventListener('paste', e => {
+          e.preventDefault();
+          const txt = (e.clipboardData || window.clipboardData).getData('text/plain');
+          document.execCommand('insertText', false, txt);
+        });
+      }
+    });
+  }
+
+  fileInput.addEventListener('change', async () => {
+    const f = fileInput.files && fileInput.files[0]; fileInput.value = '';
+    if (!f || !imgTarget) return;
+    const tgt = imgTarget; imgTarget = null;
+    showToast('Wgrywanie obrazu…');
+    const ext = (f.name.split('.').pop() || 'png').toLowerCase();
+    const path = 'logos/' + tgt.getAttribute('data-edit') + '-' + Date.now() + '.' + ext;
+    const up = await sb.storage.from('site-assets').upload(path, f, { upsert: true, contentType: f.type || 'image/png' });
+    if (up.error) { showToast('Błąd wgrywania: ' + up.error.message, true); return; }
+    const pub = sb.storage.from('site-assets').getPublicUrl(path);
+    tgt.src = pub.data.publicUrl;
+    checkDirty();
+    showToast('Obraz zaktualizowany ✓');
+  });
+
+  async function save(asDraft) {
+    if (!session) return;
+    setStatus('saving');
+    const content = collect();
+    const patch = asDraft
+      ? { draft: content, updated_at: new Date().toISOString(), updated_by: session.user.id }
+      : { published: content, draft: null, updated_at: new Date().toISOString(), updated_by: session.user.id };
+    const { error } = await sb.from('site_content').update(patch).eq('id', 'index');
+    if (error) { showToast('Błąd zapisu: ' + error.message, true); checkDirty(); return; }
+    baseline = serialize(content);
+    loadedFrom = asDraft ? 'draft' : 'published';
+    setStatus(asDraft ? 'draft' : 'saved');
+    showToast(asDraft ? 'Zapisano wersję roboczą ✓' : 'Opublikowano na stronie ✓');
+  }
+  $('fiqSave').addEventListener('click', () => save(false));
+  $('fiqSaveDraft').addEventListener('click', () => save(true));
+  $('fiqLogout').addEventListener('click', async () => { await sb.auth.signOut(); location.replace('login.html'); });
+
+  addEventListener('beforeunload', e => {
+    if (statusEl.classList.contains('dirty')) { e.preventDefault(); e.returnValue = ''; }
+  });
+
+  (async () => {
+    const { data: { session: s } } = await sb.auth.getSession();
+    if (!s) { location.replace('login.html?auth=required'); return; }
+    session = s;
+    userEl.textContent = s.user.email;
+    try {
+      const { data } = await sb.from('site_content').select('published,draft').eq('id', 'index').maybeSingle();
+      if (data) {
+        if (data.draft) { apply(data.draft); loadedFrom = 'draft'; }
+        else if (data.published) { apply(data.published); loadedFrom = 'published'; }
+      }
+    } catch (_) {}
+    enableEditing();
+    baseline = serialize(collect());
+    setStatus(loadedFrom === 'draft' ? 'draft' : 'saved');
+    gate.classList.add('hidden');
+    bar.style.display = 'flex';
+  })();
 })();
 </script>
 </body>

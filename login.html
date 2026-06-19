@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Logowanie — Fastline InfinitiQ</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" type="image/png" sizes="32x32" href="assets/favicon/favicon-32.png">
+<link rel="apple-touch-icon" href="assets/favicon/apple-touch-icon.png">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Schibsted+Grotesk:wght@400;500;600;700&family=Archivo:wdth,wght@125,600..900&display=swap" rel="stylesheet">
+<style>
+  :root { --black:#0D0D0D; --green:#B8FF00; --white:#F5F5F0; --grey:#1A1A1A; --mid:#2E2E2E; --muted:#666; }
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body {
+    background: var(--black); color: var(--white);
+    font-family: 'Schibsted Grotesk', sans-serif;
+    display: flex; align-items: center; justify-content: center;
+    padding: 24px; overflow: hidden; position: relative;
+  }
+  /* SVG-шум как на лендинге */
+  body::before {
+    content: ''; position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: 0.4;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+  }
+  .glow {
+    position: fixed; z-index: 0; pointer-events: none;
+    width: 60vmax; height: 60vmax; left: 50%; top: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle, rgba(184,255,0,0.10), transparent 60%);
+  }
+  .card {
+    position: relative; z-index: 1;
+    width: 100%; max-width: 420px;
+    background: rgba(18,18,18,0.7);
+    backdrop-filter: blur(22px) saturate(140%);
+    -webkit-backdrop-filter: blur(22px) saturate(140%);
+    border: 1px solid rgba(255,255,255,0.08);
+    padding: 44px 40px 38px;
+  }
+  .logo { display: block; height: 40px; width: auto; margin-bottom: 32px; }
+  .eyebrow {
+    font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+    letter-spacing: 0.22em; text-transform: uppercase; color: var(--green);
+    margin-bottom: 14px;
+  }
+  h1 {
+    font-family: 'Archivo', sans-serif; font-stretch: 125%; font-weight: 800;
+    text-transform: uppercase; font-size: 30px; line-height: 1.1;
+    letter-spacing: -0.01em; margin-bottom: 28px;
+  }
+  .notice {
+    display: none;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    letter-spacing: 0.04em; line-height: 1.5; color: #ffb020;
+    border: 1px solid rgba(255,176,32,0.35); background: rgba(255,176,32,0.07);
+    padding: 11px 14px; margin-bottom: 22px;
+  }
+  .notice.on { display: block; }
+  label {
+    display: block; font-family: 'IBM Plex Mono', monospace;
+    font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase;
+    color: rgba(245,245,240,0.5); margin: 0 0 8px;
+  }
+  input {
+    width: 100%; background: rgba(13,13,13,0.8); color: var(--white);
+    border: 1px solid var(--mid); padding: 14px 16px; font-size: 15px;
+    font-family: 'Schibsted Grotesk', sans-serif; margin-bottom: 20px;
+    transition: border-color .2s;
+  }
+  input:focus { outline: none; border-color: var(--green); }
+  input::placeholder { color: rgba(245,245,240,0.25); }
+  .btn {
+    width: 100%; font-family: 'IBM Plex Mono', monospace; font-size: 12px;
+    letter-spacing: 0.14em; text-transform: uppercase; color: var(--black);
+    background: var(--green); border: none; padding: 16px; cursor: pointer;
+    transition: box-shadow .25s, transform .2s, opacity .2s; margin-top: 4px;
+  }
+  .btn:hover { box-shadow: 0 0 28px rgba(184,255,0,0.4); transform: translateY(-1px); }
+  .btn:disabled { opacity: 0.5; cursor: default; transform: none; box-shadow: none; }
+  .err {
+    display: none; font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+    letter-spacing: 0.03em; color: #ff5470; margin-top: 16px; line-height: 1.5;
+  }
+  .err.on { display: block; }
+  .foot {
+    margin-top: 26px; font-family: 'IBM Plex Mono', monospace; font-size: 9px;
+    letter-spacing: 0.18em; text-transform: uppercase; color: rgba(245,245,240,0.25);
+  }
+</style>
+</head>
+<body>
+<div class="glow"></div>
+<form class="card" id="form" autocomplete="on">
+  <img class="logo" src="assets/logo/LOGO.png" alt="Fastline InfinitiQ">
+  <div class="eyebrow">★ Panel · Edytor strony</div>
+  <h1>Zaloguj się</h1>
+  <div class="notice" id="notice">Nie jesteś zalogowany — dostęp do edytora wymaga logowania.</div>
+
+  <label for="email">E-mail</label>
+  <input type="email" id="email" name="email" placeholder="imie.nazwisko@greywolfgroup.pl" required autocomplete="username">
+
+  <label for="password">Hasło</label>
+  <input type="password" id="password" name="password" placeholder="••••••••••" required autocomplete="current-password">
+
+  <button class="btn" id="submit" type="submit">Wejdź do edytora</button>
+  <div class="err" id="err"></div>
+  <div class="foot">Fastline InfinitiQ · Greywolf Group</div>
+</form>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script>
+(() => {
+  'use strict';
+  const SB_URL = 'https://ogxajgbrbkfwsactlsyj.supabase.co';
+  const SB_KEY = 'sb_publishable_LIxIzg1U34aKQ-wXBSaDHg_xzv8SyMM';
+  const sb = window.supabase.createClient(SB_URL, SB_KEY, {
+    auth: { persistSession: true, autoRefreshToken: true, storageKey: 'fiq-editor-auth' }
+  });
+
+  const form = document.getElementById('form');
+  const emailEl = document.getElementById('email');
+  const passEl = document.getElementById('password');
+  const btn = document.getElementById('submit');
+  const errEl = document.getElementById('err');
+  const notice = document.getElementById('notice');
+
+  if (new URLSearchParams(location.search).get('auth') === 'required') notice.classList.add('on');
+
+  function fail(msg) { errEl.textContent = msg; errEl.classList.add('on'); btn.disabled = false; btn.textContent = 'Wejdź do edytora'; }
+
+  // если уже залогинен — сразу в редактор
+  sb.auth.getSession().then(({ data: { session } }) => { if (session) location.replace('editor.html'); });
+
+  form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    errEl.classList.remove('on');
+    btn.disabled = true; btn.textContent = 'Logowanie…';
+    const { error } = await sb.auth.signInWithPassword({
+      email: emailEl.value.trim(),
+      password: passEl.value
+    });
+    if (error) {
+      fail(error.message && /invalid login/i.test(error.message)
+        ? 'Nieprawidłowy e-mail lub hasło.'
+        : ('Błąd logowania: ' + (error.message || 'spróbuj ponownie')));
+      return;
+    }
+    location.replace('editor.html');
+  });
+})();
+</script>
+</body>
+</html>
