@@ -1031,6 +1031,10 @@
   html.mode-flat, html.mode-flat body { cursor: auto; }
   html.mode-flat body { padding-bottom: 96px; }
 
+  /* в плоском редакторе слайды не получают .active (3D-движок выключен) —
+     поэтому reveal-анимацию (.rv: opacity 0) принудительно показываем */
+  html.mode-flat .rv { opacity: 1 !important; transform: none !important; }
+
   /* подсветка редактируемого текста */
   body.fiq-edit [data-edit]:not([data-edit-type="image"]) {
     outline: 1px dashed rgba(184,255,0,0.28);
