@@ -1065,9 +1065,7 @@
   body.fiq-edit a { pointer-events: none; }
   body.fiq-edit [data-edit] { pointer-events: auto; }
 
-  /* секцию Oferta в редакторе показываем как список с описаниями (демо-панель скрыта) */
-  body.fiq-edit .svc-demo { display: none; }
-  body.fiq-edit .svc-wrap { grid-template-columns: 1fr; }
+  /* секцию Oferta в редакторе: список + демо-панель (с тумблером скрытия) */
   body.fiq-edit .svc-row {
     flex-direction: column; align-items: flex-start;
     min-height: auto; padding: 16px 24px; gap: 6px; cursor: default;
@@ -1153,6 +1151,191 @@
   #fiqToast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   #fiqToast.err { border-color: #ff5470; }
 
+  /* ===== FIQ structural blocks (CMS) ===== */
+  .fiq-blocks { display: flex; flex-direction: column; gap: 72px; margin-top: 8px; }
+  .fiq-blocks:empty { display: none; }
+  .fb { position: relative; }
+  .fb-h {
+    font-family: 'Archivo', sans-serif; font-stretch: 125%; font-weight: 800;
+    text-transform: uppercase; letter-spacing: .01em; line-height: 1.04;
+    font-size: clamp(22px, 3.4vw, 44px); color: var(--white); margin-bottom: 28px;
+  }
+  .fb-eyebrow {
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .22em;
+    text-transform: uppercase; color: var(--green); margin-bottom: 14px; display: inline-block;
+  }
+  .fb-p { color: rgba(245,245,240,.62); font-size: 16px; line-height: 1.65; max-width: 62ch; }
+  .fb-grid { display: grid; gap: 18px; }
+  .fb img { display: block; max-width: 100%; }
+
+  /* partners / logos */
+  .fb-logos { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+  .fb-logo {
+    display: flex; align-items: center; justify-content: center; min-height: 96px;
+    padding: 22px; border: 1px solid var(--mid); border-radius: 14px; background: rgba(255,255,255,.02);
+  }
+  .fb-logo img { max-height: 56px; width: auto; object-fit: contain; filter: grayscale(1) brightness(1.6); opacity: .82; transition: .25s; }
+  .fb-logo:hover img { filter: none; opacity: 1; }
+
+  /* gallery */
+  .fb-gallery { grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); }
+  .fb-figure { border: 1px solid var(--mid); border-radius: 14px; overflow: hidden; background: var(--grey); }
+  .fb-figure img { width: 100%; height: 200px; object-fit: cover; }
+  .fb-cap { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .08em; color: var(--muted); padding: 10px 14px; }
+
+  /* text + image */
+  .fb-split { display: grid; grid-template-columns: 1fr 1fr; gap: 44px; align-items: center; }
+  .fb-split.fb-flip .fb-split-text { order: 2; }
+  .fb-split-media img { width: 100%; border-radius: 16px; border: 1px solid var(--mid); object-fit: cover; }
+
+  /* stats */
+  .fb-stats { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
+  .fb-stat { border: 1px solid var(--mid); border-radius: 16px; padding: 28px 26px; background: rgba(255,255,255,.02); }
+  .fb-stat-num {
+    font-family: 'Archivo', sans-serif; font-stretch: 125%; font-weight: 900;
+    font-size: clamp(36px, 5vw, 58px); line-height: 1; color: var(--green); margin-bottom: 16px;
+  }
+  .fb-stat-label { font-weight: 700; color: var(--white); margin-bottom: 8px; }
+  .fb-stat-desc { color: rgba(245,245,240,.55); font-size: 14px; line-height: 1.55; }
+
+  /* numbered cards */
+  .fb-cards { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+  .fb-card { position: relative; border: 1px solid var(--mid); border-radius: 16px; padding: 30px 26px; overflow: hidden; background: rgba(255,255,255,.02); }
+  .fb-card-num {
+    position: absolute; top: 8px; right: 16px; font-family: 'Archivo', sans-serif; font-stretch: 125%;
+    font-weight: 900; font-size: 72px; line-height: 1; color: rgba(184,255,0,.08); pointer-events: none;
+  }
+  .fb-card h3 { font-size: 19px; color: var(--white); margin-bottom: 12px; position: relative; }
+  .fb-card p { color: rgba(245,245,240,.58); font-size: 15px; line-height: 1.6; position: relative; }
+
+  /* quote */
+  .fb-quote { border-left: 3px solid var(--green); padding: 8px 0 8px 32px; }
+  .fb-quote-text { font-size: clamp(20px, 2.6vw, 30px); line-height: 1.4; color: var(--white); font-weight: 500; }
+  .fb-quote-meta { margin-top: 22px; display: flex; align-items: center; gap: 14px; }
+  .fb-quote-meta img { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; }
+  .fb-quote-author { font-weight: 700; color: var(--white); }
+  .fb-quote-role { font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--muted); }
+
+  /* cta band */
+  .fb-cta { border: 1px solid var(--green); border-radius: 20px; padding: 48px 40px; text-align: center; background: linear-gradient(180deg, rgba(184,255,0,.05), rgba(184,255,0,.01)); }
+  .fb-cta .fb-p { margin: 14px auto 26px; }
+  .fb-cta-btn {
+    display: inline-block; background: var(--green); color: var(--black); font-family: 'IBM Plex Mono', monospace;
+    font-weight: 500; letter-spacing: .04em; text-transform: uppercase; font-size: 13px;
+    padding: 16px 30px; border-radius: 10px; text-decoration: none;
+  }
+
+  /* logo + text */
+  .fb-logotext { text-align: center; max-width: 720px; margin: 0 auto; }
+  .fb-logotext img { max-height: 90px; width: auto; margin: 0 auto 28px; }
+  .fb-logotext .fb-p { margin: 0 auto; }
+
+  /* steps */
+  .fb-steps { display: flex; flex-direction: column; gap: 0; }
+  .fb-step { display: flex; gap: 22px; padding: 22px 0; border-top: 1px solid var(--mid); }
+  .fb-step:last-child { border-bottom: 1px solid var(--mid); }
+  .fb-step-num { font-family: 'IBM Plex Mono', monospace; color: var(--green); font-size: 13px; min-width: 34px; padding-top: 4px; }
+  .fb-step h3 { font-size: 18px; color: var(--white); margin-bottom: 8px; }
+  .fb-step p { color: rgba(245,245,240,.58); font-size: 15px; line-height: 1.6; }
+
+  .fb-href-edit { display: none; }
+
+  @media (max-width: 760px) {
+    .fiq-blocks { gap: 52px; }
+    .fb-split { grid-template-columns: 1fr; gap: 24px; }
+    .fb-split.fb-flip .fb-split-text { order: 0; }
+    .fb-cta { padding: 36px 22px; }
+  }
+
+  /* ===== Editor-only: управление списками и блоками ===== */
+  /* динамические текстовые поля (внутри списков/блоков) — как data-edit */
+  body.fiq-edit [data-f] {
+    outline: 1px dashed rgba(184,255,0,0.28); outline-offset: 3px; border-radius: 2px;
+    cursor: text; transition: outline-color .15s, background .15s; min-width: 24px;
+  }
+  body.fiq-edit [data-f]:hover { outline-color: rgba(184,255,0,0.7); background: rgba(184,255,0,0.05); }
+  body.fiq-edit [data-f][contenteditable="true"]:focus { outline: 1px solid var(--green); background: rgba(184,255,0,0.08); }
+  body.fiq-edit [data-fimg] { cursor: pointer; outline: 1px dashed rgba(184,255,0,0.45); outline-offset: 3px; transition: outline .15s; }
+  body.fiq-edit [data-fimg]:hover { outline: 2px solid var(--green); }
+  body.fiq-edit .fb-cta-btn { pointer-events: auto; }
+  body.fiq-edit .fb-href-edit {
+    display: inline-block; margin-top: 12px; font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px; color: var(--muted); border: 1px dashed var(--mid); border-radius: 6px;
+    padding: 4px 9px; cursor: text;
+  }
+  body.fiq-edit .fb-href-edit::before { content: 'link → '; color: rgba(245,245,240,.3); }
+
+  /* скрытые (через CMS) элементы — в редакторе видны, помечены */
+  body.fiq-edit .fiq-hidden { opacity: .4; position: relative; }
+  body.fiq-edit .fiq-hidden::after {
+    content: 'UKRYTE'; position: absolute; top: 6px; left: 6px; z-index: 3;
+    font-family: 'IBM Plex Mono', monospace; font-size: 9px; letter-spacing: .12em;
+    color: #ff5470; border: 1px solid rgba(255,84,112,.5); border-radius: 4px;
+    padding: 2px 6px; background: rgba(16,16,16,.85); pointer-events: none;
+  }
+
+  /* плавающий тулбар управления (элемент списка / блок / скрываемое) */
+  .fiq-tb {
+    position: absolute; top: 6px; right: 6px; z-index: 5; display: none; gap: 4px;
+    background: rgba(16,16,16,0.94); border: 1px solid rgba(184,255,0,0.3);
+    border-radius: 8px; padding: 4px;
+  }
+  body.fiq-edit [data-litem]:hover > .fiq-tb,
+  body.fiq-edit .fb:hover > .fiq-tb,
+  body.fiq-edit [data-hideable]:hover > .fiq-tb,
+  body.fiq-edit .fiq-tb:hover { display: flex; }
+  body.fiq-edit [data-litem], body.fiq-edit [data-hideable] { position: relative; }
+  .fiq-tb .tbi {
+    width: 26px; height: 26px; display: flex; align-items: center; justify-content: center;
+    background: transparent; border: none; color: rgba(245,245,240,0.75); cursor: pointer;
+    border-radius: 5px; font-size: 13px; line-height: 1; transition: .15s; user-select: none;
+  }
+  .fiq-tb .tbi:hover { background: rgba(184,255,0,0.15); color: var(--green); }
+  .fiq-tb .tbi.del:hover { background: rgba(255,84,112,0.18); color: #ff5470; }
+  .fiq-tb .tbi.on { color: var(--green); }
+
+  /* кнопки «добавить» */
+  .fiq-add {
+    display: inline-flex; align-items: center; gap: 8px; margin-top: 18px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .1em; text-transform: uppercase;
+    color: var(--green); background: rgba(184,255,0,0.06); border: 1px dashed rgba(184,255,0,0.5);
+    border-radius: 10px; padding: 11px 18px; cursor: pointer; transition: .18s;
+  }
+  .fiq-add:hover { background: rgba(184,255,0,0.13); }
+  .fiq-zone-add { align-self: flex-start; }
+  .fiq-block-host { display: none; }
+
+  /* палитра блоков (модалка) */
+  #fiqPal {
+    position: fixed; inset: 0; z-index: 7500; display: none;
+    align-items: center; justify-content: center; padding: 24px;
+    background: rgba(8,8,8,0.78); backdrop-filter: blur(8px);
+  }
+  #fiqPal.show { display: flex; }
+  .fiq-pal-card {
+    width: min(720px, 100%); max-height: 86vh; overflow: auto;
+    background: var(--grey); border: 1px solid rgba(184,255,0,0.25); border-radius: 18px; padding: 28px;
+  }
+  .fiq-pal-head {
+    font-family: 'Archivo', sans-serif; font-stretch: 125%; font-weight: 800; text-transform: uppercase;
+    font-size: 22px; color: var(--white); margin-bottom: 4px;
+  }
+  .fiq-pal-sub { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .1em; color: var(--muted); margin-bottom: 22px; }
+  .fiq-pal-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .fiq-pal-item {
+    text-align: left; background: rgba(255,255,255,0.02); border: 1px solid var(--mid);
+    border-radius: 12px; padding: 16px; cursor: pointer; transition: .16s; color: var(--white);
+    font-family: 'Schibsted Grotesk', sans-serif;
+  }
+  .fiq-pal-item:hover { border-color: var(--green); background: rgba(184,255,0,0.06); transform: translateY(-2px); }
+  .fiq-pal-ic { font-size: 22px; display: block; margin-bottom: 10px; }
+  .fiq-pal-name { font-size: 13px; font-weight: 600; }
+  .fiq-pal-close {
+    margin-top: 20px; font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .12em;
+    text-transform: uppercase; color: rgba(245,245,240,0.5); background: none; border: none; cursor: pointer;
+  }
+  @media (max-width: 620px) { .fiq-pal-grid { grid-template-columns: repeat(2, 1fr); } }
+
 </style>
 </head>
 <body>
@@ -1161,6 +1344,14 @@
 <div id="fiqGate">Ładowanie edytora…</div>
 <input type="file" id="fiqFile" accept="image/*" style="display:none">
 <div id="fiqToast"></div>
+<div id="fiqPal">
+  <div class="fiq-pal-card">
+    <div class="fiq-pal-head">Dodaj blok</div>
+    <div class="fiq-pal-sub">// wybierz szablon — pojawi się na końcu sekcji</div>
+    <div class="fiq-pal-grid" id="fiqPalGrid"></div>
+    <button class="fiq-pal-close" id="fiqPalClose">Anuluj</button>
+  </div>
+</div>
 <div id="fiqBar" style="display:none">
   <span class="fiq-brand">InfinitiQ · Edytor</span>
   <span id="fiqStatus" class="saved"><span class="dot"></span><span id="fiqStatusText">Zapisano</span></span>
@@ -1305,34 +1496,34 @@
           <div class="svc-hint rv rv3" data-edit="svc_hint">// wybierz usługę — przykład na żywo</div>
         </div>
         <div class="svc-wrap rv rv3">
-          <div class="svc-list" id="svcList">
-            <button class="svc-row">
+          <div class="svc-list" id="svcList" data-list="svc">
+            <button class="svc-row" data-demo="strategy">
               <span class="svc-num">01</span><span class="svc-name" data-edit="svc1_name">AI Strategy</span><span class="svc-desc" data-edit="svc1_desc">Mapujemy potencjał AI dla Twojej marki i budujemy roadmapę transformacji komunikacyjnej.</span><span class="svc-arrow">→</span>
             </button>
-            <button class="svc-row">
+            <button class="svc-row" data-demo="gen">
               <span class="svc-num">02</span><span class="svc-name" data-edit="svc2_name">Generative Content</span><span class="svc-desc" data-edit="svc2_desc">Systemy produkcji treści w skali. Spójne, brandowane, wydajne — niemożliwe bez AI.</span><span class="svc-arrow">→</span>
             </button>
-            <button class="svc-row">
+            <button class="svc-row" data-demo="voice">
               <span class="svc-num">03</span><span class="svc-name" data-edit="svc3_name">Brand Voice AI</span><span class="svc-desc" data-edit="svc3_desc">Uczymy AI mówić głosem Twojej marki. Tworzmy modele językowe zasilone tożsamością brandu.</span><span class="svc-arrow">→</span>
             </button>
-            <button class="svc-row">
+            <button class="svc-row" data-demo="llm">
               <span class="svc-num">04</span><span class="svc-name" data-edit="svc4_name">LLM Integration</span><span class="svc-desc" data-edit="svc4_desc">Wdrażamy duże modele językowe w procesy marketingowe, sprzedażowe i obsługi klienta.</span><span class="svc-arrow">→</span>
             </button>
-            <button class="svc-row">
+            <button class="svc-row" data-demo="auto">
               <span class="svc-num">05</span><span class="svc-name" data-edit="svc5_name">Marketing Automation AI</span><span class="svc-desc" data-edit="svc5_desc">Inteligentne lejki, personalizacja w czasie rzeczywistym, kampanie reagujące na dane.</span><span class="svc-arrow">→</span>
             </button>
-            <button class="svc-row">
+            <button class="svc-row" data-demo="crm">
               <span class="svc-num">06</span><span class="svc-name" data-edit="svc6_name">CRM &amp; Sales AI</span><span class="svc-desc" data-edit="svc6_desc">AI w procesach sprzedażowych: scoring, follow-upy, analiza pipeline'u i przewidywanie churnu.</span><span class="svc-arrow">→</span>
             </button>
-            <button class="svc-row">
+            <button class="svc-row" data-demo="perf">
               <span class="svc-num">07</span><span class="svc-name" data-edit="svc7_name">Performance Marketing AI</span><span class="svc-desc" data-edit="svc7_desc">Generatywne kreacje reklamowe, dynamiczny copy i optymalizacja kampanii prowadzona przez modele.</span><span class="svc-arrow">→</span>
             </button>
-            <button class="svc-row">
+            <button class="svc-row" data-demo="video">
               <span class="svc-num">08</span><span class="svc-name" data-edit="svc8_name">AI Video &amp; Visual</span><span class="svc-desc" data-edit="svc8_desc">Produkcja wideo i wizualizacji w skali. Od konceptu do dystrybucji — AI w każdym etapie.</span><span class="svc-arrow">→</span>
             </button>
           </div>
-          <div class="svc-demo">
-            <div class="svc-demo-head"><span id="svcDemoTitle">Demo</span><span class="svc-live">● live</span></div>
+          <div class="svc-demo" data-hideable="demo">
+            <div class="svc-demo-head"><span id="svcDemoTitle">Demo</span><span class="svc-live" data-edit="demo_live">● live</span></div>
             <p class="svc-demo-desc" id="svcDemoDesc"></p>
             <div class="svc-demo-body" id="svcDemoBody"></div>
           </div>
@@ -1372,7 +1563,7 @@
       <div class="slide-inner">
         <div class="section-label rv rv1" data-edit="who_label">04 — Dla kogo</div>
         <h2 class="who-h2 rv rv2" data-edit="who_h2" data-edit-type="html">Szukamy<br>konkretnych<br>partnerów.</h2>
-        <div class="who-grid">
+        <div class="who-grid" data-list="who">
           <div class="who-item rv rv3" data-n="01">
             <h3 data-edit="who1_h">CMO i Marketing Directorzy</h3>
             <p data-edit="who1_p">W firmach 50M+ PLN przychodu, którzy widzą AI jako zmianę strukturalną — nie taktyczny eksperyment.</p>
@@ -2100,6 +2291,164 @@
 })();
 </script>
 
+<!-- ===== FIQ: общий модуль структурного CMS (рендер блоков, builders, applyContent).
+     Держать ПОБАЙТОВО идентичным в index.html и editor.html. ===== -->
+<script>
+(() => {
+  'use strict';
+  const FIQ = window.FIQ = window.FIQ || {};
+  const PH = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='400' height='300'%3E%3Crect width='400' height='300' fill='%231A1A1A'/%3E%3Crect x='1' y='1' width='398' height='298' fill='none' stroke='%23B8FF00' stroke-opacity='0.25'/%3E%3Ctext x='50%25' y='50%25' fill='%23666' font-family='monospace' font-size='15' text-anchor='middle' dominant-baseline='middle'%3E%2B zdjecie%3C/text%3E%3C/svg%3E";
+  const esc = FIQ.esc = s => String(s == null ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  const attr = FIQ.attr = s => String(s == null ? '' : s).replace(/"/g, '&quot;');
+  const pad = n => ('0' + n).slice(-2);
+  const img = (src, field) => `<img data-fimg="${field}" src="${src ? attr(src) : PH}" alt="">`;
+
+  /* ===== 9 шаблонов блоков ===== */
+  const B = FIQ.BLOCKS = {
+    partners: {
+      label: 'Partnerzy / logo',
+      make: () => ({ eyebrow: 'Partnerzy', title: 'Zaufali nam', items: [{ img: '' }, { img: '' }, { img: '' }, { img: '' }] }),
+      item: it => `<div class="fb-item fb-logo">${img(it.img, 'img')}</div>`,
+      render(d) { return `<div class="fb fb-partners" data-block-type="partners"><div class="fb-eyebrow" data-f="eyebrow">${esc(d.eyebrow || '')}</div><h3 class="fb-h" data-f="title">${esc(d.title || '')}</h3><div class="fb-grid fb-logos" data-items="items">${(d.items || []).map(this.item).join('')}</div></div>`; }
+    },
+    gallery: {
+      label: 'Galeria zdjęć',
+      make: () => ({ title: 'Galeria', items: [{ img: '', cap: 'Podpis' }, { img: '', cap: 'Podpis' }, { img: '', cap: 'Podpis' }] }),
+      item: it => `<figure class="fb-item fb-figure">${img(it.img, 'img')}<figcaption class="fb-cap" data-f="cap">${esc(it.cap || '')}</figcaption></figure>`,
+      render(d) { return `<div class="fb fb-gallery-w" data-block-type="gallery"><h3 class="fb-h" data-f="title">${esc(d.title || '')}</h3><div class="fb-grid fb-gallery" data-items="items">${(d.items || []).map(this.item).join('')}</div></div>`; }
+    },
+    textimg: {
+      label: 'Tekst + zdjęcie',
+      make: () => ({ title: 'Nagłówek sekcji', text: 'Krótki opis tej sekcji. Kliknij, aby edytować.', img: '', flip: false }),
+      render(d) { return `<div class="fb fb-textimg" data-block-type="textimg" data-flip="${d.flip ? '1' : '0'}"><div class="fb-split${d.flip ? ' fb-flip' : ''}"><div class="fb-split-text"><h3 class="fb-h" data-f="title">${esc(d.title || '')}</h3><p class="fb-p" data-f="text">${esc(d.text || '')}</p></div><div class="fb-split-media">${img(d.img, 'img')}</div></div></div>`; }
+    },
+    stats: {
+      label: 'Statystyki',
+      make: () => ({ title: 'W liczbach', items: [{ num: '16/16', label: 'Etykieta', desc: 'Krótki opis liczby.' }, { num: 'ROI', label: 'Etykieta', desc: 'Krótki opis liczby.' }, { num: '25 lat', label: 'Etykieta', desc: 'Krótki opis liczby.' }] }),
+      item: it => `<div class="fb-item fb-stat"><div class="fb-stat-num" data-f="num">${esc(it.num || '')}</div><div class="fb-stat-label" data-f="label">${esc(it.label || '')}</div><div class="fb-stat-desc" data-f="desc">${esc(it.desc || '')}</div></div>`,
+      render(d) { return `<div class="fb fb-stats-w" data-block-type="stats"><h3 class="fb-h" data-f="title">${esc(d.title || '')}</h3><div class="fb-grid fb-stats" data-items="items">${(d.items || []).map(this.item).join('')}</div></div>`; }
+    },
+    cards: {
+      label: 'Karty z numerami',
+      make: () => ({ title: 'Co robimy', items: [{ h: 'Tytuł karty', p: 'Opis karty.' }, { h: 'Tytuł karty', p: 'Opis karty.' }, { h: 'Tytuł karty', p: 'Opis karty.' }] }),
+      item: (it, i) => `<div class="fb-item fb-card"><div class="fb-card-num">${pad(i + 1)}</div><h3 data-f="h">${esc(it.h || '')}</h3><p data-f="p">${esc(it.p || '')}</p></div>`,
+      render(d) { return `<div class="fb fb-cards-w" data-block-type="cards"><h3 class="fb-h" data-f="title">${esc(d.title || '')}</h3><div class="fb-grid fb-cards" data-items="items">${(d.items || []).map(this.item).join('')}</div></div>`; }
+    },
+    quote: {
+      label: 'Cytat / referencja',
+      make: () => ({ text: '„Tu trafia cytat lub opinia klienta."', author: 'Imię Nazwisko', role: 'Stanowisko, Firma', img: '' }),
+      render(d) { return `<div class="fb fb-quote-w" data-block-type="quote"><blockquote class="fb-quote"><div class="fb-quote-text" data-f="text">${esc(d.text || '')}</div><div class="fb-quote-meta">${img(d.img, 'img')}<div><div class="fb-quote-author" data-f="author">${esc(d.author || '')}</div><div class="fb-quote-role" data-f="role">${esc(d.role || '')}</div></div></div></blockquote></div>`; }
+    },
+    cta: {
+      label: 'CTA — baner',
+      make: () => ({ title: 'Gotowi na start?', text: 'Krótkie wezwanie do działania.', btn: 'Umów rozmowę', href: 'kontakt.html' }),
+      render(d) { return `<div class="fb fb-cta-w" data-block-type="cta"><div class="fb-cta"><h3 class="fb-h" data-f="title">${esc(d.title || '')}</h3><p class="fb-p" data-f="text">${esc(d.text || '')}</p><a class="fb-cta-btn" href="${attr(d.href || '#')}" data-f="btn">${esc(d.btn || '')}</a><span class="fb-href-edit" data-f="href">${esc(d.href || '')}</span></div></div>`; }
+    },
+    logotext: {
+      label: 'Logo + opis',
+      make: () => ({ img: '', text: 'Tekst opisu — kliknij, aby edytować.' }),
+      render(d) { return `<div class="fb fb-logotext" data-block-type="logotext">${img(d.img, 'img')}<p class="fb-p" data-f="text">${esc(d.text || '')}</p></div>`; }
+    },
+    steps: {
+      label: 'Proces / kroki',
+      make: () => ({ title: 'Jak pracujemy', items: [{ h: 'Krok', p: 'Opis kroku.' }, { h: 'Krok', p: 'Opis kroku.' }, { h: 'Krok', p: 'Opis kroku.' }] }),
+      item: (it, i) => `<div class="fb-item fb-step"><div class="fb-step-num">${pad(i + 1)}</div><div><h3 data-f="h">${esc(it.h || '')}</h3><p data-f="p">${esc(it.p || '')}</p></div></div>`,
+      render(d) { return `<div class="fb fb-steps-w" data-block-type="steps"><h3 class="fb-h" data-f="title">${esc(d.title || '')}</h3><div class="fb-steps" data-items="items">${(d.items || []).map(this.item).join('')}</div></div>`; }
+    }
+  };
+  FIQ.renderBlock = (type, d) => { const t = B[type]; return t ? t.render(d || {}) : ''; };
+
+  /* ===== Builders для повторяемых списков (svc, who) ===== */
+  FIQ.buildSvcRow = (it, i) => `<button class="svc-row" data-litem data-demo="${attr(it.demo || '')}"><span class="svc-num">${pad(i + 1)}</span><span class="svc-name" data-f="name">${esc(it.name || '')}</span><span class="svc-desc" data-f="desc">${esc(it.desc || '')}</span><span class="svc-arrow">→</span></button>`;
+  FIQ.buildWhoCard = (it, i) => `<div class="who-item" data-litem data-n="${pad(i + 1)}"><h3 data-f="h">${esc(it.h || '')}</h3><p data-f="p">${esc(it.p || '')}</p></div>`;
+  const LIST_BUILD = { svc: FIQ.buildSvcRow, who: FIQ.buildWhoCard };
+
+  /* ===== Зоны для блоков в каждой секции ===== */
+  FIQ.ensureZones = () => {
+    document.querySelectorAll('.slide[id]').forEach(s => {
+      const inner = s.querySelector('.slide-inner');
+      if (!inner || inner.querySelector(':scope > .fiq-blocks')) return;
+      const z = document.createElement('div');
+      z.className = 'fiq-blocks';
+      z.setAttribute('data-zone', s.id);
+      inner.appendChild(z);
+    });
+  };
+
+  /* ===== Применение контента: flat-ключи + _lists + _hidden + _blocks =====
+     opts.editor=true → скрытые элементы остаются видны (с классом fiq-hidden) для управления. */
+  FIQ.applyContent = (content, opts) => {
+    opts = opts || {};
+    const ed = !!opts.editor;
+    content = (content && typeof content === 'object') ? content : {};
+
+    // 1. Плоские ключи
+    document.querySelectorAll('[data-edit]').forEach(el => {
+      const k = el.getAttribute('data-edit');
+      if (k[0] === '_' || !(k in content)) return;
+      const v = content[k]; if (v == null) return;
+      const t = el.getAttribute('data-edit-type');
+      if (t === 'image') { if (el.tagName === 'IMG' && v) el.src = v; }
+      else if (t === 'html') el.innerHTML = v;
+      else el.textContent = v;
+    });
+
+    // 2. Повторяемые списки
+    const lists = content._lists || {};
+    document.querySelectorAll('[data-list]').forEach(cont => {
+      const name = cont.getAttribute('data-list');
+      const arr = lists[name];
+      const build = LIST_BUILD[name];
+      if (!Array.isArray(arr) || !build) return;
+      let html = '', n = 0;
+      arr.forEach(it => {
+        const hidden = it && it.hidden;
+        if (hidden && !ed) return;
+        n++; html += build(it, n - 1);
+      });
+      cont.innerHTML = html;
+      if (ed) {
+        const kids = cont.children;
+        for (let i = 0; i < arr.length && i < kids.length; i++)
+          if (arr[i] && arr[i].hidden) kids[i].classList.add('fiq-hidden');
+      }
+    });
+
+    // 3. Скрываемые одиночные элементы
+    const hidden = new Set(content._hidden || []);
+    document.querySelectorAll('[data-hideable]').forEach(el => {
+      const isH = hidden.has(el.getAttribute('data-hideable'));
+      if (ed) { el.classList.toggle('fiq-hidden', isH); el.style.display = ''; }
+      else el.style.display = isH ? 'none' : '';
+    });
+
+    // 4. Вставленные блоки
+    FIQ.ensureZones();
+    const blocks = content._blocks || {};
+    document.querySelectorAll('[data-zone]').forEach(zone => {
+      const arr = blocks[zone.getAttribute('data-zone')];
+      if (!Array.isArray(arr)) { zone.innerHTML = ''; return; }
+      let html = '';
+      const shown = [];
+      arr.forEach(b => {
+        if (!b || !b.type) return;
+        if (b.hidden && !ed) return;
+        html += FIQ.renderBlock(b.type, b.data || {});
+        shown.push(b);
+      });
+      zone.innerHTML = html;
+      if (ed) {
+        const kids = zone.children;
+        for (let i = 0; i < shown.length && i < kids.length; i++)
+          if (shown[i].hidden) kids[i].classList.add('fiq-hidden');
+      }
+    });
+  };
+})();
+</script>
+
 <!-- ===== Supabase + логика редактора ===== -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script>
@@ -2118,8 +2467,9 @@
     auth: { persistSession: true, autoRefreshToken: true, storageKey: 'fiq-editor-auth' }
   });
 
-  const editables = Array.from(document.querySelectorAll('[data-edit]'));
-  let session = null, baseline = '', loadedFrom = 'published', imgTarget = null;
+  const B = FIQ.BLOCKS;
+  const pad = n => ('0' + n).slice(-2);
+  let session = null, baseline = '', loadedFrom = 'published', imgTarget = null, palZone = null;
 
   function showToast(msg, err) {
     toast.textContent = msg; toast.classList.toggle('err', !!err);
@@ -2127,27 +2477,63 @@
     showToast._t = setTimeout(() => toast.classList.remove('show'), 2600);
   }
 
+  // src плейсхолдера → пустая строка (чтобы не сохранять data-uri как картинку)
+  const imgSrc = el => { const s = el.getAttribute('src') || ''; return s.indexOf('data:image/svg') === 0 ? '' : s; };
+  const fromHTML = html => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+  const txt = (root, sel) => { const e = root.querySelector(sel); return e ? e.textContent.trim() : ''; };
+
+  /* ===== Сбор контента: flat + _lists + _hidden + _blocks ===== */
+  function readItemFields(root) {
+    const o = {};
+    root.querySelectorAll('[data-f]').forEach(e => { if (e.closest('.fb-item') === root.closest('.fb-item')) o[e.getAttribute('data-f')] = e.textContent.trim(); });
+    root.querySelectorAll('[data-fimg]').forEach(e => { if (e.closest('.fb-item') === root.closest('.fb-item')) o[e.getAttribute('data-fimg')] = imgSrc(e); });
+    return o;
+  }
+  function readBlock(block) {
+    const type = block.getAttribute('data-block-type');
+    const data = {};
+    block.querySelectorAll('[data-f]').forEach(e => { if (!e.closest('.fb-item')) data[e.getAttribute('data-f')] = e.textContent.trim(); });
+    block.querySelectorAll('[data-fimg]').forEach(e => { if (!e.closest('.fb-item')) data[e.getAttribute('data-fimg')] = imgSrc(e); });
+    block.querySelectorAll('[data-items]').forEach(listEl => {
+      data[listEl.getAttribute('data-items')] = Array.from(listEl.querySelectorAll(':scope > .fb-item')).map(it => {
+        const o = {};
+        it.querySelectorAll('[data-f]').forEach(e => o[e.getAttribute('data-f')] = e.textContent.trim());
+        it.querySelectorAll('[data-fimg]').forEach(e => o[e.getAttribute('data-fimg')] = imgSrc(e));
+        return o;
+      });
+    });
+    if (block.hasAttribute('data-flip')) data.flip = block.getAttribute('data-flip') === '1';
+    return { type, hidden: block.classList.contains('fiq-hidden'), data };
+  }
   function collect() {
     const o = {};
-    editables.forEach(el => {
+    document.querySelectorAll('[data-edit]').forEach(el => {
+      if (el.closest('[data-list]') || el.closest('[data-zone]')) return; // динамику собираем отдельно
       const k = el.getAttribute('data-edit'), t = el.getAttribute('data-edit-type');
       if (t === 'image') o[k] = el.tagName === 'IMG' ? (el.getAttribute('src') || '') : '';
       else if (t === 'html') o[k] = el.innerHTML.trim();
       else o[k] = el.textContent.trim();
     });
-    return o;
-  }
-  function apply(content) {
-    if (!content) return;
-    editables.forEach(el => {
-      const k = el.getAttribute('data-edit');
-      if (!(k in content)) return;
-      const v = content[k]; if (v == null) return;
-      const t = el.getAttribute('data-edit-type');
-      if (t === 'image') { if (el.tagName === 'IMG' && v) el.src = v; }
-      else if (t === 'html') el.innerHTML = v;
-      else el.textContent = v;
+    const lists = {};
+    document.querySelectorAll('[data-list]').forEach(cont => {
+      const name = cont.getAttribute('data-list');
+      lists[name] = Array.from(cont.querySelectorAll(':scope > [data-litem]')).map(item => {
+        const o2 = { hidden: item.classList.contains('fiq-hidden') };
+        item.querySelectorAll('[data-f]').forEach(e => o2[e.getAttribute('data-f')] = e.textContent.trim());
+        if (name === 'svc') o2.demo = item.getAttribute('data-demo') || '';
+        return o2;
+      });
     });
+    o._lists = lists;
+    const hid = [];
+    document.querySelectorAll('[data-hideable]').forEach(el => { if (el.classList.contains('fiq-hidden')) hid.push(el.getAttribute('data-hideable')); });
+    o._hidden = hid;
+    const blocks = {};
+    document.querySelectorAll('[data-zone]').forEach(zone => {
+      blocks[zone.getAttribute('data-zone')] = Array.from(zone.querySelectorAll(':scope > .fb')).map(readBlock);
+    });
+    o._blocks = blocks;
+    return o;
   }
   const serialize = o => JSON.stringify(o);
 
@@ -2163,36 +2549,175 @@
     else setStatus('dirty');
   }
 
-  function enableEditing() {
-    document.body.classList.add('fiq-edit');
-    editables.forEach(el => {
-      const t = el.getAttribute('data-edit-type');
-      if (t === 'image') {
-        el.addEventListener('click', e => { e.preventDefault(); imgTarget = el; fileInput.click(); });
-      } else {
-        el.setAttribute('contenteditable', 'true');
-        el.setAttribute('spellcheck', 'false');
-        el.addEventListener('input', checkDirty);
-        if (el.tagName === 'A') el.addEventListener('click', e => e.preventDefault());
-        el.addEventListener('keydown', e => {
-          if (e.key === 'Enter' && t !== 'html') { e.preventDefault(); el.blur(); }
-        });
-        el.addEventListener('paste', e => {
-          e.preventDefault();
-          const txt = (e.clipboardData || window.clipboardData).getData('text/plain');
-          document.execCommand('insertText', false, txt);
-        });
-      }
+  /* ===== Превращение полей в редактируемые ===== */
+  function enhanceText(el) {
+    if (el._fEnh) return; el._fEnh = true;
+    el.setAttribute('contenteditable', 'true');
+    el.setAttribute('spellcheck', 'false');
+    el.addEventListener('input', checkDirty);
+    if (el.tagName === 'A') el.addEventListener('click', e => e.preventDefault());
+    el.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && el.getAttribute('data-edit-type') !== 'html') { e.preventDefault(); el.blur(); }
+    });
+    el.addEventListener('paste', e => {
+      e.preventDefault();
+      const t = (e.clipboardData || window.clipboardData).getData('text/plain');
+      document.execCommand('insertText', false, t);
     });
   }
+  function enhanceImg(el) {
+    if (el._fEnh) return; el._fEnh = true;
+    el.addEventListener('click', e => { e.preventDefault(); imgTarget = el; fileInput.click(); });
+  }
 
+  /* ===== Тулбары / нумерация ===== */
+  function tbi(icon, title, fn, cls) {
+    const s = document.createElement('span');
+    s.className = 'tbi' + (cls ? ' ' + cls : '');
+    s.textContent = icon; s.title = title;
+    s.addEventListener('click', e => { e.preventDefault(); e.stopPropagation(); fn(s); });
+    return s;
+  }
+  function renumber(parent) {
+    let i = 0;
+    Array.from(parent.children).forEach(c => {
+      if (!c.matches || !c.matches('[data-litem], .fb-item')) return;
+      i++; const n = pad(i);
+      const sn = c.querySelector(':scope > .svc-num'); if (sn) sn.textContent = n;
+      if (c.classList.contains('who-item')) c.setAttribute('data-n', n);
+      const cn = c.querySelector(':scope > .fb-card-num'); if (cn) cn.textContent = n;
+      const stn = c.querySelector(':scope > .fb-step-num'); if (stn) stn.textContent = n;
+    });
+  }
+  function addItemTb(item, sub) {
+    if (item.querySelector(':scope > .fiq-tb')) return;
+    const tb = document.createElement('span'); tb.className = 'fiq-tb';
+    tb.appendChild(tbi('↑', 'W górę', () => { const p = item.previousElementSibling; if (p && p.matches('[data-litem], .fb-item')) { item.parentNode.insertBefore(item, p); renumber(item.parentNode); checkDirty(); } }));
+    tb.appendChild(tbi('↓', 'W dół', () => { const n = item.nextElementSibling; if (n && n.matches('[data-litem], .fb-item')) { item.parentNode.insertBefore(n, item); renumber(item.parentNode); checkDirty(); } }));
+    if (!sub) tb.appendChild(tbi('◉', 'Ukryj / pokaż', s => { item.classList.toggle('fiq-hidden'); s.classList.toggle('on', item.classList.contains('fiq-hidden')); checkDirty(); }));
+    tb.appendChild(tbi('✕', 'Usuń', () => { const p = item.parentNode; item.remove(); renumber(p); checkDirty(); }, 'del'));
+    item.appendChild(tb);
+  }
+  function addHideTb(el) {
+    if (el.querySelector(':scope > .fiq-tb')) return;
+    const tb = document.createElement('span'); tb.className = 'fiq-tb';
+    tb.appendChild(tbi('◉', 'Ukryj / pokaż', s => { el.classList.toggle('fiq-hidden'); s.classList.toggle('on', el.classList.contains('fiq-hidden')); checkDirty(); }));
+    el.appendChild(tb);
+  }
+  function addBlockTb(block) {
+    if (block.querySelector(':scope > .fiq-tb')) return;
+    const tb = document.createElement('span'); tb.className = 'fiq-tb';
+    tb.appendChild(tbi('↑', 'W górę', () => { const p = block.previousElementSibling; if (p && p.matches('.fb')) { block.parentNode.insertBefore(block, p); checkDirty(); } }));
+    tb.appendChild(tbi('↓', 'W dół', () => { const n = block.nextElementSibling; if (n && n.matches('.fb')) { block.parentNode.insertBefore(n, block); checkDirty(); } }));
+    if (block.hasAttribute('data-flip')) tb.appendChild(tbi('⇄', 'Odbij', s => { const f = block.getAttribute('data-flip') === '1'; block.setAttribute('data-flip', f ? '0' : '1'); const sp = block.querySelector('.fb-split'); if (sp) sp.classList.toggle('fb-flip', !f); s.classList.toggle('on', !f); checkDirty(); }));
+    tb.appendChild(tbi('◉', 'Ukryj / pokaż', s => { block.classList.toggle('fiq-hidden'); s.classList.toggle('on', block.classList.contains('fiq-hidden')); checkDirty(); }));
+    tb.appendChild(tbi('✕', 'Usuń blok', () => { const p = block.parentNode; block.remove(); checkDirty(); }, 'del'));
+    block.appendChild(tb);
+  }
+
+  /* ===== Кнопки добавления ===== */
+  function ensureListAdd(cont) {
+    if (cont.querySelector(':scope > .fiq-add')) return;
+    const name = cont.getAttribute('data-list');
+    const btn = document.createElement('button');
+    btn.className = 'fiq-add';
+    btn.textContent = name === 'svc' ? '＋ Krok' : '＋ Karta';
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      const idx = cont.querySelectorAll(':scope > [data-litem]').length;
+      const html = name === 'svc'
+        ? FIQ.buildSvcRow({ name: 'Nowy krok', desc: 'Opis kroku.', demo: '' }, idx)
+        : FIQ.buildWhoCard({ h: 'Nowa pozycja', p: 'Opis.' }, idx);
+      const node = fromHTML(html);
+      cont.insertBefore(node, btn);
+      addItemTb(node);
+      node.querySelectorAll('[data-f]').forEach(enhanceText);
+      renumber(cont); checkDirty();
+    });
+    cont.appendChild(btn);
+  }
+  function ensureSubAdd(itemsEl, block) {
+    if (itemsEl.querySelector(':scope > .fiq-add')) return;
+    const type = block.getAttribute('data-block-type');
+    const btn = document.createElement('button');
+    btn.className = 'fiq-add'; btn.textContent = '＋';
+    btn.addEventListener('click', e => {
+      e.preventDefault();
+      const def = (B[type].make().items || [{}])[0];
+      const idx = itemsEl.querySelectorAll(':scope > .fb-item').length;
+      const node = fromHTML(B[type].item(def, idx));
+      itemsEl.insertBefore(node, btn);
+      addItemTb(node, true);
+      node.querySelectorAll('[data-f]').forEach(enhanceText);
+      node.querySelectorAll('[data-fimg]').forEach(enhanceImg);
+      renumber(itemsEl); checkDirty();
+    });
+    itemsEl.appendChild(btn);
+  }
+  function enhanceBlock(block) {
+    if (block._bEnh) return; block._bEnh = true;
+    block.querySelectorAll('[data-f]').forEach(enhanceText);
+    block.querySelectorAll('[data-fimg]').forEach(enhanceImg);
+    block.querySelectorAll('[data-items]').forEach(itemsEl => {
+      itemsEl.querySelectorAll(':scope > .fb-item').forEach(it => addItemTb(it, true));
+      ensureSubAdd(itemsEl, block);
+    });
+    addBlockTb(block);
+  }
+  function ensureZoneAdd(zone) {
+    if (zone.querySelector(':scope > .fiq-add')) return;
+    const btn = document.createElement('button');
+    btn.className = 'fiq-add fiq-zone-add'; btn.textContent = '＋ Dodaj blok';
+    btn.addEventListener('click', e => { e.preventDefault(); palZone = zone; pal.classList.add('show'); });
+    zone.appendChild(btn);
+  }
+
+  /* ===== Палитра блоков ===== */
+  const pal = $('fiqPal'), palGrid = $('fiqPalGrid');
+  const PAL_IC = { partners: '▦', gallery: '▣', textimg: '◧', stats: '＃', cards: '▤', quote: '❝', cta: '➔', logotext: '◉', steps: '☰' };
+  Object.keys(B).forEach(type => {
+    const b = document.createElement('button');
+    b.className = 'fiq-pal-item';
+    b.innerHTML = `<span class="fiq-pal-ic">${PAL_IC[type] || '＋'}</span><span class="fiq-pal-name">${B[type].label}</span>`;
+    b.addEventListener('click', () => {
+      if (!palZone) return;
+      const node = fromHTML(FIQ.renderBlock(type, B[type].make()));
+      palZone.insertBefore(node, palZone.querySelector(':scope > .fiq-add'));
+      enhanceBlock(node);
+      pal.classList.remove('show'); palZone = null;
+      checkDirty();
+      node.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+    palGrid.appendChild(b);
+  });
+  $('fiqPalClose').addEventListener('click', () => { pal.classList.remove('show'); palZone = null; });
+  pal.addEventListener('click', e => { if (e.target === pal) { pal.classList.remove('show'); palZone = null; } });
+
+  /* ===== Полное включение редактирования над текущим DOM ===== */
+  function enableEditing() {
+    document.body.classList.add('fiq-edit');
+    document.querySelectorAll('[data-edit]:not([data-edit-type="image"])').forEach(enhanceText);
+    document.querySelectorAll('[data-edit-type="image"]').forEach(enhanceImg);
+    document.querySelectorAll('[data-list] > [data-litem]').forEach(it => { addItemTb(it); it.querySelectorAll('[data-f]').forEach(enhanceText); });
+    document.querySelectorAll('.fb').forEach(enhanceBlock);
+    document.querySelectorAll('[data-hideable]').forEach(addHideTb);
+    document.querySelectorAll('[data-list]').forEach(ensureListAdd);
+    document.querySelectorAll('[data-zone]').forEach(ensureZoneAdd);
+    // подсказка в пустой демо-панели (демо-движок в редакторе не работает)
+    const db = $('svcDemoBody');
+    if (db && !db.children.length) db.innerHTML = '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#666;line-height:1.7">// podgląd demo działa na żywej stronie<br>// kliknij ikonę oka, aby ukryć cały panel</div>';
+  }
+
+  /* ===== Загрузка картинки (обе ветки: data-edit и data-fimg) ===== */
   fileInput.addEventListener('change', async () => {
     const f = fileInput.files && fileInput.files[0]; fileInput.value = '';
     if (!f || !imgTarget) return;
     const tgt = imgTarget; imgTarget = null;
     showToast('Wgrywanie obrazu…');
     const ext = (f.name.split('.').pop() || 'png').toLowerCase();
-    const path = 'logos/' + tgt.getAttribute('data-edit') + '-' + Date.now() + '.' + ext;
+    const isFlat = tgt.hasAttribute('data-edit');
+    const key = tgt.getAttribute('data-edit') || tgt.getAttribute('data-fimg') || 'img';
+    const path = (isFlat ? 'logos/' : 'blocks/') + key + '-' + Date.now() + '.' + ext;
     const up = await sb.storage.from('site-assets').upload(path, f, { upsert: true, contentType: f.type || 'image/png' });
     if (up.error) { showToast('Błąd wgrywania: ' + up.error.message, true); return; }
     const pub = sb.storage.from('site-assets').getPublicUrl(path);
@@ -2223,18 +2748,40 @@
     if (statusEl.classList.contains('dirty')) { e.preventDefault(); e.returnValue = ''; }
   });
 
+  // если в загруженном контенте нет _lists — выводим их из статичного DOM
+  // (после применения flat-ключей), чтобы старый плоский контент перешёл в структуру
+  function deriveLists() {
+    const out = {};
+    document.querySelectorAll('[data-list]').forEach(cont => {
+      const name = cont.getAttribute('data-list');
+      out[name] = Array.from(cont.children).filter(c => c.matches && c.matches('.svc-row, .who-item')).map(c => {
+        if (name === 'svc') return { name: txt(c, '.svc-name'), desc: txt(c, '.svc-desc'), demo: c.getAttribute('data-demo') || '', hidden: false };
+        return { h: txt(c, 'h3'), p: txt(c, 'p'), hidden: false };
+      });
+    });
+    return out;
+  }
+
   (async () => {
     const { data: { session: s } } = await sb.auth.getSession();
     if (!s) { location.replace('login.html?auth=required'); return; }
     session = s;
     userEl.textContent = s.user.email;
+    let content = {};
     try {
       const { data } = await sb.from('site_content').select('published,draft').eq('id', 'index').maybeSingle();
       if (data) {
-        if (data.draft) { apply(data.draft); loadedFrom = 'draft'; }
-        else if (data.published) { apply(data.published); loadedFrom = 'published'; }
+        if (data.draft) { content = data.draft; loadedFrom = 'draft'; }
+        else if (data.published) { content = data.published; loadedFrom = 'published'; }
       }
     } catch (_) {}
+    if (!content || typeof content !== 'object') content = {};
+    // 1-й проход: применяем flat-ключи к статичным строкам (для деривации _lists)
+    FIQ.applyContent(content, { editor: true });
+    if (!content._lists) content._lists = deriveLists();
+    if (!content._blocks) content._blocks = {};
+    // 2-й проход: перестраиваем списки/блоки уже в структурную форму
+    FIQ.applyContent(content, { editor: true });
     enableEditing();
     baseline = serialize(collect());
     setStatus(loadedFrom === 'draft' ? 'draft' : 'saved');
