@@ -1,10 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { sbPublic } from '../lib/supabase.js';
+import { Ic, Gauge, GrowthDeco, serviceIcon } from '../components/auditIcons.jsx';
 import auditCss from '../styles/audit.css?inline';
 
 // Публичная страница аудита для клиента (по образцу mayko.rocks/fastline-geo,
 // но в графическом стиле FIQ). Данные: public.audits (RLS: аноним видит только ready).
+// Правило: никакого «голого текста» — каждая секция несёт граф-элемент
+// (иконки, шкалы, бары, таймлайн, пузыри, декоративный график).
 const SCOPE = {
   basic: [
     'Audyt techniczny i naprawa indeksacji',
@@ -24,7 +27,13 @@ const SCOPE = {
   ],
 };
 
-const INTENT_LABEL = { informacyjna: 'informacyjna', zakupowa: 'zakupowa', lokalna: 'lokalna', 'porównawcza': 'porównawcza' };
+const DIAG_ICONS = ['search', 'eye', 'layers'];
+const WHY_ICONS = ['bolt', 'rocket', 'clock'];
+const POT_W = { wysoki: 100, 'średni': 62, sredni: 62, niski: 30 };
+
+// фильтры пустых элементов (модель может вернуть незаполненный объект)
+const nzObj = (a) => Array.isArray(a) ? a.filter(x => x && Object.values(x).some(v => String(v || '').trim())) : [];
+const nzStr = (a) => Array.isArray(a) ? a.filter(s => String(s || '').trim()) : [];
 
 function fmtDate(iso) {
   if (!iso) return '';
@@ -60,8 +69,19 @@ export default function Audit() {
 
   const c = audit?.content || {};
   const prices = audit?.prices || {};
-  const packages = Array.isArray(prices.packages) ? prices.packages : [];
+  const packages = (Array.isArray(prices.packages) ? prices.packages : []).filter(p => (p.name || '').trim());
   const hasPrices = packages.some(p => (p.price || '').trim());
+  const diagnosis = nzObj(c.diagnosis);
+  const metrics = nzObj(c.metrics);
+  const plus = nzStr(c.plus);
+  const minus = nzStr(c.minus);
+  const keywords = nzObj(c.keywords);
+  const aiPrompts = nzObj(c.ai_prompts).map(g => ({ ...g, prompts: nzStr(g.prompts) })).filter(g => g.prompts.length);
+  const whyNow = nzObj(c.why_now);
+  const plan = nzObj(c.plan);
+  const services = nzObj(c.ai_services);
+  const faq = nzObj(c.faq).filter(f => (f.q || '').trim() && (f.a || '').trim());
+  const scores = c.scores && typeof c.scores === 'object' ? c.scores : null;
   let sectionNo = 0;
   const no = () => String(++sectionNo).padStart(2, '0');
 
@@ -96,16 +116,25 @@ export default function Audit() {
             <div className="au-eyebrow">★ Oferta audytu SEO · GEO — {audit.client_name} · ważna 14 dni</div>
             <h1 className="au-h1">{c.hero?.headline || `Widoczność ${audit.client_name} w Google i w AI`}</h1>
             {c.hero?.sub && <p className="au-sub">{c.hero.sub}</p>}
+            {scores && (
+              <div className="au-gauges">
+                <Gauge value={scores.google} label="Widoczność Google" />
+                <Gauge value={scores.ai} label="Widoczność w AI" />
+                <Gauge value={scores.technika} label="Technika strony" />
+                <Gauge value={scores.tresc} label="Jakość treści" />
+              </div>
+            )}
             <div className="au-hero-note">Przygotowane przez Fastline InfinitiQ · AI-Native Agency</div>
           </section>
 
           {/* DIAGNOZA */}
-          {Array.isArray(c.diagnosis) && c.diagnosis.length > 0 && (
+          {diagnosis.length > 0 && (
             <section className="au-section">
               <div className="au-label">{no()} — Jak rozumiemy Waszą sytuację</div>
               <div className="au-grid3">
-                {c.diagnosis.map((d, i) => (
-                  <div className="au-card" data-n={String(i + 1).padStart(2, '0')} key={i}>
+                {diagnosis.map((d, i) => (
+                  <div className="au-card" key={i}>
+                    <div className="au-card-ic"><Ic name={DIAG_ICONS[i % DIAG_ICONS.length]} /></div>
                     <h3>{d.title}</h3>
                     <p>{d.text}</p>
                   </div>
@@ -115,39 +144,53 @@ export default function Audit() {
           )}
 
           {/* PUNKT WYJŚCIA */}
-          {Array.isArray(c.metrics) && c.metrics.length > 0 && (
+          {metrics.length > 0 && (
             <section className="au-section">
               <div className="au-label">{no()} — Punkt wyjścia</div>
               <div className="au-metrics">
-                {c.metrics.map((m, i) => (
-                  <div className="au-metric" key={i}>
-                    <div className="au-metric-val">{m.value}</div>
-                    <div className="au-metric-label">{m.label}</div>
-                  </div>
-                ))}
+                {metrics.map((m, i) => {
+                  const bad = /brak|nie|false|0/i.test(String(m.value || ''));
+                  return (
+                    <div className={'au-metric' + (bad ? ' bad' : ' good')} key={i}>
+                      <div className="au-metric-ic"><Ic name={bad ? 'bolt' : 'shield'} size={18} /></div>
+                      <div className="au-metric-val">{m.value}</div>
+                      <div className="au-metric-label">{m.label}</div>
+                    </div>
+                  );
+                })}
               </div>
             </section>
           )}
 
           {/* ANALIZA +/- */}
-          {(Array.isArray(c.plus) || Array.isArray(c.minus)) && (
+          {(plus.length > 0 || minus.length > 0) && (
             <section className="au-section">
               <div className="au-label">{no()} — Analiza obecnego stanu</div>
               <div className="au-pm">
                 <div className="au-pm-col">
-                  <div className="au-pm-head plus">＋ Na plus</div>
-                  {(c.plus || []).map((t, i) => <div className="au-pm-item" key={i}>{t}</div>)}
+                  <div className="au-pm-head plus"><Ic name="shield" size={16} /> Na plus</div>
+                  {plus.map((t, i) => (
+                    <div className="au-pm-item" key={i}>
+                      <svg className="au-pm-mark ok" viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" /><path d="M6 10.5l2.6 2.6L14 7.5" /></svg>
+                      <span>{t}</span>
+                    </div>
+                  ))}
                 </div>
                 <div className="au-pm-col">
-                  <div className="au-pm-head minus">！ Do poprawy</div>
-                  {(c.minus || []).map((t, i) => <div className="au-pm-item" key={i}>{t}</div>)}
+                  <div className="au-pm-head minus"><Ic name="bolt" size={16} /> Do poprawy</div>
+                  {minus.map((t, i) => (
+                    <div className="au-pm-item" key={i}>
+                      <svg className="au-pm-mark warn" viewBox="0 0 20 20"><path d="M10 2l8.5 15h-17z" /><path d="M10 8v4.4" /><circle cx="10" cy="14.6" r="0.9" fill="currentColor" stroke="none" /></svg>
+                      <span>{t}</span>
+                    </div>
+                  ))}
                 </div>
               </div>
             </section>
           )}
 
           {/* FRAZY */}
-          {Array.isArray(c.keywords) && c.keywords.length > 0 && (
+          {keywords.length > 0 && (
             <section className="au-section">
               <div className="au-label">{no()} — Czym szukają Was klienci</div>
               <div className="au-table-wrap">
@@ -156,11 +199,14 @@ export default function Audit() {
                     <tr><th>Fraza</th><th>Intencja</th><th>Potencjał</th></tr>
                   </thead>
                   <tbody>
-                    {c.keywords.map((k, i) => (
+                    {keywords.map((k, i) => (
                       <tr key={i}>
                         <td>{k.phrase}</td>
-                        <td className="au-td-mono">{INTENT_LABEL[k.intent] || k.intent}</td>
-                        <td><span className={'au-pot p-' + (k.potential || '')}>{k.potential}</span></td>
+                        <td className="au-td-mono">{k.intent}</td>
+                        <td className="au-td-pot">
+                          <div className="au-kw-bar"><i style={{ width: (POT_W[String(k.potential || '').toLowerCase()] || 30) + '%' }} /></div>
+                          <span className={'au-pot p-' + (k.potential || '')}>{k.potential}</span>
+                        </td>
                       </tr>
                     ))}
                   </tbody>
@@ -171,15 +217,20 @@ export default function Audit() {
           )}
 
           {/* PROMPTY AI */}
-          {Array.isArray(c.ai_prompts) && c.ai_prompts.length > 0 && (
+          {aiPrompts.length > 0 && (
             <section className="au-section">
               <div className="au-label">{no()} — Jak klienci pytają AI</div>
               <p className="au-p">Coraz więcej decyzji zakupowych zaczyna się nie w Google, a w ChatGPT, Gemini czy Perplexity. Tak wyglądają realne pytania w Waszej branży:</p>
               <div className="au-prompts">
-                {c.ai_prompts.map((g, i) => (
+                {aiPrompts.map((g, i) => (
                   <div className="au-prompt-group" key={i}>
-                    <div className="au-prompt-cat">{g.category}</div>
-                    {(g.prompts || []).map((p, k) => <div className="au-prompt" key={k}>„{p}"</div>)}
+                    <div className="au-prompt-cat"><Ic name="message" size={16} /> {g.category}</div>
+                    {g.prompts.map((p, k) => (
+                      <div className="au-prompt" key={k}>
+                        <span className="au-prompt-bot"><Ic name="robot" size={15} /></span>
+                        <span>„{p}"</span>
+                      </div>
+                    ))}
                   </div>
                 ))}
               </div>
@@ -187,12 +238,13 @@ export default function Audit() {
           )}
 
           {/* DLACZEGO TERAZ */}
-          {Array.isArray(c.why_now) && c.why_now.length > 0 && (
+          {whyNow.length > 0 && (
             <section className="au-section">
               <div className="au-label">{no()} — Dlaczego warto teraz</div>
               <div className="au-grid3">
-                {c.why_now.map((d, i) => (
-                  <div className="au-card" data-n={String(i + 1).padStart(2, '0')} key={i}>
+                {whyNow.map((d, i) => (
+                  <div className="au-card" key={i}>
+                    <div className="au-card-ic"><Ic name={WHY_ICONS[i % WHY_ICONS.length]} /></div>
                     <h3>{d.title}</h3>
                     <p>{d.text}</p>
                   </div>
@@ -201,18 +253,21 @@ export default function Audit() {
             </section>
           )}
 
-          {/* PLAN */}
-          {Array.isArray(c.plan) && c.plan.length > 0 && (
+          {/* PLAN — таймлайн */}
+          {plan.length > 0 && (
             <section className="au-section">
               <div className="au-label">{no()} — Plan działania</div>
               <div className="au-plan">
-                {c.plan.map((s, i) => (
+                {plan.map((s, i) => (
                   <div className="au-step" key={i}>
-                    <div className="au-step-num">{String(i + 1).padStart(2, '0')}</div>
+                    <div className="au-step-rail">
+                      <div className="au-step-node">{String(i + 1).padStart(2, '0')}</div>
+                      {i < plan.length - 1 && <div className="au-step-line" />}
+                    </div>
                     <div className="au-step-body">
                       <h3>{s.title}</h3>
                       <p>{s.text}</p>
-                      {s.effect && <div className="au-step-effect">→ {s.effect}</div>}
+                      {s.effect && <div className="au-step-effect"><Ic name="chart" size={14} /> {s.effect}</div>}
                     </div>
                   </div>
                 ))}
@@ -221,14 +276,14 @@ export default function Audit() {
           )}
 
           {/* USŁUGI AI DLA KLIENTA */}
-          {Array.isArray(c.ai_services) && c.ai_services.length > 0 && (
+          {services.length > 0 && (
             <section className="au-section">
               <div className="au-label">{no()} — Co możemy zbudować z AI dla {audit.client_name}</div>
               <p className="au-p">Poza widocznością w Google i AI jesteśmy agencją AI-native — projektujemy i wdrażamy systemy, które pracują w Waszym biznesie na co dzień. Dopasowane do Waszej branży:</p>
               <div className="au-services">
-                {c.ai_services.map((s, i) => (
+                {services.map((s, i) => (
                   <div className="au-service" key={i}>
-                    <div className="au-service-num">{String(i + 1).padStart(2, '0')}</div>
+                    <div className="au-service-ic"><Ic name={serviceIcon(s.name)} size={26} /></div>
                     <div className="au-service-body">
                       <h3>{s.name}</h3>
                       <p>{s.desc}</p>
@@ -246,11 +301,11 @@ export default function Audit() {
             <div className="au-label">{no()} — Zakres i inwestycja</div>
             <div className="au-scope">
               <div className="au-scope-col">
-                <div className="au-scope-head">Fundament techniczny</div>
+                <div className="au-scope-head"><Ic name="chip" size={16} /> Fundament techniczny</div>
                 {SCOPE.basic.map((t, i) => <div className="au-scope-item" key={i}>{t}</div>)}
               </div>
               <div className="au-scope-col">
-                <div className="au-scope-head">Widoczność w AI (GEO)</div>
+                <div className="au-scope-head"><Ic name="robot" size={16} /> Widoczność w AI (GEO)</div>
                 {SCOPE.geo.map((t, i) => <div className="au-scope-item" key={i}>{t}</div>)}
               </div>
             </div>
@@ -260,6 +315,9 @@ export default function Audit() {
                   {i === 1 && <div className="au-pack-tag">Najczęściej wybierany</div>}
                   <div className="au-pack-name">{p.name}</div>
                   <div className="au-pack-price">{(p.price || '').trim() || 'wycena indywidualna'}</div>
+                  <div className="au-pack-bars" aria-hidden="true">
+                    {[0, 1, 2].map(b => <i key={b} className={b <= i ? 'on' : ''} />)}
+                  </div>
                 </div>
               ))}
             </div>
@@ -268,13 +326,13 @@ export default function Audit() {
           </section>
 
           {/* FAQ */}
-          {Array.isArray(c.faq) && c.faq.length > 0 && (
+          {faq.length > 0 && (
             <section className="au-section">
               <div className="au-label">{no()} — Najczęstsze pytania</div>
               <div className="au-faq">
-                {c.faq.map((f, i) => (
+                {faq.map((f, i) => (
                   <details className="au-faq-item" key={i}>
-                    <summary>{f.q}<span className="au-faq-plus">＋</span></summary>
+                    <summary><span className="au-faq-q"><Ic name="message" size={16} /> {f.q}</span><span className="au-faq-plus">＋</span></summary>
                     <p>{f.a}</p>
                   </details>
                 ))}
@@ -284,6 +342,7 @@ export default function Audit() {
 
           {/* KONTAKT */}
           <section className="au-section au-contact">
+            <GrowthDeco />
             <div className="au-label">{no()} — Co dalej</div>
             <h2 className="au-h2">Porozmawiajmy o wdrożeniu.</h2>
             <p className="au-p">Odpowiemy na pytania, doprecyzujemy zakres i ustalimy start. Pierwsza rozmowa — bez zobowiązań.</p>

@@ -237,7 +237,8 @@ Deno.serve(async (req) => {
  "diagnosis": [ { "title": "3-6 słów", "text": "2-3 zdania diagnozy" } ],   // dokładnie 3 pozycje: jak rozumiemy sytuację klienta
  "metrics": [ { "value": "krótka wartość PO POLSKU: 'BRAK' / 'JEST' / 'TAK' / 'NIE' / '2 języki' (nigdy true/false)", "label": "czego dotyczy" } ],  // 4-6 metryk punktu wyjścia opartych o realne sygnały ze strony (schema, OG, canonical, hreflang, treść, blog)
  "plus": [ "co już działa — konkret ze strony" ],   // dokładnie 4
- "minus": [ "co kosztuje widoczność — konkret" ]    // dokładnie 4
+ "minus": [ "co kosztuje widoczność — konkret" ],   // dokładnie 4
+ "scores": { "google": 0, "ai": 0, "technika": 0, "tresc": 0 }  // oceny 0-100 wg realnych sygnałów: widoczność Google, widoczność w AI, technika strony, jakość treści
 }
 Pisz zwięźle. Opieraj się TYLKO na danych ze strony. Nie wymyślaj liczb ruchu.
 
