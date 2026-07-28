@@ -7,7 +7,10 @@
 
 ## Стек и структура
 
-- Vanilla HTML/CSS/JS, без фреймворков и сборки. Всё inline в `index.html` и `kontakt.html`.
+- **С 2026-07-28: React 18 + Vite + react-router** (переписано с vanilla; старые файлы в `legacy/` — только справка, не редактировать). SEO через SSG-пререндер (`npm run build` → `dist/`), деплой GH Pages (`.github/workflows/deploy.yml`, домен `infinitiq.fastline.pl`).
+- CSS страниц извлечён **байт-в-байт** из legacy в `src/styles/*.css` и инжектится per-page `<style>` — не «улучшать» и не объединять.
+- Движки (барабан/нейро-столп/курсор/редактор) — императивные модули в `src/engine/*`, вызываются из useEffect с cleanup. FIQ-модуль CMS: `src/engine/fiq.js`.
+- Роуты: `/`, `/kontakt`, `/login`, `/editor` (+вкладка Audyt), `/audyt/:slug` (клиентский аудит, noindex). Edge-функция `audit-run` (Barabash AI, ключ `fiq-audit`, 3 последовательных вызова qwen3.5:9b — не распараллеливать, общий gateway с Теосом/CatMon).
 - Палитра: `#0D0D0D` / acid `#B8FF00` / `#F5F5F0`. Шрифты DM Sans / DM Mono / Bebas Neue (Google Fonts).
 - Лого: `assets/logo/LOGO.png`, Greywolf: `assets/Greywolf/logo_greywolf.png`, фавиконы в `assets/favicon/` (сгенерированы из знака ∞Q).
 

@@ -1,0 +1,25 @@
+# Fastline InfinitiQ — infinitiq.fastline.pl
+User-agent: *
+Allow: /
+Disallow: /editor
+Disallow: /login
+Disallow: /audyt/
+
+# AI crawlers welcome
+User-agent: GPTBot
+Allow: /
+Disallow: /audyt/
+User-agent: ClaudeBot
+Allow: /
+Disallow: /audyt/
+User-agent: PerplexityBot
+Allow: /
+Disallow: /audyt/
+User-agent: CCBot
+Allow: /
+Disallow: /audyt/
+User-agent: Google-Extended
+Allow: /
+Disallow: /audyt/
+
+Sitemap: https://infinitiq.fastline.pl/sitemap.xml
