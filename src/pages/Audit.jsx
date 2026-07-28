@@ -83,6 +83,8 @@ export default function Audit() {
   const faq = nzObj(c.faq).filter(f => (f.q || '').trim() && (f.a || '').trim());
   const scores = c.scores && typeof c.scores === 'object' ? c.scores : null;
   const competitors = nzObj(c.competitors);
+  const matrix = c.competitor_matrix && Array.isArray(c.competitor_matrix.rivals) && c.competitor_matrix.rivals.length
+    ? c.competitor_matrix : null;
   const lostQueries = nzObj(c.lost_queries);
   const speedTips = nzStr(c.speed_tips);
   const recs = nzObj(c.recommendations);
@@ -251,9 +253,53 @@ export default function Audit() {
           )}
 
           {/* KONKURENCJA */}
-          {competitors.length > 0 && (
+          {(competitors.length > 0 || matrix) && (
             <section className="au-section">
-              <div className="au-label">{no()} — Krajobraz konkurencji</div>
+              <div className="au-label">{no()} — Analiza konkurencji</div>
+              {matrix && (() => {
+                const cols = [matrix.client, ...matrix.rivals];
+                const yn = (v) => v
+                  ? <span className="au-mx-yes"><svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="9" /><path d="M6 10.5l2.6 2.6L14 7.5" /></svg></span>
+                  : <span className="au-mx-no">—</span>;
+                const best = (vals, lowIsBetter) => {
+                  const nums = vals.filter(v => typeof v === 'number');
+                  if (!nums.length) return null;
+                  return lowIsBetter ? Math.min(...nums) : Math.max(...nums);
+                };
+                const bTtfb = best(cols.map(x => x.ttfbMs), true);
+                const bKb = best(cols.map(x => x.htmlKb), true);
+                const num = (v, b, unit) => <span className={'au-mx-num' + (v === b ? ' best' : '')}>{v}{unit}</span>;
+                const ROWS = [
+                  ['Meta description', x => yn(x.hasDesc)],
+                  ['Schema.org (dane dla AI)', x => yn(x.hasSchema)],
+                  ['Open Graph', x => yn(x.hasOg)],
+                  ['Canonical', x => yn(x.hasCanonical)],
+                  ['Wersje językowe (hreflang)', x => yn(x.hasHreflang)],
+                  ['Odpowiedź serwera (TTFB)', x => num(x.ttfbMs, bTtfb, ' ms')],
+                  ['Waga HTML', x => num(x.htmlKb, bKb, ' KB')],
+                ];
+                return (
+                  <div className="au-table-wrap au-mx-wrap">
+                    <table className="au-table au-mx">
+                      <thead>
+                        <tr>
+                          <th>Czynnik (pomiar rzeczywisty)</th>
+                          {cols.map((x, i) => <th key={i} className={i === 0 ? 'au-mx-client' : ''}>{i === 0 ? audit.client_name : x.domain}</th>)}
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {ROWS.map(([label, fn], ri) => (
+                          <tr key={ri}>
+                            <td className="au-mx-factor">{label}</td>
+                            {cols.map((x, i) => <td key={i} className={i === 0 ? 'au-mx-client' : ''}>{fn(x)}</td>)}
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                );
+              })()}
+              {matrix && <div className="au-note" style={{ marginBottom: 26 }}>Zmierzone przez nas bezpośrednio na stronach ({new Date(audit.generated_at || audit.created_at).toLocaleDateString('pl-PL')}).</div>}
               <div className="au-comp">
                 {competitors.map((k, i) => (
                   <div className="au-comp-card" key={i}>

@@ -36,7 +36,9 @@
   -webkit-backdrop-filter: blur(22px) saturate(140%);
   border-bottom: 1px solid rgba(var(--fg-rgb),0.06);
 }
-.au-fiq-logo { height: 30px; width: auto; }
+/* лого FIQ рисовано под тёмный фон — всегда на тёмной плашке
+   (на тёмной теме плашка сливается с фоном, на светлой даёт контраст) */
+.au-fiq-logo { height: 46px; width: auto; background: #0D0D0D; padding: 9px 13px; box-sizing: border-box; }
 .au-top-label {
   font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.22em;
   text-transform: uppercase; color: var(--acc);
@@ -349,8 +351,9 @@
   font-size: 21px; line-height: 1.1; color: var(--fg); margin-bottom: 8px;
 }
 .au-sm-label { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(var(--fg-rgb),0.45); line-height: 1.55; }
-.au-sm.m-good { border-left-color: var(--acc); }
-.au-sm.m-good .au-sm-val { color: var(--acc); }
+/* семантика замеров не зависит от темы: good всегда зелёный */
+.au-sm.m-good { border-left-color: #2fbf71; }
+.au-sm.m-good .au-sm-val { color: #2fbf71; }
 .au-sm.m-mid { border-left-color: #ffb020; }
 .au-sm.m-mid .au-sm-val { color: #ffb020; }
 .au-sm.m-poor { border-left-color: #ff5470; }
@@ -409,3 +412,13 @@
   .au-lost-head { display: none; }
   .au-lost-row { grid-template-columns: 1fr; gap: 8px; }
 }
+
+/* ===== матрица сравнения с конкурентами ===== */
+.au-mx-wrap { margin-bottom: 26px; }
+.au-mx th.au-mx-client, .au-mx td.au-mx-client { background: rgba(var(--acc-rgb), 0.07); border-left: 2px solid var(--acc); }
+.au-mx th.au-mx-client { color: var(--acc); }
+.au-mx-factor { font-weight: 600; color: var(--fg); }
+.au-mx-yes svg { width: 18px; height: 18px; fill: none; stroke: #2fbf71; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; display: block; }
+.au-mx-no { color: rgba(var(--fg-rgb), 0.3); font-family: 'IBM Plex Mono', monospace; }
+.au-mx-num { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: rgba(var(--fg-rgb), 0.7); }
+.au-mx-num.best { color: #2fbf71; font-weight: 600; }

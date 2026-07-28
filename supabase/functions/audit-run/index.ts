@@ -215,6 +215,29 @@ async function extractTheme(html: string, base: string) {
   return { bg: hex(bg), accent: hex(accent), fg };
 }
 
+// Realny pomiar konkurenta: pobieramy jego stronę i liczymy te same sygnały.
+async function fetchRival(domain: string) {
+  let d = String(domain || "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/^www\./, "");
+  if (!d || !d.includes(".") || /\s/.test(d)) return null;
+  for (const u of [`https://${d}/`, `https://www.${d}/`]) {
+    try {
+      const m = await fetchSite(u);
+      return {
+        domain: d,
+        ttfbMs: m.perf.ttfbMs,
+        htmlKb: m.perf.htmlKb,
+        hasDesc: !!m.desc,
+        hasSchema: m.signals.hasSchema,
+        hasOg: m.signals.hasOg,
+        hasCanonical: m.signals.hasCanonical,
+        hasHreflang: m.signals.hasHreflang,
+        h1: m.h1.length,
+      };
+    } catch { /* spróbuj www */ }
+  }
+  return null;
+}
+
 // Google PageSpeed Insights (mobile) — realny pomiar, biegnie równolegle z AI.
 async function fetchPSI(url: string) {
   const ctrl = new AbortController();
@@ -391,7 +414,8 @@ Deno.serve(async (req) => {
  "metrics": [ { "value": "krótka wartość PO POLSKU: 'BRAK' / 'JEST' / 'TAK' / 'NIE' / '2 języki' (nigdy true/false)", "label": "czego dotyczy" } ],  // 4-6 metryk punktu wyjścia opartych o realne sygnały ze strony (schema, OG, canonical, hreflang, treść, blog)
  "plus": [ "co już działa — konkret ze strony" ],   // dokładnie 4
  "minus": [ "co kosztuje widoczność — konkret" ],   // dokładnie 4
- "scores": { "google": 0, "ai": 0, "technika": 0, "tresc": 0 }  // oceny 0-100 wg realnych sygnałów: widoczność Google, widoczność w AI, technika strony, jakość treści
+ "scores": { "google": 0, "ai": 0, "technika": 0, "tresc": 0 },  // oceny 0-100 wg realnych sygnałów: widoczność Google, widoczność w AI, technika strony, jakość treści
+ "competitor_domains": [ "domena.pl" ]  // 3 REALNE polskie domeny konkurentów w tej branży (same domeny, bez https). Tylko firmy, których istnienia jesteś pewien; nie wymyślaj domen
 }
 Pisz zwięźle. Opieraj się TYLKO na danych ze strony. Nie wymyślaj liczb ruchu.
 
@@ -411,6 +435,19 @@ ${brief.slice(0, 3200)}`;
 
     // para 1: analiza + oferta (2 równoległe — limit gatewaya)
     const [r1, r2] = await Promise.all([askJson(SYS, p1, 1200), askJson(SYS, p2, 1600)]);
+
+    // realne pomiary konkurentów (domeny z r1; własna domena i nieżywe — odpadają)
+    const clientHost = new URL(meta.finalUrl).hostname.replace(/^www\./, "");
+    const rivalDomains = (Array.isArray(r1.competitor_domains) ? r1.competitor_domains as string[] : [])
+      .map(d => String(d || "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/^www\./, ""))
+      .filter(d => d && d.includes(".") && d !== clientHost)
+      .slice(0, 3);
+    const rivals = (await Promise.all(rivalDomains.map(fetchRival))).filter(Boolean) as NonNullable<Awaited<ReturnType<typeof fetchRival>>>[];
+    const rivalFacts = rivals.length
+      ? "REALNE zmierzone dane konkurentów (odnoś się do nich po domenie):\n" + rivals.map(r =>
+          `${r.domain}: meta description ${r.hasDesc ? "jest" : "brak"}, Schema.org ${r.hasSchema ? "jest" : "brak"}, OpenGraph ${r.hasOg ? "jest" : "brak"}, hreflang ${r.hasHreflang ? "jest" : "brak"}, TTFB ~${r.ttfbMs} ms, HTML ${r.htmlKb} KB`).join("\n")
+      : "Brak zmierzonych danych konkurentów — opisuj TYPY konkurentów.";
+
     const psi = await psiPromise;
     const speedBrief = psi
       ? `PageSpeed (mobile): wynik ${psi.score}/100, FCP ${psi.fcp?.text}, LCP ${psi.lcp?.text}, CLS ${psi.cls?.text}, TBT ${psi.tbt?.text}. Do tego: HTML ${meta.perf.htmlKb} KB, tagów <script> ${meta.perf.scripts}, obrazów ${meta.perf.imgs} (lazy: ${meta.perf.lazyImgs}), WebP: ${meta.perf.webp ? "tak" : "nie"}.`
@@ -433,7 +470,7 @@ ${brief.slice(0, 1500)}`;
     // Wywołanie 4: konkurencja + utracone zapytania + szybkość + rekomendacje
     const p4 = `Przygotuj część konkurencyjno-naprawczą audytu dla "${audit.client_name}" (branża: ${r1.branza ?? "wg strony"}). Zwróć JSON o DOKŁADNIE tej strukturze:
 {
- "competitors": [ { "name": "typ konkurenta (np. duże portale porównawcze / agencje sieciowe) lub znana marka TYLKO jeśli masz pewność", "strengths": "czym dziś wygrywa widoczność w Google i AI, 1-2 zdania", "gap": "czego mu brakuje — szansa klienta, 1 zdanie" } ],  // dokładnie 3
+ "competitors": [ { "name": "domena zmierzonego konkurenta (jeśli są dane niżej) lub typ konkurenta", "strengths": "czym dziś wygrywa widoczność w Google i AI — oprzyj się na zmierzonych danych, 1-2 zdania", "gap": "czego mu brakuje — szansa klienta, 1 zdanie" } ],  // dokładnie 3
  "lost_queries": [ { "query": "zapytanie klienta po polsku", "why": "dlaczego na tym zapytaniu klient trafia gdzie indziej (czego brakuje na stronie), 1 zdanie", "fix": "co wdrożyć, żeby przechwycić to zapytanie, 1 zdanie" } ],  // dokładnie 5 zapytań, na których firma DZIŚ traci klientów
  "speed_tips": [ "konkretna poprawa szybkości strony wynikająca z danych poniżej" ],  // dokładnie 4
  "recommendations": [ { "title": "3-6 słów", "text": "co dokładnie zmienić i jak, 1-2 zdania", "priority": "wysoki|średni|niski" } ]  // dokładnie 5 najważniejszych zmian (technika, treść, GEO, szybkość)
@@ -442,12 +479,25 @@ Pisz zwięźle. Nie wymyślaj liczb ruchu ani nazw firm, których nie znasz — 
 
 Dane o szybkości strony: ${speedBrief}
 
-${brief.slice(0, 2600)}`;
+${rivalFacts}
+
+${brief.slice(0, 2400)}`;
 
     // para 2: usługi AI + konkurencja/naprawy (2 równoległe)
     const [r3, r4] = await Promise.all([askJson(SYS, p3, 900), askJson(SYS, p4, 1500)]);
 
-    const content = { ...r1, ...r2, ...r3, ...r4, speed: { psi, local: meta.perf } };
+    const content = {
+      ...r1, ...r2, ...r3, ...r4,
+      speed: { psi, local: meta.perf },
+      competitor_matrix: rivals.length ? {
+        client: {
+          domain: clientHost, ttfbMs: meta.perf.ttfbMs, htmlKb: meta.perf.htmlKb,
+          hasDesc: !!meta.desc, hasSchema: meta.signals.hasSchema, hasOg: meta.signals.hasOg,
+          hasCanonical: meta.signals.hasCanonical, hasHreflang: meta.signals.hasHreflang, h1: meta.h1.length,
+        },
+        rivals,
+      } : null,
+    };
     const theme = await themePromise;
     await db.from("audits").update({
       status: "ready",
