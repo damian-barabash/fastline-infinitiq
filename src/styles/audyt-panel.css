@@ -1,4 +1,8 @@
 /* ===== Вкладка «Audyt» в редакторе — стиль FIQ (dark + acid) ===== */
+/* редактор глушит все <a> (body.fiq-edit a { pointer-events: none }) —
+   внутри панели аудитов ссылки должны кликаться */
+body.fiq-edit .ap-wrap a { pointer-events: auto; }
+
 .ap-wrap {
   position: fixed; inset: 0; bottom: 0; z-index: 5800;
   background: #0D0D0D; overflow-y: auto;

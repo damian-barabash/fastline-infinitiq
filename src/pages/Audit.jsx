@@ -82,11 +82,42 @@ export default function Audit() {
   const services = nzObj(c.ai_services);
   const faq = nzObj(c.faq).filter(f => (f.q || '').trim() && (f.a || '').trim());
   const scores = c.scores && typeof c.scores === 'object' ? c.scores : null;
+  const competitors = nzObj(c.competitors);
+  const lostQueries = nzObj(c.lost_queries);
+  const speedTips = nzStr(c.speed_tips);
+  const recs = nzObj(c.recommendations);
+  const speed = c.speed && typeof c.speed === 'object' ? c.speed : null;
+  const psi = speed?.psi || null;
+  const perf = speed?.local || null;
+  // оценка метрики Core Web Vitals: good / mid / poor
+  const rate = (v, good, poor) => v == null ? '' : v <= good ? ' m-good' : v <= poor ? ' m-mid' : ' m-poor';
+
+  // тема в цветах сайта клиента (site_meta.theme из edge); нет темы → FIQ-дефолт
+  const hexRgb = (h) => {
+    const m = /^#([0-9a-f]{6})$/i.exec(String(h || '').trim());
+    return m ? { r: parseInt(m[1].slice(0, 2), 16), g: parseInt(m[1].slice(2, 4), 16), b: parseInt(m[1].slice(4, 6), 16) } : null;
+  };
+  const theme = audit?.site_meta?.theme || null;
+  let themeStyle;
+  if (theme) {
+    const bg = hexRgb(theme.bg), acc = hexRgb(theme.accent);
+    if (bg && acc) {
+      const lumOf = (c) => (0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b) / 255;
+      const fgHex = hexRgb(theme.fg) ? theme.fg : (lumOf(bg) > 0.5 ? '#141414' : '#F5F5F0');
+      const fg = hexRgb(fgHex);
+      themeStyle = {
+        '--bg': theme.bg, '--bg-rgb': `${bg.r}, ${bg.g}, ${bg.b}`,
+        '--fg': fgHex, '--fg-rgb': `${fg.r}, ${fg.g}, ${fg.b}`,
+        '--acc': theme.accent, '--acc-rgb': `${acc.r}, ${acc.g}, ${acc.b}`,
+        '--acc-ink': lumOf(acc) > 0.5 ? '#0D0D0D' : '#FFFFFF',
+      };
+    }
+  }
   let sectionNo = 0;
   const no = () => String(++sectionNo).padStart(2, '0');
 
   return (
-    <div className="au-page">
+    <div className="au-page" style={themeStyle}>
       <style dangerouslySetInnerHTML={{ __html: auditCss }} />
 
       <header className="au-top">
@@ -189,6 +220,58 @@ export default function Audit() {
             </section>
           )}
 
+          {/* SZYBKOŚĆ STRONY */}
+          {(psi || perf) && (
+            <section className="au-section">
+              <div className="au-label">{no()} — Szybkość strony</div>
+              <div className="au-speed">
+                {psi && (
+                  <div className="au-speed-score">
+                    <Gauge value={psi.score} label="PageSpeed · mobile" />
+                  </div>
+                )}
+                <div className="au-speed-metrics">
+                  {psi?.lcp?.text && <div className={'au-sm' + rate(psi.lcp.ms, 2500, 4000)}><div className="au-sm-val">{psi.lcp.text}</div><div className="au-sm-label">LCP · największy element</div></div>}
+                  {psi?.fcp?.text && <div className={'au-sm' + rate(psi.fcp.ms, 1800, 3000)}><div className="au-sm-val">{psi.fcp.text}</div><div className="au-sm-label">FCP · pierwsza treść</div></div>}
+                  {psi?.tbt?.text && <div className={'au-sm' + rate(psi.tbt.ms, 200, 600)}><div className="au-sm-val">{psi.tbt.text}</div><div className="au-sm-label">TBT · blokada wątku</div></div>}
+                  {psi?.cls?.text && <div className={'au-sm' + rate(psi.cls.val, 0.1, 0.25)}><div className="au-sm-val">{psi.cls.text}</div><div className="au-sm-label">CLS · stabilność układu</div></div>}
+                  {perf && <div className={'au-sm' + rate(perf.ttfbMs, 500, 1200)}><div className="au-sm-val">{perf.ttfbMs} ms</div><div className="au-sm-label">TTFB · odpowiedź serwera</div></div>}
+                  {perf && <div className="au-sm"><div className="au-sm-val">{perf.htmlKb} KB</div><div className="au-sm-label">Waga HTML · skryptów: {perf.scripts}</div></div>}
+                </div>
+              </div>
+              {speedTips.length > 0 && (
+                <div className="au-tips">
+                  {speedTips.map((t, i) => (
+                    <div className="au-tip" key={i}><span className="au-tip-ic"><Ic name="wrench" size={16} /></span><span>{t}</span></div>
+                  ))}
+                </div>
+              )}
+              <div className="au-note">Pomiar: Google PageSpeed Insights (mobile){perf ? ' + pomiary własne serwera' : ''}.</div>
+            </section>
+          )}
+
+          {/* KONKURENCJA */}
+          {competitors.length > 0 && (
+            <section className="au-section">
+              <div className="au-label">{no()} — Krajobraz konkurencji</div>
+              <div className="au-comp">
+                {competitors.map((k, i) => (
+                  <div className="au-comp-card" key={i}>
+                    <div className="au-comp-name"><Ic name="users" size={18} /> {k.name}</div>
+                    <div className="au-comp-block">
+                      <div className="au-comp-tag">Czym dziś wygrywa</div>
+                      <p>{k.strengths}</p>
+                    </div>
+                    <div className="au-comp-block gap">
+                      <div className="au-comp-tag">Wasza szansa</div>
+                      <p>{k.gap}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
           {/* FRAZY */}
           {keywords.length > 0 && (
             <section className="au-section">
@@ -213,6 +296,25 @@ export default function Audit() {
                 </table>
               </div>
               <div className="au-note">Szacunek na podstawie analizy AI — pełne wolumeny dostarczamy po podpięciu narzędzi w etapie 1.</div>
+            </section>
+          )}
+
+          {/* GDZIE UCIEKAJĄ KLIENCI */}
+          {lostQueries.length > 0 && (
+            <section className="au-section">
+              <div className="au-label">{no()} — Zapytania, na których dziś tracicie klientów</div>
+              <div className="au-lost">
+                <div className="au-lost-head">
+                  <div>Zapytanie</div><div>Dlaczego klient trafia gdzie indziej</div><div>Co wdrożyć</div>
+                </div>
+                {lostQueries.map((q, i) => (
+                  <div className="au-lost-row" key={i}>
+                    <div className="au-lost-q"><span className="au-lost-ic"><Ic name="funnel" size={15} /></span>„{q.query}"</div>
+                    <div className="au-lost-why">{q.why}</div>
+                    <div className="au-lost-fix">→ {q.fix}</div>
+                  </div>
+                ))}
+              </div>
             </section>
           )}
 
@@ -268,6 +370,27 @@ export default function Audit() {
                       <h3>{s.title}</h3>
                       <p>{s.text}</p>
                       {s.effect && <div className="au-step-effect"><Ic name="chart" size={14} /> {s.effect}</div>}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </section>
+          )}
+
+          {/* REKOMENDACJE */}
+          {recs.length > 0 && (
+            <section className="au-section">
+              <div className="au-label">{no()} — Co zmienić w pierwszej kolejności</div>
+              <div className="au-recs">
+                {recs.map((r, i) => (
+                  <div className="au-rec" key={i}>
+                    <div className="au-rec-num">{String(i + 1).padStart(2, '0')}</div>
+                    <div className="au-rec-body">
+                      <div className="au-rec-head">
+                        <h3>{r.title}</h3>
+                        <span className={'au-pot p-' + (r.priority || '')}><Ic name="flag" size={11} /> {r.priority}</span>
+                      </div>
+                      <p>{r.text}</p>
                     </div>
                   </div>
                 ))}

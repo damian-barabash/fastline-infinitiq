@@ -1,7 +1,7 @@
 // audit-run — generuje audyt SEO/GEO strony klienta przez Barabash AI.
 // Wywoływane z edytora (wymagany zalogowany user). Zapisuje wynik do public.audits.
-// Ograniczenia: 2 sekwencyjne wywołania AI (nigdy równolegle — wspólny gateway
-// z innymi produktami), model z env AUDIT_MODEL, cel: < 60 s.
+// Ograniczenia: max 2 równoległe wywołania AI (wspólny gateway z innymi produktami —
+// 2 pary sekwencyjnie), model z env AUDIT_MODEL. PageSpeed mierzy się równolegle z AI.
 import { createClient } from "jsr:@supabase/supabase-js@2";
 
 const CORS = {
@@ -47,6 +47,7 @@ async function fetchSite(url: string) {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), 15000);
   let res: Response;
+  const t0 = Date.now();
   try {
     res = await fetch(url, {
       signal: ctrl.signal,
@@ -58,6 +59,7 @@ async function fetchSite(url: string) {
     });
   } finally { clearTimeout(t); }
   if (!res.ok) throw new Error(`Strona klienta odpowiedziała ${res.status}`);
+  const ttfbMs = Date.now() - t0; // przybliżenie: connect+TTFB
   const html = (await res.text()).slice(0, 600_000);
   const base = res.url || url;
 
@@ -90,10 +92,158 @@ async function fetchSite(url: string) {
   const langs = extractAll(/hreflang=["']([a-zA-Z-]+)["']/gi, html, 10);
   const text = stripTags(html).slice(0, 4000);
 
-  return {
-    finalUrl: base, title, desc, logo, h1, h2, h3, text,
-    signals: { hasSchema, hasOg, hasCanonical, hasHreflang, langs, htmlKb: Math.round(html.length / 1024) },
+  // proste pomiary szybkości z samego HTML (fallback, gdy PageSpeed niedostępny)
+  const perf = {
+    ttfbMs,
+    htmlKb: Math.round(html.length / 1024),
+    scripts: (html.match(/<script/gi) || []).length,
+    imgs: (html.match(/<img/gi) || []).length,
+    lazyImgs: (html.match(/loading=["']lazy["']/gi) || []).length,
+    webp: /\.webp/i.test(html),
   };
+
+  return {
+    finalUrl: base, title, desc, logo, h1, h2, h3, text, perf, html,
+    signals: { hasSchema, hasOg, hasCanonical, hasHreflang, langs, htmlKb: perf.htmlKb },
+  };
+}
+
+// ---------- paleta klienta (tło + akcent z CSS strony) ----------
+type RGB = { r: number; g: number; b: number };
+function parseColor(s: string): RGB | null {
+  s = String(s || "").trim().toLowerCase();
+  let m = s.match(/^#([0-9a-f]{6})\b/);
+  if (m) return { r: parseInt(m[1].slice(0, 2), 16), g: parseInt(m[1].slice(2, 4), 16), b: parseInt(m[1].slice(4, 6), 16) };
+  m = s.match(/^#([0-9a-f]{3})\b/);
+  if (m) return { r: parseInt(m[1][0] + m[1][0], 16), g: parseInt(m[1][1] + m[1][1], 16), b: parseInt(m[1][2] + m[1][2], 16) };
+  m = s.match(/^rgba?\(\s*(\d+)[,\s]+(\d+)[,\s]+(\d+)/);
+  if (m) return { r: +m[1], g: +m[2], b: +m[3] };
+  return null;
+}
+const lum = (c: RGB) => (0.2126 * c.r + 0.7152 * c.g + 0.0722 * c.b) / 255;
+const sat = (c: RGB) => { const mx = Math.max(c.r, c.g, c.b), mn = Math.min(c.r, c.g, c.b); return mx === 0 ? 0 : (mx - mn) / mx; };
+const hex = (c: RGB) => "#" + [c.r, c.g, c.b].map(v => Math.max(0, Math.min(255, Math.round(v))).toString(16).padStart(2, "0")).join("");
+
+async function fetchCss(url: string): Promise<string> {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 6000);
+  try {
+    const r = await fetch(url, { signal: ctrl.signal, headers: { "User-Agent": "Mozilla/5.0" } });
+    if (!r.ok) return "";
+    return (await r.text()).slice(0, 300_000);
+  } catch { return ""; } finally { clearTimeout(t); }
+}
+
+async function extractTheme(html: string, base: string) {
+  let css = extractAll(/<style[^>]*>([\s\S]*?)<\/style>/gi, html, 10).join("\n");
+  // font-CDN пропускаем (съедают слоты), дедуп, до 6 листов
+  const rawHrefs = extractAll(/<link[^>]+rel=["']stylesheet["'][^>]+href=["']([^"']+)["']/gi, html, 12)
+    .concat(extractAll(/<link[^>]+href=["']([^"']+)["'][^>]+rel=["']stylesheet["']/gi, html, 12));
+  const seen = new Set<string>();
+  const hrefs: string[] = [];
+  for (const h of rawHrefs) {
+    if (h.includes("fonts.") || seen.has(h)) continue;
+    seen.add(h);
+    const u = absUrl(h, base);
+    if (u) hrefs.push(u);
+    if (hrefs.length >= 6) break;
+  }
+  const sheets = await Promise.all(hrefs.map(fetchCss));
+  css += "\n" + sheets.join("\n");
+
+  const themeColor = parseColor(extract(/<meta[^>]+name=["']theme-color["'][^>]+content=["']([^"']+)["']/i, html));
+  const bodyBg = parseColor(extract(/(?:^|[}\s])(?:body|html)[^{]*\{[^}]*?background(?:-color)?\s*:\s*([^;}!]+)/i, css));
+
+  // частотный подсчёт цветов из CSS: определения кастом-переменных пропускаем
+  // (пресеты WP Gutenberg вида --wp--preset--color-* давали ложные акценты),
+  // реальные декларации (color/background/border/fill) весят больше
+  const counts = new Map<string, { c: RGB; n: number }>();
+  const reC = /#[0-9a-f]{6}\b|#[0-9a-f]{3}\b|rgba?\([\d\s,./]+\)/gi;
+  let mm: RegExpExecArray | null;
+  while ((mm = reC.exec(css))) {
+    const before = css.slice(Math.max(0, mm.index - 220), mm.index);
+    if (/--[\w-]+\s*:\s*[^;{]*$/.test(before)) continue;
+    const c = parseColor(mm[0]);
+    if (!c) continue;
+    const w = /(?:^|[;{])\s*(?:color|background(?:-color)?|border[^:]*|fill|stroke)\s*:\s*[^;{]*$/i.test(before) ? 3 : 1;
+    const k = hex(c);
+    const e = counts.get(k);
+    if (e) e.n += w; else counts.set(k, { c, n: w });
+  }
+  // цвета из инлайн-стилей и svg в самом HTML — часто именно брендовые (вес 2)
+  for (const m of html.matchAll(/(?:style|fill|color)=["'][^"']*?(#[0-9a-f]{6}\b|#[0-9a-f]{3}\b)/gi)) {
+    const c = parseColor(m[1]);
+    if (!c) continue;
+    const k = hex(c);
+    const e = counts.get(k);
+    if (e) e.n += 2; else counts.set(k, { c, n: 2 });
+  }
+  const all = [...counts.values()].sort((a, b) => b.n - a.n);
+
+  // тло: явный body-bg → theme-color → самый частый экстремально светлый/тёмный
+  let bg = bodyBg || themeColor || null;
+  if (!bg) bg = all.find(e => lum(e.c) > 0.9)?.c ?? all.find(e => lum(e.c) < 0.1)?.c ?? null;
+  if (!bg) return null;
+  const bgL = lum(bg);
+
+  // чёрный список библиотечных палитр (WP Gutenberg presets, WP core, Ant Design,
+  // Bootstrap defaults) — попадают в CSS любого сайта и дают ложный «акцент»
+  const JUNK = new Set([
+    "#0693e3", "#8ed1fc", "#eb144c", "#ff6900", "#fcb900", "#7bdcb5", "#00d084",
+    "#abb8c3", "#9b51e0", "#f78da7", "#cf2e2e", "#313131", "#6495ed", "#3858e9",
+    "#1890ff", "#40a9ff", "#69c0ff", "#91d5ff", "#bae7ff", "#e6f7ff", "#096dd9",
+    "#0050b3", "#0d6efd", "#007bff", "#0dcaf0", "#20c997", "#6c757d",
+    "#34e2e4", "#4721fb", "#ab1dfe", "#faaca8", "#fdd79a",
+  ]);
+  const ok = (e: { c: RGB; n: number }, minSat: number, minDiff: number, minN: number) =>
+    !JUNK.has(hex(e.c)) && e.n >= minN && sat(e.c) >= minSat &&
+    Math.abs(lum(e.c) - bgL) >= minDiff && lum(e.c) > 0.03 && lum(e.c) < 0.97;
+
+  // акцент: самый «весомый» насыщенный контрастный цвет; пороги ослабляем ступенчато
+  let accent = all.find(e => ok(e, 0.35, 0.2, 5))?.c
+    ?? all.find(e => ok(e, 0.3, 0.18, 3))?.c
+    ?? all.find(e => ok(e, 0.25, 0.15, 2))?.c
+    ?? null;
+  // без надёжного акцента: на светлом фоне — графит, на тёмном — фирменный acid
+  if (!accent) accent = bgL > 0.5 ? { r: 20, g: 20, b: 20 } : { r: 184, g: 255, b: 0 };
+  // страховка контраста
+  if (Math.abs(lum(accent) - bgL) < 0.18) {
+    const k = bgL > 0.5 ? 0.55 : 1.6;
+    accent = { r: accent.r * k, g: accent.g * k, b: accent.b * k };
+  }
+  const fg = bgL > 0.5 ? "#141414" : "#F5F5F0";
+  return { bg: hex(bg), accent: hex(accent), fg };
+}
+
+// Google PageSpeed Insights (mobile) — realny pomiar, biegnie równolegle z AI.
+async function fetchPSI(url: string) {
+  const ctrl = new AbortController();
+  const t = setTimeout(() => ctrl.abort(), 60000);
+  try {
+    // bez klucza anonimowa kwota Google często wyczerpana → ustaw secret PSI_API_KEY
+    const key = Deno.env.get("PSI_API_KEY");
+    const r = await fetch(
+      `https://www.googleapis.com/pagespeedonline/v5/runPagespeed?url=${encodeURIComponent(url)}&strategy=mobile&category=performance${key ? `&key=${key}` : ""}`,
+      { signal: ctrl.signal },
+    );
+    if (!r.ok) return null;
+    const d = await r.json();
+    const lh = d?.lighthouseResult;
+    if (!lh) return null;
+    const a = lh.audits ?? {};
+    const pick = (k: string) => ({
+      text: a[k]?.displayValue ?? null,
+      ms: typeof a[k]?.numericValue === "number" ? Math.round(a[k].numericValue) : null,
+    });
+    return {
+      score: Math.round((lh.categories?.performance?.score ?? 0) * 100),
+      fcp: pick("first-contentful-paint"),
+      lcp: pick("largest-contentful-paint"),
+      cls: { text: a["cumulative-layout-shift"]?.displayValue ?? null, val: a["cumulative-layout-shift"]?.numericValue ?? null },
+      tbt: pick("total-blocking-time"),
+      si: pick("speed-index"),
+    };
+  } catch { return null; } finally { clearTimeout(t); }
 }
 
 // ---------- Barabash AI ----------
@@ -227,6 +377,9 @@ Deno.serve(async (req) => {
     if (!/^https?:\/\//i.test(url)) url = "https://" + url;
     const meta = await fetchSite(url);
     const brief = siteBrief(meta, audit.client_name, url);
+    // PageSpeed и палитра клиента идут параллельно с генерацией
+    const psiPromise = fetchPSI(url).catch(() => null);
+    const themePromise = extractTheme(meta.html, meta.finalUrl).catch(() => null);
 
     // Wywołanie 1: diagnoza strony
     const p1 = `Przeanalizuj stronę klienta pod kątem SEO i widoczności w AI (GEO). Zwróć JSON o DOKŁADNIE tej strukturze:
@@ -243,8 +396,6 @@ Deno.serve(async (req) => {
 Pisz zwięźle. Opieraj się TYLKO na danych ze strony. Nie wymyślaj liczb ruchu.
 
 ${brief}`;
-    const r1 = await askJson(SYS, p1, 1200);
-
     // Wywołanie 2: fразы, prompty AI, plan
     const p2 = `Dla tej samej strony przygotuj część ofertową audytu. Zwróć JSON o DOKŁADNIE tej strukturze:
 {
@@ -254,10 +405,16 @@ ${brief}`;
  "plan": [ { "title": "nazwa etapu", "text": "co robimy, 2 zdania", "effect": "efekt etapu, 1 zdanie" } ],  // dokładnie 3 etapy: audyt+fundament techniczny → treści+GEO → skala i pomiar
  "faq": [ { "q": "pytanie", "a": "odpowiedź 2 zdania" } ]  // dokładnie 4 najczęstsze pytania klienta o taką współpracę
 }
-Pisz zwięźle. Frazy i prompty mają pasować do branży klienta (${r1.branza ?? "wg strony"}). Bez wymyślonych liczb.
+Pisz zwięźle. Frazy i prompty mają pasować do branży klienta (wg strony). Bez wymyślonych liczb.
 
 ${brief.slice(0, 3200)}`;
-    const r2 = await askJson(SYS, p2, 1600);
+
+    // para 1: analiza + oferta (2 równoległe — limit gatewaya)
+    const [r1, r2] = await Promise.all([askJson(SYS, p1, 1200), askJson(SYS, p2, 1600)]);
+    const psi = await psiPromise;
+    const speedBrief = psi
+      ? `PageSpeed (mobile): wynik ${psi.score}/100, FCP ${psi.fcp?.text}, LCP ${psi.lcp?.text}, CLS ${psi.cls?.text}, TBT ${psi.tbt?.text}. Do tego: HTML ${meta.perf.htmlKb} KB, tagów <script> ${meta.perf.scripts}, obrazów ${meta.perf.imgs} (lazy: ${meta.perf.lazyImgs}), WebP: ${meta.perf.webp ? "tak" : "nie"}.`
+      : `PageSpeed niedostępny. Pomiary własne: TTFB ~${meta.perf.ttfbMs} ms, HTML ${meta.perf.htmlKb} KB, tagów <script> ${meta.perf.scripts}, obrazów ${meta.perf.imgs} (lazy: ${meta.perf.lazyImgs}), WebP: ${meta.perf.webp ? "tak" : "nie"}.`;
 
     // Wywołanie 3: propozycje usług AI dopasowane do biznesu klienta
     const p3 = `Fastline InfinitiQ (AI-Native Agency) oferuje wdrożenia AI: agenci AI (obsługa klienta, sprzedaż),
@@ -272,14 +429,31 @@ Pisz zwięźle, po polsku, bez ogólników — odnoś się do realiów tej bran�
 
 Kontekst o kliencie:
 ${brief.slice(0, 1500)}`;
-    const r3 = await askJson(SYS, p3, 900);
 
-    const content = { ...r1, ...r2, ...r3 };
+    // Wywołanie 4: konkurencja + utracone zapytania + szybkość + rekomendacje
+    const p4 = `Przygotuj część konkurencyjno-naprawczą audytu dla "${audit.client_name}" (branża: ${r1.branza ?? "wg strony"}). Zwróć JSON o DOKŁADNIE tej strukturze:
+{
+ "competitors": [ { "name": "typ konkurenta (np. duże portale porównawcze / agencje sieciowe) lub znana marka TYLKO jeśli masz pewność", "strengths": "czym dziś wygrywa widoczność w Google i AI, 1-2 zdania", "gap": "czego mu brakuje — szansa klienta, 1 zdanie" } ],  // dokładnie 3
+ "lost_queries": [ { "query": "zapytanie klienta po polsku", "why": "dlaczego na tym zapytaniu klient trafia gdzie indziej (czego brakuje na stronie), 1 zdanie", "fix": "co wdrożyć, żeby przechwycić to zapytanie, 1 zdanie" } ],  // dokładnie 5 zapytań, na których firma DZIŚ traci klientów
+ "speed_tips": [ "konkretna poprawa szybkości strony wynikająca z danych poniżej" ],  // dokładnie 4
+ "recommendations": [ { "title": "3-6 słów", "text": "co dokładnie zmienić i jak, 1-2 zdania", "priority": "wysoki|średni|niski" } ]  // dokładnie 5 najważniejszych zmian (technika, treść, GEO, szybkość)
+}
+Pisz zwięźle. Nie wymyślaj liczb ruchu ani nazw firm, których nie znasz — wtedy opisuj TYP konkurenta.
+
+Dane o szybkości strony: ${speedBrief}
+
+${brief.slice(0, 2600)}`;
+
+    // para 2: usługi AI + konkurencja/naprawy (2 równoległe)
+    const [r3, r4] = await Promise.all([askJson(SYS, p3, 900), askJson(SYS, p4, 1500)]);
+
+    const content = { ...r1, ...r2, ...r3, ...r4, speed: { psi, local: meta.perf } };
+    const theme = await themePromise;
     await db.from("audits").update({
       status: "ready",
       content,
       logo_url: meta.logo || null,
-      site_meta: { title: meta.title, desc: meta.desc, finalUrl: meta.finalUrl, signals: meta.signals },
+      site_meta: { title: meta.title, desc: meta.desc, finalUrl: meta.finalUrl, signals: meta.signals, theme },
       generated_at: new Date().toISOString(),
       error: null,
     }).eq("id", id);
