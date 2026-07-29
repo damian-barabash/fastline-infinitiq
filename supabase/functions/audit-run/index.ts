@@ -215,27 +215,101 @@ async function extractTheme(html: string, base: string) {
   return { bg: hex(bg), accent: hex(accent), fg };
 }
 
-// Realny pomiar konkurenta: pobieramy jego stronę i liczymy te same sygnały.
-async function fetchRival(domain: string) {
-  let d = String(domain || "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/^www\./, "");
-  if (!d || !d.includes(".") || /\s/.test(d)) return null;
-  for (const u of [`https://${d}/`, `https://www.${d}/`]) {
-    try {
-      const m = await fetchSite(u);
-      return {
-        domain: d,
-        ttfbMs: m.perf.ttfbMs,
-        htmlKb: m.perf.htmlKb,
-        hasDesc: !!m.desc,
-        hasSchema: m.signals.hasSchema,
-        hasOg: m.signals.hasOg,
-        hasCanonical: m.signals.hasCanonical,
-        hasHreflang: m.signals.hasHreflang,
-        h1: m.h1.length,
-      };
-    } catch { /* spróbuj www */ }
+// ---------- konkurenci: pobranie + walidacja ----------
+// Parking/sprzedaż domeny (motorsport.pl i torowisko.pl przekierowują na sklep
+// z domenami i wyglądają na "żywe" — stąd twarda walidacja treści i redirectów).
+const PARKED_RE = /domena (jest |zosta[lł]a )?(na sprzeda|do kupienia|wystawiona|zarejestrowana w serwisie)|:: domena|domain (is )?for sale|kup t[eę] domen|aftermarket\.pl|sklep\.premium\.pl|sedo\.|parkingcrew|dan\.com|afternic|domenomania|bodis\.|skenzo|domainpark|strona w budowie|strona w przygotowaniu|konto.{0,20}zawieszone|account suspended|hosting wygas/i;
+const CF_RE = /just a moment|cf-browser-verification|_cf_chl|challenge-platform|attention required|enable javascript and cookies/i;
+
+function normDomain(s: string): string {
+  return String(s || "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/^www\./, "");
+}
+function sameSite(a: string, b: string): boolean {
+  a = normDomain(a); b = normDomain(b);
+  return !!a && !!b && (a === b || a.endsWith("." + b) || b.endsWith("." + a));
+}
+// znormalizowane telefony (ostatnie 9 cyfr) — wspólny numer = ta sama firma
+function phonesOf(html: string): Set<string> {
+  const out = new Set<string>();
+  for (const m of html.matchAll(/(?:\+?48|tel[:.\s]|phone)[\s.-]{0,3}(\d[\d\s.\-()]{7,14}\d)/gi)) {
+    const digits = m[1].replace(/\D/g, "");
+    if (digits.length >= 9 && digits.length <= 12) out.add(digits.slice(-9));
   }
-  return null;
+  return out;
+}
+
+type Rival = {
+  domain: string; measured: boolean; alive: boolean;
+  ttfbMs?: number; htmlKb?: number; hasDesc?: boolean; hasSchema?: boolean; hasOg?: boolean;
+  hasCanonical?: boolean; hasHreflang?: boolean; h1?: number;
+  title?: string; desc?: string; h1s?: string[]; snippet?: string; html?: string;
+};
+
+// Pobiera stronę konkurenta i liczy te same sygnały co u klienta.
+// manual=true (domeny wpisane ręcznie w panelu): nie odrzucamy — najwyżej "brak pomiaru".
+// Auto: odpada parking, redirect na obcą domenę, pusta atrapa, martwa strona.
+async function fetchRival(domain: string, manual = false): Promise<Rival | null> {
+  const d = normDomain(domain);
+  if (!d || !d.includes(".") || /\s/.test(d)) return null;
+  let protectedAlive = false;
+  // https → www → http (zdarzają się zepsute certyfikaty przy działającym http)
+  for (const u of [`https://${d}/`, `https://www.${d}/`, `http://${d}/`, `http://www.${d}/`]) {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 12000);
+    let res: Response;
+    const t0 = Date.now();
+    try {
+      res = await fetch(u, {
+        signal: ctrl.signal,
+        redirect: "follow",
+        headers: {
+          "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36",
+          "Accept-Language": "pl,en;q=0.8",
+        },
+      });
+    } catch { clearTimeout(t); continue; }
+    clearTimeout(t);
+    const ttfbMs = Date.now() - t0;
+    const html = ((await res.text().catch(() => "")) || "").slice(0, 600_000);
+    if (!res.ok) {
+      // WAF/Cloudflare challenge: strona istnieje, ale nie da się jej zmierzyć botem
+      if ([403, 429, 503].includes(res.status) && (CF_RE.test(html) || html.length < 40_000)) protectedAlive = true;
+      continue;
+    }
+    let finalHost = d;
+    try { finalHost = new URL(res.url || u).hostname; } catch { /* noop */ }
+    const title = extract(/<title[^>]*>([\s\S]*?)<\/title>/i, html);
+    const text = stripTags(html);
+    // redirect na inną domenę = najczęściej parking/sprzedaż → auto odpada
+    if (!sameSite(finalHost, d) && !manual) { console.log("rival", d, "odpada: redirect →", finalHost); return null; }
+    // parking sprawdzamy też po SUROWYM HTML (linki/skrypty operatora parkingu):
+    // wersja strony serwowana do data-center bywa ad-landerem bez słów kluczowych w tekście
+    if (PARKED_RE.test(title + " " + html.slice(0, 30000) + " " + text.slice(0, 1500))) {
+      console.log("rival", d, "odpada: parking domen");
+      return manual ? { domain: d, measured: false, alive: false } : null;
+    }
+    // realna strona firmowa ma treść; parking/atrapa — kilkaset znaków
+    if (text.length < 700 && !manual) { console.log("rival", d, "odpada: cienka treść", text.length); return null; }
+    const desc = extract(/<meta[^>]+name=["']description["'][^>]+content=["']([^"']*)["']/i, html) ||
+      extract(/<meta[^>]+content=["']([^"']*)["'][^>]+name=["']description["']/i, html);
+    const h1s = extractAll(/<h1[^>]*>([\s\S]*?)<\/h1>/gi, html, 4).map(stripTags);
+    return {
+      domain: d, measured: true, alive: true,
+      ttfbMs,
+      htmlKb: Math.round(html.length / 1024),
+      hasDesc: !!desc,
+      hasSchema: /application\/ld\+json/i.test(html),
+      hasOg: /property=["']og:/i.test(html),
+      hasCanonical: /rel=["']canonical["']/i.test(html),
+      hasHreflang: /hreflang=/i.test(html),
+      h1: h1s.length,
+      title, desc, h1s,
+      snippet: text.slice(0, 600),
+      html,
+    };
+  }
+  if (protectedAlive) return { domain: d, measured: false, alive: true };
+  return manual ? { domain: d, measured: false, alive: false } : null;
 }
 
 // Google PageSpeed Insights (mobile) — realny pomiar, biegnie równolegle z AI.
@@ -395,11 +469,17 @@ Deno.serve(async (req) => {
 
   await db.from("audits").update({ status: "running", error: null }).eq("id", id);
 
+  // Analiza trwa 2-6 min, a gateway ścina requesty po 150 s (IDLE_TIMEOUT) —
+  // odpowiadamy od razu, praca leci w tle (EdgeRuntime.waitUntil), panel polluje status.
+  const work = (async () => {
   try {
     let url = String(audit.site_url).trim();
     if (!/^https?:\/\//i.test(url)) url = "https://" + url;
     const meta = await fetchSite(url);
     const brief = siteBrief(meta, audit.client_name, url);
+    // konkurenci wpisani ręcznie w panelu (pole "Konkurenci") mają pierwszeństwo przed AI
+    const manualRivals = String(audit.competitors || "")
+      .split(/[,;\n]+/).map(normDomain).filter(d => d && d.includes(".")).slice(0, 4);
     // PageSpeed и палитра клиента идут параллельно с генерацией
     const psiPromise = fetchPSI(url).catch(() => null);
     const themePromise = extractTheme(meta.html, meta.finalUrl).catch(() => null);
@@ -414,8 +494,8 @@ Deno.serve(async (req) => {
  "metrics": [ { "value": "krótka wartość PO POLSKU: 'BRAK' / 'JEST' / 'TAK' / 'NIE' / '2 języki' (nigdy true/false)", "label": "czego dotyczy" } ],  // 4-6 metryk punktu wyjścia opartych o realne sygnały ze strony (schema, OG, canonical, hreflang, treść, blog)
  "plus": [ "co już działa — konkret ze strony" ],   // dokładnie 4
  "minus": [ "co kosztuje widoczność — konkret" ],   // dokładnie 4
- "scores": { "google": 0, "ai": 0, "technika": 0, "tresc": 0 },  // oceny 0-100 wg realnych sygnałów: widoczność Google, widoczność w AI, technika strony, jakość treści
- "competitor_domains": [ "domena.pl" ]  // 3 REALNE polskie domeny konkurentów w tej branży (same domeny, bez https). Tylko firmy, których istnienia jesteś pewien; nie wymyślaj domen
+ "scores": { "google": 0, "ai": 0, "technika": 0, "tresc": 0 }${manualRivals.length ? "" : `,
+ "competitor_domains": [ "domena.pl" ]  // 6 kandydatów: REALNE polskie domeny BEZPOŚREDNICH konkurentów (firmy sprzedające TE SAME usługi tym samym klientom; same domeny, bez https). NIE podawaj: portali informacyjnych i mediów branżowych, marketplace'ów, katalogów firm, agregatorów prezentów, marek z tej samej grupy kapitałowej co klient ani firm/marek wymienionych na stronie klienta. Tylko firmy, których istnienia jesteś pewien; nie wymyślaj domen`}
 }
 Pisz zwięźle. Opieraj się TYLKO na danych ze strony. Nie wymyślaj liczb ruchu.
 
@@ -436,16 +516,60 @@ ${brief.slice(0, 3200)}`;
     // para 1: analiza + oferta (2 równoległe — limit gatewaya)
     const [r1, r2] = await Promise.all([askJson(SYS, p1, 1200), askJson(SYS, p2, 1600)]);
 
-    // realne pomiary konkurentów (domeny z r1; własna domena i nieżywe — odpadają)
+    // ----- konkurenci: ręczni z panelu albo kandydaci AI + walidacja + weryfikacja -----
     const clientHost = new URL(meta.finalUrl).hostname.replace(/^www\./, "");
-    const rivalDomains = (Array.isArray(r1.competitor_domains) ? r1.competitor_domains as string[] : [])
-      .map(d => String(d || "").trim().toLowerCase().replace(/^https?:\/\//, "").replace(/\/.*$/, "").replace(/^www\./, ""))
-      .filter(d => d && d.includes(".") && d !== clientHost)
-      .slice(0, 3);
-    const rivals = (await Promise.all(rivalDomains.map(fetchRival))).filter(Boolean) as NonNullable<Awaited<ReturnType<typeof fetchRival>>>[];
+    const clientHtmlLc = meta.html.toLowerCase();
+    const clientPhones = phonesOf(meta.html);
+    // ta sama grupa/firma: wzajemne wzmianki domen/marek albo wspólny numer telefonu
+    // (holding wymienia marki po nazwie bez domeny — np. "BestPharma" na greywolfgroup.pl,
+    // stąd dopasowanie po bazie domeny, nie tylko po pełnej domenie)
+    const GENERIC_WORDS = new Set(["group", "grupa", "polska", "poland", "company", "agency", "agencja", "studio", "academy", "akademia", "racing", "sport", "sports", "team", "biuro", "office", "serwis", "service", "online", "sklep", "store", "centrum", "center"]);
+    const clientBrandTokens = [clientHost.split(".")[0], ...String(audit.client_name || "").toLowerCase().split(/[^a-z0-9]+/)]
+      .filter(w => w.length >= 5 && !GENERIC_WORDS.has(w));
+    const isOwnGroup = (r: Rival): boolean => {
+      if (sameSite(r.domain, clientHost)) return true;
+      if (clientHtmlLc.includes(r.domain)) return true;
+      const rivalBase = r.domain.split(".")[0].replace(/-/g, "");
+      if (rivalBase.length >= 5 && (clientHtmlLc.includes(rivalBase) || clientHtmlLc.replace(/-/g, "").includes(rivalBase))) return true;
+      if (r.html) {
+        const lc = r.html.toLowerCase();
+        if (lc.includes(clientHost)) return true;
+        for (const tok of clientBrandTokens) if (lc.includes(tok)) return true;
+        const rp = phonesOf(r.html);
+        for (const p of clientPhones) if (rp.has(p)) return true;
+      }
+      return false;
+    };
+
+    // Ręczni: bierzemy jak są. Auto: kandydaci z p1 przechodzą twarde filtry
+    // (parking/redirect/cienka treść/własna grupa), a finalny wybór ≤3 robi p4
+    // na realnych danych — bez dodatkowych wywołań AI (limit czasu funkcji ~150 s).
+    let rivals: Rival[] = [];
+    if (manualRivals.length) {
+      rivals = (await Promise.all(manualRivals.filter(d => !sameSite(d, clientHost)).map(d => fetchRival(d, true))))
+        .filter(Boolean) as Rival[];
+    } else {
+      const candDomains = (Array.isArray(r1.competitor_domains) ? r1.competitor_domains as string[] : [])
+        .map(normDomain)
+        .filter((d, i, a) => d && d.includes(".") && !sameSite(d, clientHost) && a.indexOf(d) === i)
+        .slice(0, 8);
+      const fetched = (await Promise.all(candDomains.map(d => fetchRival(d, false))))
+        .filter(Boolean) as Rival[];
+      rivals = fetched.filter(r => r.measured && !isOwnGroup(r)).slice(0, 5);
+      console.log("audyt", id, "kandydaci:", candDomains.join(", ") || "(brak)", "→ po filtrach:", rivals.map(r => r.domain).join(", ") || "(brak)");
+    }
+    console.log("audyt", id, manualRivals.length ? "ręczni" : "auto", "konkurenci:", rivals.map(r => `${r.domain}${r.measured ? "" : " (bez pomiaru)"}`).join(", ") || "(brak)");
+
     const rivalFacts = rivals.length
-      ? "REALNE zmierzone dane konkurentów (odnoś się do nich po domenie):\n" + rivals.map(r =>
-          `${r.domain}: meta description ${r.hasDesc ? "jest" : "brak"}, Schema.org ${r.hasSchema ? "jest" : "brak"}, OpenGraph ${r.hasOg ? "jest" : "brak"}, hreflang ${r.hasHreflang ? "jest" : "brak"}, TTFB ~${r.ttfbMs} ms, HTML ${r.htmlKb} KB`).join("\n")
+      ? (manualRivals.length
+          ? "KONKURENCI DO ANALIZY (używaj DOKŁADNIE tych domen jako nazw; nie dodawaj innych firm):\n"
+          : "KANDYDACI NA KONKURENTÓW (dane zmierzone realnie na ich stronach):\n") +
+        rivals.filter(r => r.measured).map(r =>
+          `${r.domain}: profil="${(r.title || "").slice(0, 100)}", meta description ${r.hasDesc ? "jest" : "brak"}, Schema.org ${r.hasSchema ? "jest" : "brak"}, OpenGraph ${r.hasOg ? "jest" : "brak"}, hreflang ${r.hasHreflang ? "jest" : "brak"}, TTFB ~${r.ttfbMs} ms, HTML ${r.htmlKb} KB`).join("\n") +
+        (rivals.some(r => !r.measured)
+          ? "\n" + rivals.filter(r => !r.measured).map(r =>
+              `${r.domain}: ${r.alive ? "strona działa, ale blokuje automatyczny pomiar (ochrona przed botami) — opisz jakościowo wg wiedzy o branży" : "strona nie odpowiada — opisz jakościowo wg wiedzy o branży"}`).join("\n")
+          : "")
       : "Brak zmierzonych danych konkurentów — opisuj TYPY konkurentów.";
 
     const psi = await psiPromise;
@@ -470,12 +594,13 @@ ${brief.slice(0, 1500)}`;
     // Wywołanie 4: konkurencja + utracone zapytania + szybkość + rekomendacje
     const p4 = `Przygotuj część konkurencyjno-naprawczą audytu dla "${audit.client_name}" (branża: ${r1.branza ?? "wg strony"}). Zwróć JSON o DOKŁADNIE tej strukturze:
 {
- "competitors": [ { "name": "domena zmierzonego konkurenta (jeśli są dane niżej) lub typ konkurenta", "strengths": "czym dziś wygrywa widoczność w Google i AI — oprzyj się na zmierzonych danych, 1-2 zdania", "gap": "czego mu brakuje — szansa klienta, 1 zdanie" } ],  // dokładnie 3
+ "competitors": [ { "name": "domena konkurenta z listy niżej (jeśli jest) lub typ konkurenta", "strengths": "czym dziś wygrywa widoczność w Google i AI — oprzyj się na zmierzonych danych, 1-2 zdania", "gap": "czego mu brakuje albo w czym klient może go wyprzedzić — konkretna szansa, 1 zdanie" } ],  // ${manualRivals.length && rivals.length ? `dokładnie ${rivals.length}: po jednym dla KAŻDEJ domeny z listy niżej, w tej samej kolejności, name = domena` : rivals.length ? `wybierz z listy niżej maksymalnie 3 domeny będące BEZPOŚREDNIMI konkurentami klienta (pomiń portale, media, katalogi, sklepy z innej branży); name = domena; jeśli żadna nie pasuje — opisz 3 TYPY konkurentów` : "dokładnie 3 TYPY konkurentów"}
  "lost_queries": [ { "query": "zapytanie klienta po polsku", "why": "dlaczego na tym zapytaniu klient trafia gdzie indziej (czego brakuje na stronie), 1 zdanie", "fix": "co wdrożyć, żeby przechwycić to zapytanie, 1 zdanie" } ],  // dokładnie 5 zapytań, na których firma DZIŚ traci klientów
  "speed_tips": [ "konkretna poprawa szybkości strony wynikająca z danych poniżej" ],  // dokładnie 4
  "recommendations": [ { "title": "3-6 słów", "text": "co dokładnie zmienić i jak, 1-2 zdania", "priority": "wysoki|średni|niski" } ]  // dokładnie 5 najważniejszych zmian (technika, treść, GEO, szybkość)
 }
 Pisz zwięźle. Nie wymyślaj liczb ruchu ani nazw firm, których nie znasz — wtedy opisuj TYP konkurenta.
+WAŻNE: firmy i marki wymienione NA STRONIE klienta (marki jego grupy, partnerzy, submarki) NIE są konkurencją — NIGDY nie używaj ich nazw jako konkurentów.
 
 Dane o szybkości strony: ${speedBrief}
 
@@ -486,6 +611,17 @@ ${brief.slice(0, 2400)}`;
     // para 2: usługi AI + konkurencja/naprawy (2 równoległe)
     const [r3, r4] = await Promise.all([askJson(SYS, p3, 900), askJson(SYS, p4, 1500)]);
 
+    // auto: finalna lista konkurentów = domeny wybrane przez p4 z kandydatów
+    if (!manualRivals.length && rivals.length) {
+      const chosen = (Array.isArray(r4.competitors) ? r4.competitors as Array<Record<string, unknown>> : [])
+        .map(k => normDomain(String(k?.name ?? "")));
+      const picked = rivals.filter(r => chosen.includes(r.domain));
+      rivals = (picked.length ? picked : rivals).slice(0, 3);
+      console.log("audyt", id, "finał konkurentów:", rivals.map(r => r.domain).join(", "));
+    }
+    const measuredRivals = rivals.filter(r => r.measured);
+    const unmeasuredRivals = rivals.filter(r => !r.measured);
+
     const content = {
       ...r1, ...r2, ...r3, ...r4,
       speed: { psi, local: meta.perf },
@@ -495,9 +631,13 @@ ${brief.slice(0, 2400)}`;
           hasDesc: !!meta.desc, hasSchema: meta.signals.hasSchema, hasOg: meta.signals.hasOg,
           hasCanonical: meta.signals.hasCanonical, hasHreflang: meta.signals.hasHreflang, h1: meta.h1.length,
         },
-        rivals,
+        // do bazy tylko liczby/sygnały — bez pobranego HTML i fragmentów tekstu
+        rivals: measuredRivals.map(({ html: _h, snippet: _s, h1s: _hs, title: _t, desc: _d, ...r }) => r),
+        unmeasured: unmeasuredRivals.map(r => ({ domain: r.domain, alive: r.alive })),
       } : null,
     };
+    // surowa lista kandydatów p1 nie jest częścią wyniku (może zawierać marki klienta)
+    delete (content as Record<string, unknown>).competitor_domains;
     const theme = await themePromise;
     await db.from("audits").update({
       status: "ready",
@@ -507,11 +647,17 @@ ${brief.slice(0, 2400)}`;
       generated_at: new Date().toISOString(),
       error: null,
     }).eq("id", id);
-
-    return json({ ok: true, id, status: "ready" });
+    console.log("audyt", id, "gotowy");
   } catch (e) {
     const msg = e instanceof Error ? e.message : String(e);
+    console.error("audyt", id, "błąd:", msg);
     await db.from("audits").update({ status: "error", error: msg }).eq("id", id);
-    return json({ error: msg }, 500);
   }
+  })();
+
+  // deno-lint-ignore no-explicit-any
+  const er = (globalThis as any).EdgeRuntime;
+  if (er?.waitUntil) er.waitUntil(work);
+  else await work;
+  return json({ ok: true, id, status: "running" });
 });

@@ -31,7 +31,8 @@ function fmtDate(iso) {
 export default function AudytPanel() {
   const sb = sbAuth();
   const [audits, setAudits] = useState(null);
-  const [form, setForm] = useState({ client_name: '', site_url: '', slug: '' });
+  const [form, setForm] = useState({ client_name: '', site_url: '', slug: '', competitors: '' });
+  const [compDraft, setCompDraft] = useState({});     // audit id → редактируемая строка конкурентов
   const [slugTouched, setSlugTouched] = useState(false);
   const [busy, setBusy] = useState(false);
   const [msg, setMsg] = useState('');
@@ -85,17 +86,18 @@ export default function AudytPanel() {
     const client_name = form.client_name.trim();
     const site_url = form.site_url.trim();
     const slug = slugify(form.slug || form.client_name);
+    const competitors = form.competitors.trim() || null;
     if (!client_name || !site_url || !slug) { note('Uzupełnij nazwę klienta, adres strony i slug.'); return; }
     setBusy(true);
     const { data, error } = await sb.from('audits')
-      .insert({ client_name, site_url, slug, prices: { packages: DEFAULT_PACKAGES, note: '' } })
+      .insert({ client_name, site_url, slug, competitors, prices: { packages: DEFAULT_PACKAGES, note: '' } })
       .select().single();
     setBusy(false);
     if (error) {
       note(/duplicate|unique/i.test(error.message) ? 'Ten slug jest już zajęty — wybierz inny.' : ('Błąd: ' + error.message));
       return;
     }
-    setForm({ client_name: '', site_url: '', slug: '' });
+    setForm({ client_name: '', site_url: '', slug: '', competitors: '' });
     setSlugTouched(false);
     setAudits(prev => prev ? [data, ...prev] : [data]);
     runAnalysis(data.id);
@@ -123,6 +125,15 @@ export default function AudytPanel() {
     note('Ceny zapisane ✓');
   }
 
+  async function saveCompetitors(a) {
+    const val = (compDraft[a.id] ?? a.competitors ?? '').trim();
+    if ((a.competitors || '') === val) return;
+    const { error } = await sb.from('audits').update({ competitors: val || null }).eq('id', a.id);
+    if (error) { note('Błąd zapisu konkurentów: ' + error.message); return; }
+    setAudits(prev => prev.map(x => x.id === a.id ? { ...x, competitors: val || null } : x));
+    note(val ? 'Konkurenci zapisani — kliknij „Ponów analizę", żeby przeliczyć audyt.' : 'Konkurenci wyczyszczeni — AI dobierze ich automatycznie przy kolejnej analizie.');
+  }
+
   function copyLink(slug) {
     const url = `${location.origin}/audyt/${slug}`;
     navigator.clipboard?.writeText(url).then(() => note('Link skopiowany: ' + url)).catch(() => note(url));
@@ -136,7 +147,7 @@ export default function AudytPanel() {
             <div className="ap-eyebrow">★ Audyty SEO · GEO</div>
             <h2 className="ap-title">Audyt dla klienta</h2>
           </div>
-          <div className="ap-hint">analiza AI ~1 min · ceny uzupełniasz ręcznie po analizie</div>
+          <div className="ap-hint">analiza AI 2–5 min · ceny uzupełniasz ręcznie po analizie</div>
         </div>
 
         {/* nowy audyt */}
@@ -155,6 +166,11 @@ export default function AudytPanel() {
             <label>Slug (link dla klienta)</label>
             <input value={form.slug} placeholder="np. greywolf-geo"
               onChange={e => { setSlugTouched(true); setForm(f => ({ ...f, slug: slugify(e.target.value) })); }} />
+          </div>
+          <div className="ap-field">
+            <label>Konkurenci (opcjonalnie)</label>
+            <input value={form.competitors} placeholder="domeny po przecinku — puste = AI dobierze"
+              onChange={e => setForm(f => ({ ...f, competitors: e.target.value }))} />
           </div>
           <button className="ap-create" disabled={busy} type="submit">{busy ? 'Tworzenie…' : '＋ Nowy audyt'}</button>
         </form>
@@ -184,6 +200,15 @@ export default function AudytPanel() {
                   <span>{fmtDate(a.created_at)}</span>
                 </div>
                 {a.status === 'error' && <div className="ap-err">⚠ {a.error}</div>}
+                <div className="ap-comp">
+                  <span className="ap-comp-label">Konkurenci</span>
+                  <input className="ap-comp-input"
+                    value={compDraft[a.id] ?? a.competitors ?? ''}
+                    placeholder="auto (AI dobierze) — albo domeny po przecinku"
+                    onChange={e => setCompDraft(prev => ({ ...prev, [a.id]: e.target.value }))}
+                    onBlur={() => saveCompetitors(a)}
+                    onKeyDown={e => { if (e.key === 'Enter') e.target.blur(); }} />
+                </div>
               </div>
               <div className="ap-actions">
                 {a.status === 'ready' && (

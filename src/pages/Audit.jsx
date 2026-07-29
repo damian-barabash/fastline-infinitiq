@@ -300,6 +300,13 @@ export default function Audit() {
                 );
               })()}
               {matrix && <div className="au-note" style={{ marginBottom: 26 }}>Zmierzone przez nas bezpośrednio na stronach ({new Date(audit.generated_at || audit.created_at).toLocaleDateString('pl-PL')}).</div>}
+              {Array.isArray(c.competitor_matrix?.unmeasured) && c.competitor_matrix.unmeasured.length > 0 && (
+                <div className="au-note" style={{ marginBottom: 26 }}>
+                  {c.competitor_matrix.unmeasured.map(u =>
+                    u.domain + (u.alive ? ' — strona aktywna, ale blokuje automatyczny pomiar (ochrona przed botami); analiza jakościowa poniżej' : ' — strona nie odpowiadała w czasie pomiaru')
+                  ).join(' · ')}
+                </div>
+              )}
               <div className="au-comp">
                 {competitors.map((k, i) => (
                   <div className="au-comp-card" key={i}>
