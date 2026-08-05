@@ -1,10 +1,13 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Home from './pages/Home.jsx';
 import Kontakt from './pages/Kontakt.jsx';
-import Login from './pages/Login.jsx';
-import Editor from './pages/Editor.jsx';
-import Audit from './pages/Audit.jsx';
+
+// Не-пререндеренные роуты — lazy: supabase-js + редакторский код не попадают
+// в основной бандл лендинга. В SSG рендерятся только / и /kontakt (eager).
+const Login = lazy(() => import('./pages/Login.jsx'));
+const Editor = lazy(() => import('./pages/Editor.jsx'));
+const Audit = lazy(() => import('./pages/Audit.jsx'));
 
 // #wipe живёт в App (переживает смену роутов). CSS шторки есть в стилях каждой
 // страницы (байт-в-байт из исходников), плюс минимальный fallback в index.html.
@@ -45,6 +48,7 @@ export default function App() {
   return (
     <>
       <WipeController />
+      <Suspense fallback={null}>
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/kontakt" element={<Kontakt />} />
@@ -58,6 +62,7 @@ export default function App() {
         <Route path="/editor.html" element={<Navigate to="/editor" replace />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      </Suspense>
     </>
   );
 }

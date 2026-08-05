@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
-// custom domain (root): infinitiq.fastline.pl
+// custom domain (root): fastlineinfinitiq.pl
 export default defineConfig({
   base: '/',
   plugins: [react()],

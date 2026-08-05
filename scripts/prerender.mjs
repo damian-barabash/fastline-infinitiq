@@ -14,14 +14,22 @@ const HEAD_RE = /<!--head-->[\s\S]*?<!--\/head-->/;
 const KONTAKT_HEAD = `<!--head-->
 <title>Kontakt — Fastline InfinitiQ</title>
 <meta name="description" content="Umów briefing strategiczny z Fastline InfinitiQ. Pierwsze spotkanie bez umów i zobowiązań — sprawdzamy, czy do siebie pasujemy.">
-<link rel="canonical" href="https://infinitiq.fastline.pl/kontakt">
+<link rel="canonical" href="https://fastlineinfinitiq.pl/kontakt">
+<meta name="theme-color" content="#0D0D0D">
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Fastline InfinitiQ">
 <meta property="og:title" content="Kontakt — Fastline InfinitiQ">
 <meta property="og:description" content="Umów briefing strategiczny — bez umów, bez zobowiązań.">
-<meta property="og:url" content="https://infinitiq.fastline.pl/kontakt">
-<meta property="og:image" content="https://infinitiq.fastline.pl/assets/logo/LOGO.png">
+<meta property="og:url" content="https://fastlineinfinitiq.pl/kontakt">
+<meta property="og:image" content="https://fastlineinfinitiq.pl/assets/og/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta property="og:locale" content="pl_PL">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Kontakt — Fastline InfinitiQ">
+<meta name="twitter:description" content="Umów briefing strategiczny — bez umów, bez zobowiązań.">
+<meta name="twitter:image" content="https://fastlineinfinitiq.pl/assets/og/og.jpg">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"ContactPage","@id":"https://fastlineinfinitiq.pl/kontakt#page","url":"https://fastlineinfinitiq.pl/kontakt","name":"Kontakt — Fastline InfinitiQ","inLanguage":"pl-PL","about":{"@type":"Organization","@id":"https://fastlineinfinitiq.pl/#org","name":"Fastline InfinitiQ","email":"infinitiq@fastline.pl"}}</script>
 <!--/head-->`;
 
 const FALLBACK_HEAD = `<!--head-->

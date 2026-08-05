@@ -51,8 +51,9 @@ export function initKontakt({ onNavigate }) {
   /* ===== neural column (слева, за текстом) ===== */
   const canvas = document.getElementById('neural');
   const ctx = canvas.getContext('2d');
-  const DPR = Math.min(devicePixelRatio || 1, 2);
-  const COUNT = FLAT ? 70 : 130;
+  const WEAK = (navigator.deviceMemory || 8) <= 4 || (navigator.hardwareConcurrency || 8) <= 4;
+  const DPR = Math.min(devicePixelRatio || 1, WEAK ? 1.5 : 2);
+  const COUNT = FLAT ? (WEAK ? 50 : 70) : (WEAK ? 95 : 130);
   const nodes = [];
   for (let i = 0; i < COUNT; i++) {
     const t = i / COUNT;

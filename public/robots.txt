@@ -1,18 +1,33 @@
-# Fastline InfinitiQ — infinitiq.fastline.pl
+# Fastline InfinitiQ — fastlineinfinitiq.pl
 User-agent: *
 Allow: /
 Disallow: /editor
 Disallow: /login
 Disallow: /audyt/
 
-# AI crawlers welcome
+# AI crawlers welcome (GEO)
 User-agent: GPTBot
+Allow: /
+Disallow: /audyt/
+User-agent: OAI-SearchBot
+Allow: /
+Disallow: /audyt/
+User-agent: ChatGPT-User
 Allow: /
 Disallow: /audyt/
 User-agent: ClaudeBot
 Allow: /
 Disallow: /audyt/
+User-agent: Claude-Web
+Allow: /
+Disallow: /audyt/
+User-agent: anthropic-ai
+Allow: /
+Disallow: /audyt/
 User-agent: PerplexityBot
+Allow: /
+Disallow: /audyt/
+User-agent: Perplexity-User
 Allow: /
 Disallow: /audyt/
 User-agent: CCBot
@@ -21,5 +36,11 @@ Disallow: /audyt/
 User-agent: Google-Extended
 Allow: /
 Disallow: /audyt/
+User-agent: Applebot-Extended
+Allow: /
+Disallow: /audyt/
+User-agent: meta-externalagent
+Allow: /
+Disallow: /audyt/
 
-Sitemap: https://infinitiq.fastline.pl/sitemap.xml
+Sitemap: https://fastlineinfinitiq.pl/sitemap.xml

@@ -1,12 +1,13 @@
 import { createClient } from '@supabase/supabase-js';
+import { SB_URL, SB_KEY } from './supabase-config.js';
 
-export const SB_URL = 'https://ogxajgbrbkfwsactlsyj.supabase.co';
-export const SB_KEY = 'sb_publishable_LIxIzg1U34aKQ-wXBSaDHg_xzv8SyMM';
+export { SB_URL, SB_KEY };
 
 let pub = null;
 let auth = null;
 
-// публичный клиент (лендинг, страница аудита) — без сессии
+// публичный клиент (страница аудита) — без сессии; лендинг ходит в REST
+// напрямую через supabase-config.js и supabase-js не тянет
 export function sbPublic() {
   if (!pub) pub = createClient(SB_URL, SB_KEY, { auth: { persistSession: false } });
   return pub;

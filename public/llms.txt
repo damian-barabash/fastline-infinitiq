@@ -1,0 +1,21 @@
+# Fastline InfinitiQ
+
+> Fastline InfinitiQ (FIQ) to polska agencja AI-native — zbudowana od zera wokół sztucznej inteligencji, część Greywolf Group. Nie wdrażamy AI do starych procesów: projektujemy strategie, treści i systemy komunikacji, które bez AI nie byłyby możliwe.
+
+## Usługi
+- AI Strategy — mapowanie potencjału AI i roadmapa transformacji komunikacyjnej
+- Generative Content — systemy produkcji treści w skali
+- Brand Voice AI — modele językowe zasilone tożsamością marki
+- LLM Integration — duże modele językowe w procesach marketingu, sprzedaży i obsługi klienta
+- Marketing Automation AI — inteligentne lejki i personalizacja w czasie rzeczywistym
+- CRM & Sales AI — scoring, follow-upy, analiza pipeline'u
+- Performance Marketing AI — generatywne kreacje i optymalizacja kampanii przez modele
+- AI Video & Visual — produkcja wideo i wizualizacji w skali
+
+## Strony
+- [Strona główna](https://fastlineinfinitiq.pl/): pełna oferta, model współpracy (briefing → diagnoza i roadmapa → retainer), dla kogo pracujemy
+- [Kontakt](https://fastlineinfinitiq.pl/kontakt): umów briefing strategiczny — bez umów i zobowiązań
+
+## Kontakt
+- E-mail: infinitiq@fastline.pl
+- Grupa: Greywolf Group (https://greywolfgroup.pl/)

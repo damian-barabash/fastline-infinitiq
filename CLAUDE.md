@@ -7,12 +7,13 @@
 
 ## Стек и структура
 
-- **С 2026-07-28: React 18 + Vite + react-router** (переписано с vanilla; старые файлы в `legacy/` — только справка, не редактировать). SEO через SSG-пререндер (`npm run build` → `dist/`), деплой GH Pages (`.github/workflows/deploy.yml`, домен `infinitiq.fastline.pl`).
+- **С 2026-07-28: React 18 + Vite + react-router** (переписано с vanilla; старые файлы в `legacy/` — только справка, не редактировать). SEO через SSG-пререндер (`npm run build` → `dist/`), деплой GH Pages (`.github/workflows/deploy.yml`, **домен `fastlineinfinitiq.pl` с 2026-08-05**).
+- **Прелоадер (2026-08-05):** инлайн в `index.html` (стиль+разметка+скрипт до бандла) — 3D-сетка на canvas, морф в спираль нейро-столпа на выходе; показывается только на `/`, API `window.__fiq.set/done` (сигналы из `Home.jsx`), страховка 4.2 с. Прячет подстановку CMS-контента. Лендинг ходит в Supabase чистым `fetch` (`src/lib/supabase-config.js`) — supabase-js только в lazy-чанках editor/login/audyt.
 - CSS страниц извлечён **байт-в-байт** из legacy в `src/styles/*.css` и инжектится per-page `<style>` — не «улучшать» и не объединять.
 - Движки (барабан/нейро-столп/курсор/редактор) — императивные модули в `src/engine/*`, вызываются из useEffect с cleanup. FIQ-модуль CMS: `src/engine/fiq.js`.
 - Роуты: `/`, `/kontakt`, `/login`, `/editor` (+вкладка Audyt), `/audyt/:slug` (клиентский аудит, noindex). Edge-функция `audit-run` (Barabash AI, ключ `fiq-audit`, 3 последовательных вызова qwen3.5:9b — не распараллеливать, общий gateway с Теосом/CatMon).
 - Палитра: `#0D0D0D` / acid `#B8FF00` / `#F5F5F0`. Шрифты DM Sans / DM Mono / Bebas Neue (Google Fonts).
-- Лого: `assets/logo/LOGO.png`, Greywolf: `assets/Greywolf/logo_greywolf.png`, фавиконы в `assets/favicon/` (сгенерированы из знака ∞Q).
+- Лого: `assets/logo/LOGO.png` (**с 2026-08-05 полностью кислотное**, 1734×400, из `LOGO_2.png` юзера; старое было красно-зелёное), Greywolf: `assets/Greywolf/logo_greywolf.png`, фавиконы в `assets/favicon/` (сгенерированы из знака ∞Q). OG-картинка: `public/assets/og/og.jpg` (1200×630, генерится PIL из лого + сетка).
 
 ## Правила кода (уроки HORIN)
 

@@ -444,9 +444,11 @@ export function initLanding({ onNavigate }) {
   /* ===== Neural column canvas ===== */
   const canvas = document.getElementById('neural');
   const ctx = canvas.getContext('2d');
-  const DPR = Math.min(devicePixelRatio || 1, 2);
+  // слабые устройства: меньше узлов и DPR-кап пониже (мало памяти/ядер)
+  const WEAK = (navigator.deviceMemory || 8) <= 4 || (navigator.hardwareConcurrency || 8) <= 4;
+  const DPR = Math.min(devicePixelRatio || 1, WEAK ? 1.5 : 2);
 
-  const COUNT = COARSE ? 90 : 150;
+  const COUNT = COARSE ? (WEAK ? 64 : 90) : (WEAK ? 110 : 150);
   const nodes = [];
   function buildNodes() {
     nodes.length = 0;
