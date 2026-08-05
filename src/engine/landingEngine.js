@@ -441,6 +441,86 @@ export function initLanding({ onNavigate }) {
   window.fiqInitServices = initServices;
   initServices();
 
+  /* ===== What-media: полосы берут картинку из CMS-ключа what_visual =====
+     Разрезка — чистый CSS (12 полос с background-position); тут только синк URL:
+     если CMS подменил src у .wm-src, полосы получают его через CSS-переменную. */
+  function syncWhatMedia() {
+    const img = document.querySelector('.wm-src');
+    const strips = document.querySelector('.wm-strips');
+    if (img && strips && img.src) strips.style.setProperty('--wm-url', `url("${img.src}")`);
+  }
+  addEventListener('fiq:content-ready', syncWhatMedia, { signal });
+
+  /* ===== Hero claim: scramble-декод «Data driven. Mind created. Unique executed.» =====
+     Текст в разметке (SEO/SSG) — движок только «проявляет» его глиф-шумом.
+     Старт: контент CMS применён (событие из Home) И прелоадер ушёл из DOM —
+     иначе декод отыграл бы под оверлеем или по тексту, который CMS ещё заменит. */
+  const claimWords = Array.from(document.querySelectorAll('#heroClaim .hc-word'));
+  const claimTimers = [];
+  const ct = (fn, ms) => { const id = setTimeout(fn, ms); claimTimers.push(id); return id; };
+  const HC_GLYPHS = '#/\\<>[]{}=+*^-01';
+  function scrambleWord(el, flash) {
+    if (!el || el._hcRun) return;
+    const target = el.textContent;
+    if (!target) return;
+    el._hcRun = true;
+    if (flash) el.classList.add('hc-on');
+    const len = target.length;
+    const DUR = 620;
+    const t0 = performance.now();
+    let lastDraw = 0;
+    function step(now) {
+      if (destroyed) { el._hcRun = false; return; }
+      const p = Math.min(1, (now - t0) / DUR);
+      // глифы меняем ~каждые 34мс, не каждый кадр — иначе на 120Гц сплошное мельтешение
+      if (now - lastDraw >= 34 || p >= 1) {
+        lastDraw = now;
+        const reveal = Math.floor(p * len);
+        let out = target.slice(0, reveal);
+        for (let i = reveal; i < len; i++) {
+          const c = target[i];
+          out += c === ' ' ? ' ' : HC_GLYPHS[(Math.random() * HC_GLYPHS.length) | 0];
+        }
+        el.textContent = out;
+      }
+      if (p < 1) { requestAnimationFrame(step); return; }
+      el.textContent = target;
+      el._hcRun = false;
+      if (flash) ct(() => el.classList.remove('hc-on'), 450);
+    }
+    requestAnimationFrame(step);
+  }
+  if (claimWords.length) {
+    let claimStarted = false;
+    function startClaim() {
+      if (claimStarted || destroyed) return;
+      claimStarted = true;
+      claimWords.forEach((w, i) => ct(() => scrambleWord(w, true), 180 + i * 320));
+      // редкий глитч-пульс одного слова, только пока виден hero
+      claimTimers.push(setInterval(() => {
+        if (activeIdx !== 0 || document.hidden) return;
+        scrambleWord(claimWords[(Math.random() * claimWords.length) | 0], false);
+      }, 7000));
+    }
+    let contentReady = false;
+    addEventListener('fiq:content-ready', () => { contentReady = true; }, { signal });
+    ct(() => { contentReady = true; }, 4600); // страховка, если событие не пришло
+    const armId = setInterval(() => {
+      if (destroyed || claimStarted) { clearInterval(armId); return; }
+      if (contentReady && !document.getElementById('fiqLoader')) {
+        clearInterval(armId);
+        ct(startClaim, 260);
+      }
+    }, 120);
+    claimTimers.push(armId);
+    // интерактив: ховер (точный указатель) / тап (coarse) пере-декодирует фразу
+    claimWords.forEach(w => {
+      const re = () => scrambleWord(w, true);
+      if (COARSE) w.addEventListener('click', re, { signal });
+      else w.addEventListener('mouseenter', re, { signal });
+    });
+  }
+
   /* ===== Neural column canvas ===== */
   const canvas = document.getElementById('neural');
   const ctx = canvas.getContext('2d');
@@ -679,6 +759,8 @@ export function initLanding({ onNavigate }) {
     stopSvcAuto();
     demoTimers.forEach(id => { clearTimeout(id); clearInterval(id); });
     demoTimers = [];
+    claimTimers.forEach(id => { clearTimeout(id); clearInterval(id); });
+    claimTimers.length = 0;
     clearTimeout(svcHoverT);
     delete window.fiqInitServices;
     delete window.fiqRemeasure;

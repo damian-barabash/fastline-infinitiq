@@ -43,6 +43,13 @@ export default function LandingShell() {
           <section className="slide" id="start">
             <div className="hero-bg-text" data-edit="hero_bgtext">INFINITI</div>
             <div className="slide-inner hero-content">
+              <div className="hero-claim rv rv1" id="heroClaim">
+                <span className="hc-word" data-edit="hero_claim_1">Data driven.</span>
+                <span className="hc-sep" aria-hidden="true"></span>
+                <span className="hc-word" data-edit="hero_claim_2">Mind created.</span>
+                <span className="hc-sep" aria-hidden="true"></span>
+                <span className="hc-word" data-edit="hero_claim_3">Unique executed.</span>
+              </div>
               <div className="hero-eyebrow rv rv1" data-edit="hero_eyebrow">★ AI-Native Agency — Retainer Only</div>
               <h1 className="hero-h1 rv rv2" data-edit="hero_h1" data-edit-type="html">Nie używamy AI.<br />Myślimy <em>przez AI.</em></h1>
               <p className="hero-sub rv rv3" data-edit="hero_sub" data-edit-type="html">
@@ -122,6 +129,16 @@ export default function LandingShell() {
                       <h3 data-edit="what_diff4_h">Danych, umysłu, egzekucji</h3>
                       <p data-edit="what_diff4_p">Data driven. Mind created. AI executed. Trzy filary każdego projektu — równoważne, wzajemnie zależne.</p>
                     </div>
+                  </div>
+                  <div className="what-media rv rv6" id="whatMedia">
+                    <img className="wm-src" src="/assets/img/what-visual.jpg" alt="Neuronowy rdzeń AI — Fastline InfinitiQ" data-edit="what_visual" data-edit-type="image" />
+                    <div className="wm-strips" aria-hidden="true">
+                      {Array.from({ length: 12 }, (_, i) => (
+                        <span className="wm-s" key={i} style={{ '--i': i }}></span>
+                      ))}
+                    </div>
+                    <span className="wm-scan" aria-hidden="true"></span>
+                    <span className="wm-tag" data-edit="what_media_tag">● FIQ // Neural Core</span>
                   </div>
                 </div>
               </div>

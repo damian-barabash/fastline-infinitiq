@@ -1107,3 +1107,106 @@
     .fb-split.fb-flip .fb-split-text { order: 0; }
     .fb-cta { padding: 36px 22px; }
   }
+
+  /* ===== HERO CLAIM — Data driven. Mind created. Unique executed. ===== */
+  .hero-claim {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 12.5px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    color: rgba(245,245,240,0.6);
+    margin-bottom: 26px;
+  }
+  .hc-word {
+    white-space: nowrap;
+    transition: color 0.3s ease, text-shadow 0.3s ease;
+  }
+  .hc-word.hc-on {
+    color: var(--green);
+    text-shadow: 0 0 16px rgba(184,255,0,0.4);
+  }
+  .hc-sep {
+    width: 7px; height: 7px;
+    flex: 0 0 auto;
+    background: rgba(184,255,0,0.5);
+    animation: hcBlink 2.2s ease infinite;
+  }
+  .hero-claim .hc-sep:last-of-type { animation-delay: 1.1s; }
+  @keyframes hcBlink { 50% { opacity: 0.25; } }
+  @media (max-width: 900px) {
+    .hero-claim { font-size: 9.5px; gap: 9px; letter-spacing: 0.12em; margin-bottom: 22px; }
+    .hc-sep { width: 5px; height: 5px; }
+  }
+
+  /* ===== WHAT MEDIA — фото, порезанное на полосы, с зацикленной анимацией ===== */
+  .what-media {
+    position: relative;
+    overflow: hidden;
+    margin-top: 26px;
+    aspect-ratio: 21 / 9;
+    border: 1px solid rgba(184,255,0,0.16);
+    background: #0A0A0A;
+    transition: border-color 0.4s ease;
+  }
+  .what-media:hover { border-color: rgba(184,255,0,0.42); }
+  .wm-src { position: absolute; visibility: hidden; width: 100%; }
+  .wm-strips {
+    --wm-url: url('/assets/img/what-visual.jpg');
+    position: absolute;
+    inset: -12px 0; /* запас сверху/снизу: полосы дышат по Y, края не оголяются */
+    display: flex;
+    transition: gap 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+  }
+  .what-media:hover .wm-strips { gap: 3px; } /* ховер: рез «расходится» */
+  .wm-s {
+    flex: 1 1 0;
+    background-image: var(--wm-url);
+    background-size: 1200% auto; /* 12 полос — картинка ровно в ширину контейнера */
+    background-position: calc(var(--i) * 100% / 11) 42%;
+    animation: wmS 9s ease-in-out calc(var(--i) * -0.75s) infinite;
+    will-change: transform;
+  }
+  @keyframes wmS {
+    0%, 100% { transform: translateY(0); filter: brightness(0.92); }
+    50%      { transform: translateY(-8px); filter: brightness(1.1); }
+    70%      { transform: translateY(-3px) translateX(0); filter: brightness(1); }
+    71.5%    { transform: translateY(-3px) translateX(4px); filter: brightness(1.55) saturate(1.35); }
+    73%      { transform: translateY(-3px) translateX(-3px); filter: brightness(1.2); }
+    74.5%    { transform: translateY(-3px) translateX(0); filter: brightness(0.97); }
+  }
+  .wm-scan {
+    position: absolute; left: 0; right: 0; top: 0; height: 24%;
+    background: linear-gradient(180deg, transparent, rgba(184,255,0,0.10) 45%, rgba(184,255,0,0.28) 52%, transparent);
+    transform: translateY(-110%);
+    animation: wmScan 6.8s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+    mix-blend-mode: screen;
+    pointer-events: none;
+  }
+  @keyframes wmScan {
+    0%       { transform: translateY(-110%); }
+    62%, 100% { transform: translateY(460%); }
+  }
+  .wm-tag {
+    position: absolute; left: 14px; bottom: 10px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 9px; letter-spacing: 0.22em; text-transform: uppercase;
+    color: var(--green);
+    text-shadow: 0 0 8px rgba(13,13,13,0.9);
+    pointer-events: none;
+  }
+  /* блок в правой колонке: список компактнее, чтобы фотка помещалась под ним */
+  .what-right .diff-item { padding: 15px 0; }
+  .what-right .diff-text p { font-size: 13px; }
+  @media (max-width: 900px) {
+    .what-media { aspect-ratio: 16 / 9; margin-top: 24px; }
+    .what-right .diff-item { padding: 14px 0; }
+  }
+  /* редактор (mode-flat): полосы прячем, показываем обычную картинку для CMS-загрузки */
+  html.mode-flat .wm-strips, html.mode-flat .wm-scan { display: none; }
+  html.mode-flat .wm-src { position: static; visibility: visible; display: block; }
+  html.mode-flat .wm-tag { pointer-events: auto; }
+  html.mode-flat .what-media { aspect-ratio: auto; }

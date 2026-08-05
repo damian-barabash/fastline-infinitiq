@@ -43,7 +43,9 @@ export default function Home() {
       .catch(() => {})
       .finally(() => {
         // контент применён (или БД пуста/недоступна — дефолты уже в HTML) → прелоадер уходит
-        if (alive && window.__fiq) window.__fiq.done();
+        if (!alive) return;
+        window.dispatchEvent(new Event('fiq:content-ready')); // старт декода hero-клейма
+        if (window.__fiq) window.__fiq.done();
       });
 
     return () => { alive = false; ac.abort(); destroy(); };
