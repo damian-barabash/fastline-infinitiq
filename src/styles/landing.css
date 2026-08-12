@@ -1464,3 +1464,17 @@
   /* клейм при 10.5px переносился и sep сиротел — на мобиле оставляем компакт */
   .hero-claim { font-size: 10px; }
 }
+
+/* ===== Mobile: заголовки крупнее (2026-08-12, prośba usera) — прям большие, читаемые ===== */
+@media (max-width: 900px) {
+  .hero-h1 { font-size: clamp(34px, 9.6vw, 46px); line-height: 1.04; }
+  .what-left h2 { font-size: clamp(29px, 8vw, 38px); }
+  .who-h2 { font-size: clamp(29px, 8vw, 38px); }
+  .services-head h2 { font-size: clamp(28px, 7.6vw, 36px); }
+  .model-panel h2 { font-size: clamp(29px, 8vw, 38px); }
+  .cta-slide-inner h2 { font-size: clamp(32px, 9vw, 42px); }
+  .team-head h2 { font-size: clamp(27px, 7.4vw, 36px); }
+  .fb-h { font-size: clamp(25px, 6.8vw, 33px); }
+  .parent-inner h2 { font-size: clamp(27px, 7.4vw, 36px); }
+  .fb-quote-text { font-size: clamp(22px, 6vw, 28px); }
+}
