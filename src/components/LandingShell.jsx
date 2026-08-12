@@ -23,13 +23,14 @@ export default function LandingShell() {
         <button className="rail-item" data-i="0"><span className="rail-name">Start</span><span className="rail-tick"></span></button>
         <button className="rail-item" data-i="1"><span className="rail-name">Czym jesteśmy</span><span className="rail-tick"></span></button>
         <button className="rail-item" data-i="2"><span className="rail-name">Oferta</span><span className="rail-tick"></span></button>
-        <button className="rail-item" data-i="3"><span className="rail-name">Model</span><span className="rail-tick"></span></button>
-        <button className="rail-item" data-i="4"><span className="rail-name">Dla kogo</span><span className="rail-tick"></span></button>
-        <button className="rail-item" data-i="5"><span className="rail-name">Grupa</span><span className="rail-tick"></span></button>
-        <button className="rail-item" data-i="6"><span className="rail-name">Kontakt</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="3"><span className="rail-name">Produkt</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="4"><span className="rail-name">Model</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="5"><span className="rail-name">Dla kogo</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="6"><span className="rail-name">Grupa</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="7"><span className="rail-name">Kontakt</span><span className="rail-tick"></span></button>
       </div>
 
-      <div className="counter" id="counter"><span className="cur">01</span><span>/ 07</span></div>
+      <div className="counter" id="counter"><span className="cur">01</span><span>/ 08</span></div>
       <div className="scroll-hint" id="scrollHint">Scroll</div>
 
       {/* Scroll driver (3d mode) */}
@@ -85,7 +86,7 @@ export default function LandingShell() {
           </section>
 
           {/* 1 / WHAT */}
-          <section className="slide" id="czym-jestesmy">
+          <section className="slide" id="czym-jestesmy" data-hideable="sec:czym-jestesmy">
             <div className="slide-inner">
               <div className="what-grid">
                 <div className="what-left">
@@ -146,7 +147,7 @@ export default function LandingShell() {
           </section>
 
           {/* 2 / SERVICES */}
-          <section className="slide" id="oferta">
+          <section className="slide" id="oferta" data-hideable="sec:oferta">
             <div className="slide-inner">
               <div className="services-head">
                 <div>
@@ -191,12 +192,90 @@ export default function LandingShell() {
             </div>
           </section>
 
-          {/* 3 / MODEL */}
-          <section className="slide" id="model">
+          {/* 3 / TEAM — cyfrowi pracownicy (облака точек + фото по ховеру) */}
+          <section className="slide" id="zespol" data-hideable="sec:zespol">
+            <div className="slide-inner">
+              <div className="team-head">
+                <div>
+                  <div className="section-label rv rv1" data-edit="team_label">03 — Produkt #1</div>
+                  <h2 className="rv rv2" data-edit="team_h2" data-edit-type="html">Cyfrowi pracownicy.<br />Produkt, nie eksperyment.</h2>
+                </div>
+                <div className="team-hint rv rv3" data-edit="team_hint">{'// najedź lub dotknij — poznaj zespół'}</div>
+              </div>
+              <p className="team-lead rv rv3" data-edit="team_lead">
+                Nasz pierwszy produkt: zespół agentów AI wytrenowanych na Twojej ofercie, procesach i języku marki.
+                Wdrożenie liczone w tygodniach — bez rekrutacji, bez drugiej zmiany, bez rotacji. Każdy z nich
+                odpowiada za inny etap kontaktu z klientem i pracuje wtedy, kiedy konkurencja już nie odbiera.
+              </p>
+              <div className="team-grid rv rv4" id="teamGrid">
+
+                <article className="team-card" tabIndex={0} data-team="1">
+                  <div className="tm-visual">
+                    <canvas className="tm-canvas" aria-hidden="true"></canvas>
+                    <img className="tm-photo" src="/assets/team/natalia.webp" alt="Natalia — asystentka AI Fastline InfinitiQ" data-edit="team1_photo" data-edit-type="image" />
+                    <span className="tm-frame" aria-hidden="true"></span>
+                    <span className="tm-badge" data-edit="team1_badge">● online 24/7</span>
+                  </div>
+                  <div className="tm-body">
+                    <div className="tm-role" data-edit="team1_role">Asystentka AI — wsparcie zespołu</div>
+                    <h3 className="tm-name" data-edit="team1_name">Natalia</h3>
+                    <p className="tm-desc" data-edit="team1_desc">
+                      Pamięć operacyjna Twojej firmy. Zna procedury, ustalenia i historię klientów —
+                      w trakcie rozmowy podpowiada zespołowi, co zaproponować i o czym nie zapomnieć.
+                      Wdrożenie nowej osoby skraca z tygodni do dni.
+                    </p>
+                    <div className="tm-meta" data-edit="team1_meta">wiedza firmowa · procedury · onboarding</div>
+                  </div>
+                </article>
+
+                <article className="team-card" tabIndex={0} data-team="2">
+                  <div className="tm-visual">
+                    <canvas className="tm-canvas" aria-hidden="true"></canvas>
+                    <img className="tm-photo" src="/assets/team/kacper.webp" alt="Kacper — agent sprzedaży AI Fastline InfinitiQ" data-edit="team2_photo" data-edit-type="image" />
+                    <span className="tm-frame" aria-hidden="true"></span>
+                    <span className="tm-badge" data-edit="team2_badge">● pierwsza linia</span>
+                  </div>
+                  <div className="tm-body">
+                    <div className="tm-role" data-edit="team2_role">Agent sprzedaży — social media i telefon</div>
+                    <h3 className="tm-name" data-edit="team2_name">Kacper</h3>
+                    <p className="tm-desc" data-edit="team2_desc">
+                      Pierwsza linia sprzedaży. Odpisuje w social mediach, oddzwania na zapytania
+                      i prowadzi rozmowę aż do decyzji — w Twoim brand voice, z pełnym kontekstem oferty.
+                      Żaden lead nie czeka do rana i nie ginie w weekend.
+                    </p>
+                    <div className="tm-meta" data-edit="team2_meta">social · telefon · kwalifikacja leadów</div>
+                  </div>
+                </article>
+
+                <article className="team-card" tabIndex={0} data-team="3">
+                  <div className="tm-visual">
+                    <canvas className="tm-canvas" aria-hidden="true"></canvas>
+                    <img className="tm-photo" src="/assets/team/maja.webp" alt="Maja — doradczyni klienta AI Fastline InfinitiQ" data-edit="team3_photo" data-edit-type="image" />
+                    <span className="tm-frame" aria-hidden="true"></span>
+                    <span className="tm-badge" data-edit="team3_badge">● doradztwo</span>
+                  </div>
+                  <div className="tm-body">
+                    <div className="tm-role" data-edit="team3_role">Doradczyni klienta — oferta i wdrożenie</div>
+                    <h3 className="tm-name" data-edit="team3_name">Maja</h3>
+                    <p className="tm-desc" data-edit="team3_desc">
+                      Tłumaczy ofertę na język decyzji. Prowadzi klienta przez zakres, warianty
+                      i kolejne kroki wdrożenia, dobiera pakiet do realnej skali potrzeb i domyka pytania,
+                      które zwykle zostają bez odpowiedzi.
+                    </p>
+                    <div className="tm-meta" data-edit="team3_meta">zakres · warianty · wdrożenie</div>
+                  </div>
+                </article>
+
+              </div>
+            </div>
+          </section>
+
+          {/* 4 / MODEL */}
+          <section className="slide" id="model" data-hideable="sec:model">
             <div className="slide-inner">
               <div className="model-panel rv rv1">
                 <div className="model-left">
-                  <div className="section-label" data-edit="model_label">03 — Model współpracy</div>
+                  <div className="section-label" data-edit="model_label">04 — Model współpracy</div>
                   <h2 data-edit="model_h2" data-edit-type="html">Tylko<br />retainer.</h2>
                 </div>
                 <div className="model-right">
@@ -218,10 +297,10 @@ export default function LandingShell() {
             </div>
           </section>
 
-          {/* 4 / WHO */}
-          <section className="slide" id="dla-kogo">
+          {/* 5 / WHO */}
+          <section className="slide" id="dla-kogo" data-hideable="sec:dla-kogo">
             <div className="slide-inner">
-              <div className="section-label rv rv1" data-edit="who_label">04 — Dla kogo</div>
+              <div className="section-label rv rv1" data-edit="who_label">05 — Dla kogo</div>
               <h2 className="who-h2 rv rv2" data-edit="who_h2" data-edit-type="html">Szukamy<br />konkretnych<br />partnerów.</h2>
               <div className="who-grid" data-list="who">
                 <div className="who-item rv rv3" data-n="01">
@@ -240,8 +319,8 @@ export default function LandingShell() {
             </div>
           </section>
 
-          {/* 5 / PARENT */}
-          <section className="slide" id="grupa">
+          {/* 6 / PARENT */}
+          <section className="slide" id="grupa" data-hideable="sec:grupa">
             <div className="slide-inner">
               <div className="parent-inner">
                 <img className="rv rv1" src="/assets/Greywolf/logo_greywolf.png" alt="Greywolf Group" data-edit="parent_logo" data-edit-type="image" />
@@ -255,11 +334,11 @@ export default function LandingShell() {
             </div>
           </section>
 
-          {/* 6 / CTA */}
-          <section className="slide" id="kontakt">
+          {/* 7 / CTA */}
+          <section className="slide" id="kontakt" data-hideable="sec:kontakt">
             <div className="slide-inner cta-slide-inner">
               <div className="cta-bg" data-edit="cta_bg">IQ</div>
-              <div className="section-label rv rv1" data-edit="cta_label">05 — Zacznij</div>
+              <div className="section-label rv rv1" data-edit="cta_label">06 — Zacznij</div>
               <h2 className="rv rv2" data-edit="cta_h2" data-edit-type="html">Gotowi<br />na <em>AI-native?</em></h2>
               <p className="rv rv3" data-edit="cta_p">
                 Pierwsze spotkanie to briefing strategiczny — bez umów, bez zobowiązań.

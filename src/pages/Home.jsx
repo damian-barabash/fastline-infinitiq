@@ -13,7 +13,7 @@ export default function Home() {
   useEffect(() => {
     document.title = 'Fastline InfinitiQ — AI-Native Agency';
     ensureFIQ();
-    const destroy = initLanding({ onNavigate: (to) => wipeTo(navigate, to) });
+    let destroy = initLanding({ onNavigate: (to) => wipeTo(navigate, to) });
     if (window.__fiq) window.__fiq.set(72); // движок поднят
 
     if (document.fonts && document.fonts.ready) {
@@ -34,6 +34,29 @@ export default function Home() {
         const published = rows && rows[0] && rows[0].published;
         if (published && window.FIQ) {
           window.FIQ.applyContent(published, { editor: false });
+
+          // Секции, скрытые через CMS (_hidden: "sec:<id>"): applyContent дал им
+          // display:none, но барабан уже измерил все грани — физически убираем
+          // грань + её пункт рейла и пере-инициализируем движок. Всё происходит
+          // за прелоадером, юзер перестройки не видит.
+          const hiddenSlides = Array.from(document.querySelectorAll('.slide[data-hideable]'))
+            .filter((s) => s.style.display === 'none');
+          if (hiddenSlides.length) {
+            destroy();
+            const all = Array.from(document.querySelectorAll('.slide'));
+            const rail = Array.from(document.querySelectorAll('.rail-item'));
+            hiddenSlides.forEach((s) => {
+              const i = all.indexOf(s);
+              if (rail[i]) rail[i].remove();
+              s.remove();
+            });
+            document.querySelectorAll('.rail-item').forEach((b, i) => { b.dataset.i = String(i); });
+            const total = document.querySelectorAll('.slide').length;
+            const cntTotal = document.querySelector('#counter span:last-child');
+            if (cntTotal) cntTotal.textContent = '/ ' + String(total).padStart(2, '0');
+            destroy = initLanding({ onNavigate: (to) => wipeTo(navigate, to) });
+          }
+
           // строки услуг могли перестроиться — пере-инициализируем демо
           if (typeof window.fiqInitServices === 'function') window.fiqInitServices();
           // высоты слайдов изменились (блоки/списки) — пересчёт барабана

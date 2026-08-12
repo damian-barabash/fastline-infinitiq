@@ -2,6 +2,7 @@
 // кастомный курсор + интерактивные демо услуг. Перенос 1:1 из index.html,
 // адаптация только: (1) SPA-переходы через onNavigate, (2) cleanup для React.
 import { interceptInternalLinks } from './wipe.js';
+import { initTeam } from './team.js';
 
 export function initLanding({ onNavigate }) {
 
@@ -21,6 +22,8 @@ export function initLanding({ onNavigate }) {
   const slides = Array.from(document.querySelectorAll('.slide'));
   const inners = slides.map(s => s.querySelector('.slide-inner'));
   const N = slides.length;
+  const SVC_SLIDE = slides.findIndex(s2 => s2.id === 'oferta');
+  const TEAM_SLIDE = slides.findIndex(s2 => s2.id === 'zespol');
   const lerp = (a, b, t) => a + (b - a) * t;
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
 
@@ -127,7 +130,7 @@ export function initLanding({ onNavigate }) {
     slides.forEach((s, i) => s.classList.toggle('active', i === idx));
     fxIdx = idx;
     if (!first) kickColumn(); // нейро-столп реагирует на смену слайда
-    if (idx === 2) startSvcAuto(); else stopSvcAuto();
+    if (idx === SVC_SLIDE) startSvcAuto(); else stopSvcAuto();
   }
 
   function updateDrum() {
@@ -396,10 +399,13 @@ export function initLanding({ onNavigate }) {
   // через CMS не ломало соответствие строка↔демо
   const DEMO_MAP = { strategy: demoStrategy, gen: demoGen, voice: demoVoice, llm: demoLLM, auto: demoAuto, crm: demoCRM, perf: demoPerf, video: demoVideo };
 
-  let svcIdx = -1, svcAutoId = null, svcTouched = false, svcHoverT = null;
+  const SVC_AUTO_MS = 20000;  // сами переключаются раз в 20 с
+  let svcIdx = -1, svcAutoId = null, svcHoverT = null;
   function selectSvc(i, user) {
     if (!svcRows.length || i < 0 || i >= svcRows.length) return;
-    if (user) { svcTouched = true; stopSvcAuto(); }
+    // действие юзера не выключает автопрокрутку навсегда — только отодвигает
+    // следующий автошаг на полный интервал
+    if (user && svcAutoId) { stopSvcAuto(); startSvcAuto(); }
     if (i === svcIdx) return;
     svcIdx = i;
     svcRows.forEach((r, k) => r.classList.toggle('on', k === i));
@@ -413,8 +419,11 @@ export function initLanding({ onNavigate }) {
     if (fn) fn(svcBody);
   }
   function startSvcAuto() {
-    if (svcTouched || svcAutoId || !svcRows.length) return;
-    svcAutoId = setInterval(() => selectSvc((svcIdx + 1) % svcRows.length, false), 5200);
+    if (svcAutoId || !svcRows.length) return;
+    svcAutoId = setInterval(() => {
+      if (document.hidden) return;
+      selectSvc((svcIdx + 1) % svcRows.length, false);
+    }, SVC_AUTO_MS);
   }
   function stopSvcAuto() {
     if (svcAutoId) { clearInterval(svcAutoId); svcAutoId = null; }
@@ -528,6 +537,9 @@ export function initLanding({ onNavigate }) {
   const WEAK = (navigator.deviceMemory || 8) <= 4 || (navigator.hardwareConcurrency || 8) <= 4;
   const DPR = Math.min(devicePixelRatio || 1, WEAK ? 1.5 : 2);
 
+  /* ===== Секция «Zespół AI»: силуэты из точек ===== */
+  const team = initTeam({ signal, coarse: COARSE, weak: WEAK, mouse });
+
   const COUNT = COARSE ? (WEAK ? 64 : 90) : (WEAK ? 110 : 150);
   const nodes = [];
   function buildNodes() {
@@ -556,16 +568,20 @@ export function initLanding({ onNavigate }) {
 
   const pulses = []; // signals travelling along links
 
-  /* ===== Column reacts to slides ===== */
-  const SLIDE_FX = [
-    { cx: 0.70, r: 1.00, tint: 0, dim: 0,    ex: 1.0 }, // hero
-    { cx: 0.78, r: 0.80, tint: 0, dim: 0,    ex: 1.0 }, // czym jesteśmy — узкий, у правого края
-    { cx: 0.72, r: 1.18, tint: 0, dim: 0,    ex: 1.6 }, // oferta — широкая сеть, живее
-    { cx: 0.70, r: 1.00, tint: 0, dim: 0.65, ex: 0.5 }, // model — приглушён за зелёной панелью
-    { cx: 0.74, r: 0.55, tint: 0, dim: 0,    ex: 1.0 }, // dla kogo — тугой луч
-    { cx: 0.50, r: 0.95, tint: 1, dim: 0,    ex: 0.8 }, // greywolf — в центр + золотой
-    { cx: 0.50, r: 1.28, tint: 0, dim: 0,    ex: 2.6 }, // CTA — широкий, разогнанный
-  ];
+  /* ===== Column reacts to slides =====
+     FX по id секции (не по индексу): секции можно скрывать через CMS,
+     порядок/количество граней меняется — эффекты остаются свои. */
+  const FX_BY_ID = {
+    'start':         { cx: 0.70, r: 1.00, tint: 0, dim: 0,    ex: 1.0 }, // hero
+    'czym-jestesmy': { cx: 0.78, r: 0.80, tint: 0, dim: 0,    ex: 1.0 }, // узкий, у правого края
+    'oferta':        { cx: 0.72, r: 1.18, tint: 0, dim: 0,    ex: 1.6 }, // широкая сеть, живее
+    'zespol':        { cx: 0.50, r: 1.45, tint: 0, dim: 0.62, ex: 1.3 }, // разведён по краям, приглушён под силуэтами
+    'model':         { cx: 0.70, r: 1.00, tint: 0, dim: 0.65, ex: 0.5 }, // приглушён за зелёной панелью
+    'dla-kogo':      { cx: 0.74, r: 0.55, tint: 0, dim: 0,    ex: 1.0 }, // тугой луч
+    'grupa':         { cx: 0.50, r: 0.95, tint: 1, dim: 0,    ex: 0.8 }, // в центр + золотой
+    'kontakt':       { cx: 0.50, r: 1.28, tint: 0, dim: 0,    ex: 2.6 }, // широкий, разогнанный
+  };
+  const SLIDE_FX = slides.map(s => FX_BY_ID[s.id] || FX_BY_ID['start']);
   let fxIdx = 0;
   const fx = { cx: COARSE ? 0.5 : 0.70, r: 1, tint: 0, dim: 0, ex: 1 };
   let surge = 0, rotKick = 0, rotExtra = 0;
@@ -715,6 +731,12 @@ export function initLanding({ onNavigate }) {
     mouse.iy = lerp(mouse.iy, mouse.y, 0.2);
 
     updateNav();
+    // team.tick читает getBoundingClientRect — зовём ДО записи трансформов барабана,
+    // иначе каждый кадр скролла даёт принудительный layout
+    if (team && TEAM_SLIDE >= 0) {
+      const d = Math.abs(pSmooth - TEAM_SLIDE);
+      team.tick(performance.now(), d < 1.15, Math.round(ySmooth), d < 0.45);
+    }
     updateDrum();
 
     if (!COARSE) {
@@ -732,7 +754,7 @@ export function initLanding({ onNavigate }) {
   measure();
   sizeCanvas();
   // хук для пересчёта высот после того как loader подставит контент из БД
-  window.fiqRemeasure = () => { measure(); sizeCanvas(); };
+  window.fiqRemeasure = () => { measure(); sizeCanvas(); if (team) team.resize(); };
   // перемер после шрифтов и полной загрузки (высоты слайдов меняются)
   let fontsAlive = true;
   if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (fontsAlive) measure(); });
