@@ -52,7 +52,7 @@
   color: rgba(var(--fg-rgb),0.5); padding: 40px 20px;
 }
 .au-gate-title {
-  font-family: 'Archivo', sans-serif; font-stretch: 125%; font-weight: 800;
+  font-family: 'Space Grotesk', sans-serif; font-stretch: normal; font-weight: 700;
   text-transform: uppercase; font-size: 26px; color: var(--fg); letter-spacing: 0;
 }
 .au-gate a { text-decoration: none; border-bottom: 1px solid rgba(var(--acc-rgb),0.4); }
@@ -70,7 +70,7 @@
 .au-hero { padding: 84px 0 72px; border-bottom: 1px solid var(--mid); position: relative; }
 .au-hero-bg {
   position: absolute; top: 44%; left: -30px; transform: translateY(-50%);
-  font-family: 'Archivo', sans-serif; font-stretch: 125%; font-weight: 900;
+  font-family: 'Space Grotesk', sans-serif; font-stretch: normal; font-weight: 700;
   font-size: clamp(110px, 17vw, 260px); line-height: 1; color: transparent;
   -webkit-text-stroke: 1px rgba(var(--acc-rgb),0.07);
   pointer-events: none; user-select: none; white-space: nowrap; z-index: 0;
@@ -86,7 +86,7 @@
   text-transform: uppercase; color: var(--acc); margin-bottom: 26px;
 }
 .au-h1 {
-  font-family: 'Archivo', sans-serif; font-stretch: 125%; font-weight: 800;
+  font-family: 'Space Grotesk', sans-serif; font-stretch: normal; font-weight: 700;
   text-transform: uppercase; font-size: clamp(28px, 4.4vw, 58px); line-height: 1.1;
   color: var(--fg); max-width: 900px;
 }
@@ -105,7 +105,7 @@
 }
 .au-label::before { content: ''; display: block; width: 32px; height: 1px; background: var(--acc); }
 .au-h2 {
-  font-family: 'Archivo', sans-serif; font-stretch: 125%; font-weight: 800;
+  font-family: 'Space Grotesk', sans-serif; font-stretch: normal; font-weight: 700;
   text-transform: uppercase; font-size: clamp(24px, 3vw, 42px); line-height: 1.12; color: var(--fg);
   margin-bottom: 20px;
 }
@@ -131,7 +131,7 @@
 .au-metric.good .au-metric-ic { color: rgba(var(--acc-rgb),0.6); }
 .au-metric.bad .au-metric-val { color: #ffb020; }
 .au-metric-val {
-  font-family: 'Archivo', sans-serif; font-stretch: 125%; font-weight: 900;
+  font-family: 'Space Grotesk', sans-serif; font-stretch: normal; font-weight: 700;
   font-size: clamp(22px, 2.6vw, 34px); line-height: 1.1; color: var(--acc); margin-bottom: 12px;
   text-transform: uppercase; word-break: break-word;
 }
@@ -200,7 +200,7 @@
 .au-step-node {
   width: 52px; height: 52px; display: flex; align-items: center; justify-content: center;
   border: 1px solid var(--acc); color: var(--acc); background: rgba(var(--acc-rgb),0.05);
-  font-family: 'Archivo', sans-serif; font-stretch: 125%; font-weight: 800; font-size: 18px;
+  font-family: 'Space Grotesk', sans-serif; font-stretch: normal; font-weight: 700; font-size: 18px;
 }
 .au-step-line { flex: 1; width: 1px; background: linear-gradient(to bottom, var(--acc), rgba(var(--acc-rgb),0.12)); min-height: 26px; }
 .au-step-body { padding-bottom: 34px; }
@@ -244,7 +244,7 @@
 }
 .au-pack-name { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(var(--fg-rgb),0.5); margin-bottom: 16px; }
 .au-pack-price {
-  font-family: 'Archivo', sans-serif; font-stretch: 125%; font-weight: 800;
+  font-family: 'Space Grotesk', sans-serif; font-stretch: normal; font-weight: 700;
   font-size: clamp(20px, 2.4vw, 30px); line-height: 1.15; color: var(--fg); text-transform: uppercase;
 }
 .au-pack.feat .au-pack-price { color: var(--acc); }
@@ -311,7 +311,7 @@
 .au-gauge-val {
   position: absolute; top: 20px; width: 84px; height: 84px;
   display: flex; align-items: center; justify-content: center;
-  font-family: 'Archivo', sans-serif; font-stretch: 125%; font-weight: 800;
+  font-family: 'Space Grotesk', sans-serif; font-stretch: normal; font-weight: 700;
   font-size: 22px; color: var(--fg);
 }
 .au-gauge-label {
@@ -347,7 +347,7 @@
 .au-speed-metrics { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; flex: 1; }
 .au-sm { border: 1px solid var(--mid); background: rgba(var(--fg-rgb),0.02); padding: 18px 18px 15px; border-left-width: 3px; }
 .au-sm-val {
-  font-family: 'Archivo', sans-serif; font-stretch: 125%; font-weight: 800;
+  font-family: 'Space Grotesk', sans-serif; font-stretch: normal; font-weight: 700;
   font-size: 21px; line-height: 1.1; color: var(--fg); margin-bottom: 8px;
 }
 .au-sm-label { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(var(--fg-rgb),0.45); line-height: 1.55; }
@@ -397,7 +397,7 @@
 .au-recs { display: flex; flex-direction: column; gap: 12px; }
 .au-rec { display: flex; gap: 20px; border: 1px solid var(--mid); background: rgba(var(--fg-rgb),0.015); padding: 20px 22px; }
 .au-rec-num {
-  font-family: 'Archivo', sans-serif; font-stretch: 125%; font-weight: 800;
+  font-family: 'Space Grotesk', sans-serif; font-stretch: normal; font-weight: 700;
   font-size: 20px; line-height: 1; color: rgba(var(--acc-rgb),0.4); flex-shrink: 0; padding-top: 3px;
 }
 .au-rec-head { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 8px; }

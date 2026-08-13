@@ -27,7 +27,7 @@
 
 Документация проекта: `/Users/dmytrii/Desktop/Claude memory/wiki/projects/fastline-infinitiq/`.
 
-## Типографика (зафиксирована 2026-06-12)
+## Типографика (обновлена 2026-08-13)
 
-- **Archivo Expanded** (`font-stretch: 125%`, 800/900, UPPERCASE) — заголовки; **Schibsted Grotesk** (400-700) — текст; **IBM Plex Mono** (400/500) — лейблы/кнопки/демо. Google Fonts, latin-ext (`family=Archivo:wdth,wght@125,600..900`).
-- НЕ возвращать DM Sans / DM Mono / Bebas Neue («ИИшные») и Unbounded (слишком округлый) — юзер отверг. Просил «серьёзный прямоугольный».
+- **Space Grotesk Bold** (700, UPPERCASE) — заголовки/display (с 2026-08-13, запрос юзера «более читаемый»; заменил Archivo Expanded — веса >700 не грузятся, `font-weight` клампить в 700, `font-stretch` не использовать); **Schibsted Grotesk** (400-700) — текст; **IBM Plex Mono** (400/500) — лейблы/кнопки/демо. Google Fonts, latin-ext (`family=Space+Grotesk:wght@400..700`). То же в Brain-панели (`Prod/brain.fastlineinfinitiq`).
+- НЕ возвращать DM Sans / DM Mono / Bebas Neue («ИИшные») и Unbounded (слишком округлый) — юзер отверг. Archivo Expanded заменён на Space Grotesk 2026-08-13 ради читаемости.

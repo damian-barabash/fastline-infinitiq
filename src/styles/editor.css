@@ -346,9 +346,9 @@
     top: 50%;
     left: -20px;
     transform: translateY(-50%);
-    font-family: 'Archivo', sans-serif;
-    font-stretch: 125%;
-    font-weight: 900;
+    font-family: 'Space Grotesk', sans-serif;
+    font-stretch: normal;
+    font-weight: 700;
     font-size: clamp(90px, 14vw, 210px);
     line-height: 1;
     color: transparent;
@@ -371,9 +371,9 @@
   }
 
   .hero-h1 {
-    font-family: 'Archivo', sans-serif;
-    font-stretch: 125%;
-    font-weight: 800;
+    font-family: 'Space Grotesk', sans-serif;
+    font-stretch: normal;
+    font-weight: 700;
     text-transform: uppercase;
     font-size: clamp(32px, 5vw, 76px);
     line-height: 1.08;
@@ -469,9 +469,9 @@
   }
 
   .what-left h2 {
-    font-family: 'Archivo', sans-serif;
-    font-stretch: 125%;
-    font-weight: 800;
+    font-family: 'Space Grotesk', sans-serif;
+    font-stretch: normal;
+    font-weight: 700;
     text-transform: uppercase;
     font-size: clamp(24px, 3vw, 44px);
     line-height: 1.12;
@@ -529,9 +529,9 @@
   }
 
   .services-head h2 {
-    font-family: 'Archivo', sans-serif;
-    font-stretch: 125%;
-    font-weight: 800;
+    font-family: 'Space Grotesk', sans-serif;
+    font-stretch: normal;
+    font-weight: 700;
     text-transform: uppercase;
     font-size: clamp(22px, 2.8vw, 40px);
     line-height: 1.1;
@@ -763,9 +763,9 @@
   .model-panel .section-label::before { background: var(--black); }
 
   .model-panel h2 {
-    font-family: 'Archivo', sans-serif;
-    font-stretch: 125%;
-    font-weight: 800;
+    font-family: 'Space Grotesk', sans-serif;
+    font-stretch: normal;
+    font-weight: 700;
     text-transform: uppercase;
     font-size: clamp(26px, 3.4vw, 50px);
     line-height: 1.1;
@@ -797,9 +797,9 @@
 
   /* ===== WHO ===== */
   .who-h2 {
-    font-family: 'Archivo', sans-serif;
-    font-stretch: 125%;
-    font-weight: 800;
+    font-family: 'Space Grotesk', sans-serif;
+    font-stretch: normal;
+    font-weight: 700;
     text-transform: uppercase;
     font-size: clamp(24px, 3vw, 44px);
     line-height: 1.12;
@@ -823,9 +823,9 @@
 
   .who-item::before {
     content: attr(data-n);
-    font-family: 'Archivo', sans-serif;
-    font-stretch: 125%;
-    font-weight: 800;
+    font-family: 'Space Grotesk', sans-serif;
+    font-stretch: normal;
+    font-weight: 700;
     font-size: 40px;
     color: rgba(184,255,0,0.08);
     position: absolute;
@@ -892,9 +892,9 @@
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    font-family: 'Archivo', sans-serif;
-    font-stretch: 125%;
-    font-weight: 900;
+    font-family: 'Space Grotesk', sans-serif;
+    font-stretch: normal;
+    font-weight: 700;
     font-size: clamp(160px, 22vw, 380px);
     line-height: 1;
     color: transparent;
@@ -908,9 +908,9 @@
   .cta-slide-inner .section-label::before { display: none; }
 
   .cta-slide-inner h2 {
-    font-family: 'Archivo', sans-serif;
-    font-stretch: 125%;
-    font-weight: 800;
+    font-family: 'Space Grotesk', sans-serif;
+    font-stretch: normal;
+    font-weight: 700;
     text-transform: uppercase;
     font-size: clamp(30px, 4.4vw, 68px);
     line-height: 1.08;
@@ -1143,7 +1143,7 @@
   .fiq-blocks:empty { display: none; }
   .fb { position: relative; }
   .fb-h {
-    font-family: 'Archivo', sans-serif; font-stretch: 125%; font-weight: 800;
+    font-family: 'Space Grotesk', sans-serif; font-stretch: normal; font-weight: 700;
     text-transform: uppercase; letter-spacing: .01em; line-height: 1.04;
     font-size: clamp(22px, 3.4vw, 44px); color: var(--white); margin-bottom: 28px;
   }
@@ -1179,7 +1179,7 @@
   .fb-stats { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
   .fb-stat { border: 1px solid var(--mid); border-radius: 16px; padding: 28px 26px; background: rgba(255,255,255,.02); }
   .fb-stat-num {
-    font-family: 'Archivo', sans-serif; font-stretch: 125%; font-weight: 900;
+    font-family: 'Space Grotesk', sans-serif; font-stretch: normal; font-weight: 700;
     font-size: clamp(36px, 5vw, 58px); line-height: 1; color: var(--green); margin-bottom: 16px;
   }
   .fb-stat-label { font-weight: 700; color: var(--white); margin-bottom: 8px; }
@@ -1189,8 +1189,8 @@
   .fb-cards { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
   .fb-card { position: relative; border: 1px solid var(--mid); border-radius: 16px; padding: 30px 26px; overflow: hidden; background: rgba(255,255,255,.02); }
   .fb-card-num {
-    position: absolute; top: 8px; right: 16px; font-family: 'Archivo', sans-serif; font-stretch: 125%;
-    font-weight: 900; font-size: 72px; line-height: 1; color: rgba(184,255,0,.08); pointer-events: none;
+    position: absolute; top: 8px; right: 16px; font-family: 'Space Grotesk', sans-serif; font-stretch: normal;
+    font-weight: 700; font-size: 72px; line-height: 1; color: rgba(184,255,0,.08); pointer-events: none;
   }
   .fb-card h3 { font-size: 19px; color: var(--white); margin-bottom: 12px; position: relative; }
   .fb-card p { color: rgba(245,245,240,.58); font-size: 15px; line-height: 1.6; position: relative; }
@@ -1304,7 +1304,7 @@
     background: var(--grey); border: 1px solid rgba(184,255,0,0.25); border-radius: 18px; padding: 28px;
   }
   .fiq-pal-head {
-    font-family: 'Archivo', sans-serif; font-stretch: 125%; font-weight: 800; text-transform: uppercase;
+    font-family: 'Space Grotesk', sans-serif; font-stretch: normal; font-weight: 700; text-transform: uppercase;
     font-size: 22px; color: var(--white); margin-bottom: 4px;
   }
   .fiq-pal-sub { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: .1em; color: var(--muted); margin-bottom: 22px; }
@@ -1436,9 +1436,9 @@
     margin-bottom: 12px;
   }
   .team-head h2 {
-    font-family: 'Archivo', sans-serif;
-    font-stretch: 125%;
-    font-weight: 800;
+    font-family: 'Space Grotesk', sans-serif;
+    font-stretch: normal;
+    font-weight: 700;
     text-transform: uppercase;
     font-size: clamp(20px, 2.2vw, 31px);
     line-height: 1.1;
@@ -1589,9 +1589,9 @@
     margin-bottom: 10px;
   }
   .tm-name {
-    font-family: 'Archivo', sans-serif;
-    font-stretch: 125%;
-    font-weight: 800;
+    font-family: 'Space Grotesk', sans-serif;
+    font-stretch: normal;
+    font-weight: 700;
     text-transform: uppercase;
     font-size: 24px;
     line-height: 1;
