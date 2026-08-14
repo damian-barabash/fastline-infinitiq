@@ -69,8 +69,55 @@ export function ensureFIQ() {
   FIQ.renderBlock = (type, d) => { const t = B[type]; return t ? t.render(d || {}) : ''; };
 
   /* ===== Builders для повторяемых списков (svc, who) ===== */
-  FIQ.buildSvcRow = (it, i) => `<button class="svc-row" data-litem data-demo="${attr(it.demo || '')}"><span class="svc-num">${pad(i + 1)}</span><span class="svc-name" data-f="name">${esc(it.name || '')}</span><span class="svc-desc" data-f="desc">${esc(it.desc || '')}</span><span class="svc-arrow">→</span></button>`;
-  FIQ.buildWhoCard = (it, i) => `<div class="who-item" data-litem data-n="${pad(i + 1)}"><h3 data-f="h">${esc(it.h || '')}</h3><p data-f="p">${esc(it.p || '')}</p></div>`;
+  // Дефолтные продукты/подписи фаз (по стабильному demo-ключу строки) —
+  // применяются, пока в CMS у строки нет своих chips/foot; первый Zapisz
+  // редактора сохранит их в _lists и дальше они правятся как обычный текст.
+  const SVC_DEFAULTS = FIQ.SVC_DEFAULTS = {
+    strategy: { chips: 'Market Radar | analiza rynku; Benchmarks | benchmarki; Rival Map | konkurencja; ICP Decode | analiza TG', foot: 'Czego klasyczna agencja nie robi w ogóle.' },
+    gen: { chips: 'Offer Design | strategia produktu; Brand Core | platforma marki; Comms Engine | komunikacja; Funnel Design | lejek', foot: 'Tu rodzi się lejek i obietnica marki.' },
+    voice: { chips: 'Creative Lab | kreacja; Launch Line | realizacja; Lead Engine | leady i sprzedaż', foot: 'Jedyny obszar pokrywany przez starą agencję.' },
+    llm: { chips: 'Live Ops | optymalizacja na żywo; ROI Radar | wydatek → przychód; Sales Assist | wsparcie handlowców', foot: 'Serce modelu — tu bierzemy odpowiedzialność za wynik.' },
+    auto: { chips: 'Loyalty Loop | retencja i lojalność; LTV Boost | wartość klienta w czasie', foot: 'Prawa strona lejka: wynik się utrzymuje i rośnie.' }
+  };
+  // «Market Radar | analiza rynku; Benchmarks | benchmarki» → [{n,c},…]
+  const parseChips = FIQ.parseChips = s => String(s == null ? '' : s)
+    .split(';').map(t => t.trim()).filter(Boolean)
+    .map(t => { const p = t.split('|'); return { n: (p[0] || '').trim(), c: (p[1] || '').trim() }; });
+  FIQ.buildSvcRow = (it, i) => {
+    const name = it.name || '';
+    const sp = name.indexOf(' ');
+    const title = sp > 0 ? name.slice(0, sp) : name;   // первое слово = крупный титул
+    const cap = sp > 0 ? name.slice(sp + 1) : '';      // остальное = mono-подпись
+    const def = SVC_DEFAULTS[it.demo] || {};
+    const chipsRaw = (it.chips != null && it.chips !== '') ? it.chips : (def.chips || '');
+    const foot = (it.foot != null && it.foot !== '') ? it.foot : (def.foot || '');
+    const chips = parseChips(chipsRaw).map(c =>
+      `<span class="svc-chip"><b>${esc(c.n)}</b>${c.c ? `<i>${esc(c.c)}</i>` : ''}</span>`).join('');
+    return `<div class="svc-row" data-litem data-demo="${attr(it.demo || '')}" style="--i:${i}">`
+      + `<div class="svc-main"><div class="svc-top"><span class="svc-num">${pad(i + 1)}</span>`
+      + `<span class="svc-title">${esc(title)}</span><span class="svc-cap">${esc(cap)}</span>`
+      + `<span class="svc-name" data-f="name">${esc(name)}</span></div>`
+      + `<p class="svc-desc" data-f="desc">${esc(it.desc || '')}</p>`
+      + `<div class="svc-foot" data-f="foot">${esc(foot)}</div></div>`
+      + `<div class="svc-side"><span class="svc-chips-src" data-f="chips">${esc(chipsRaw)}</span>`
+      + `<div class="svc-chips" aria-hidden="true">${chips}</div></div>`
+      + `<span class="svc-beam" aria-hidden="true"></span></div>`;
+  };
+  // WHO v2: первый элемент списка = hero-карточка «главная специализация»
+  // (CTA + стат-боксы Cel/Mierzymy + спарклайн pipeline), остальные — карточки категорий.
+  FIQ.buildWhoCard = (it, i) => {
+    const tag = `<div class="who-tag" data-f="tag">${esc(it.tag || '')}</div>`;
+    if (i === 0) {
+      return `<div class="who-item who-hero" data-litem data-n="01">`
+        + `<div class="wh-main">${tag}<h3 data-f="h">${esc(it.h || '')}</h3><p data-f="p">${esc(it.p || '')}</p>`
+        + `<a class="wh-cta" href="/kontakt" data-wipe data-f="cta">${esc(it.cta || '')}</a></div>`
+        + `<div class="wh-stats">`
+        + `<div class="wh-stat"><div class="wh-stat-l" data-f="s1l">${esc(it.s1l || '')}</div><div class="wh-stat-v"><span data-f="s1v">${esc(it.s1v || '')}</span><canvas class="wh-spark" aria-hidden="true"></canvas></div></div>`
+        + `<div class="wh-stat"><div class="wh-stat-l" data-f="s2l">${esc(it.s2l || '')}</div><div class="wh-stat-v"><span data-f="s2v">${esc(it.s2v || '')}</span></div></div>`
+        + `</div></div>`;
+    }
+    return `<div class="who-item" data-litem data-n="${pad(i + 1)}">${tag}<h3 data-f="h">${esc(it.h || '')}</h3><p data-f="p">${esc(it.p || '')}</p></div>`;
+  };
   const LIST_BUILD = { svc: FIQ.buildSvcRow, who: FIQ.buildWhoCard };
 
   /* ===== Зоны для блоков в каждой секции ===== */

@@ -161,13 +161,13 @@ export function initEditorLayer({ sb, onRequireLogin }) {
     const name = cont.getAttribute('data-list');
     const btn = document.createElement('button');
     btn.className = 'fiq-add';
-    btn.textContent = name === 'svc' ? '＋ Krok' : '＋ Karta';
+    btn.textContent = name === 'svc' ? '＋ Faza' : '＋ Karta';
     btn.addEventListener('click', e => {
       e.preventDefault();
       const idx = cont.querySelectorAll(':scope > [data-litem]').length;
       const html = name === 'svc'
-        ? FIQ.buildSvcRow({ name: 'Nowy krok', desc: 'Opis kroku.', demo: '' }, idx)
-        : FIQ.buildWhoCard({ h: 'Nowa pozycja', p: 'Opis.' }, idx);
+        ? FIQ.buildSvcRow({ name: 'Nowa faza', desc: 'Opis fazy.', foot: 'Podpis fazy.', chips: 'Produkt | opis', demo: '' }, idx)
+        : FIQ.buildWhoCard({ tag: 'Kategoria', h: 'Nowa pozycja', p: 'Opis.' }, idx);
       const node = fromHTML(html);
       cont.insertBefore(node, btn);
       addItemTb(node);
@@ -244,9 +244,6 @@ export function initEditorLayer({ sb, onRequireLogin }) {
     document.querySelectorAll('[data-hideable]').forEach(addHideTb);
     document.querySelectorAll('[data-list]').forEach(ensureListAdd);
     document.querySelectorAll('[data-zone]').forEach(ensureZoneAdd);
-    // подсказка в пустой демо-панели (демо-движок в редакторе не работает)
-    const db = $('svcDemoBody');
-    if (db && !db.children.length) db.innerHTML = '<div style="font-family:\'IBM Plex Mono\',monospace;font-size:12px;color:#666;line-height:1.7">// podgląd demo działa na żywej stronie<br>// kliknij ikonę oka, aby ukryć cały panel</div>';
   }
 
   /* ===== Загрузка картинки (обе ветки: data-edit и data-fimg) ===== */
@@ -297,8 +294,14 @@ export function initEditorLayer({ sb, onRequireLogin }) {
     document.querySelectorAll('[data-list]').forEach(cont => {
       const name = cont.getAttribute('data-list');
       out[name] = Array.from(cont.children).filter(c => c.matches && c.matches('.svc-row, .who-item')).map(c => {
-        if (name === 'svc') return { name: txt(c, '.svc-name'), desc: txt(c, '.svc-desc'), demo: c.getAttribute('data-demo') || '', hidden: false };
-        return { h: txt(c, 'h3'), p: txt(c, 'p'), hidden: false };
+        if (name === 'svc') return { name: txt(c, '.svc-name'), desc: txt(c, '.svc-desc'), foot: txt(c, '.svc-foot'), chips: txt(c, '.svc-chips-src'), demo: c.getAttribute('data-demo') || '', hidden: false };
+        const o = { tag: txt(c, '.who-tag'), h: txt(c, 'h3'), p: txt(c, 'p'), hidden: false };
+        if (c.classList.contains('who-hero')) {
+          o.cta = txt(c, '.wh-cta');
+          o.s1l = txt(c, '.wh-stat:nth-child(1) .wh-stat-l'); o.s1v = txt(c, '.wh-stat:nth-child(1) .wh-stat-v span');
+          o.s2l = txt(c, '.wh-stat:nth-child(2) .wh-stat-l'); o.s2v = txt(c, '.wh-stat:nth-child(2) .wh-stat-v span');
+        }
+        return o;
       });
     });
     return out;

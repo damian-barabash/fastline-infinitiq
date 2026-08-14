@@ -22,7 +22,6 @@ export function initLanding({ onNavigate }) {
   const slides = Array.from(document.querySelectorAll('.slide'));
   const inners = slides.map(s => s.querySelector('.slide-inner'));
   const N = slides.length;
-  const SVC_SLIDE = slides.findIndex(s2 => s2.id === 'oferta');
   const TEAM_SLIDE = slides.findIndex(s2 => s2.id === 'zespol');
   const lerp = (a, b, t) => a + (b - a) * t;
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
@@ -130,7 +129,6 @@ export function initLanding({ onNavigate }) {
     slides.forEach((s, i) => s.classList.toggle('active', i === idx));
     fxIdx = idx;
     if (!first) kickColumn(); // нейро-столп реагирует на смену слайда
-    if (idx === SVC_SLIDE) startSvcAuto(); else stopSvcAuto();
   }
 
   function updateDrum() {
@@ -159,296 +157,11 @@ export function initLanding({ onNavigate }) {
     hint.classList.toggle('gone', scrollY > vh * 0.3);
   }
 
-  /* ===== Interactive service demos ===== */
-  let svcRows = [];
-  const svcTitle = document.getElementById('svcDemoTitle');
-  const svcDesc = document.getElementById('svcDemoDesc');
-  const svcBody = document.getElementById('svcDemoBody');
-  let SVC_NAMES = [];
-
-  let demoTimers = [];
-  const dt = (fn, ms) => { const id = setTimeout(fn, ms); demoTimers.push(id); return id; };
-  const di = (fn, ms) => { const id = setInterval(fn, ms); demoTimers.push(id); return id; };
-  function el(tag, cls, html) {
-    const e = document.createElement(tag);
-    if (cls) e.className = cls;
-    if (html != null) e.innerHTML = html;
-    return e;
-  }
-  const foot = t => el('div', 'd-foot', t);
-  function typeTo(node, txt, sp, done) {
-    let i = 0;
-    const id = di(() => {
-      node.textContent = txt.slice(0, ++i);
-      if (i >= txt.length) { clearInterval(id); done && done(); }
-    }, sp);
-  }
-
-  function demoStrategy(b) {
-    const steps = [['Q1', 'Audyt danych i procesów'], ['Q2', 'Pilot: silnik treści AI'], ['Q3', 'Automatyzacja lejka'], ['Q4', 'Skala — operacje AI-native']];
-    const list = el('div');
-    const els = steps.map(([q, t]) => {
-      const s = el('div', 'd-step');
-      s.append(el('div', 'd-dot'), el('div', 'd-mono', `<span class="d-acc">${q}</span>&nbsp;&nbsp;${t}`));
-      list.append(s);
-      return s;
-    });
-    b.append(list, foot('roadmapa transformacji · 4 kwartały'));
-    let k = 0;
-    const cyc = () => {
-      if (k < els.length) { els[k++].classList.add('on'); }
-      else if (k === els.length) {
-        k++;
-        dt(() => { els.forEach(e => e.classList.remove('on')); k = 0; }, 1500);
-      }
-    };
-    cyc();
-    di(cyc, 900);
-  }
-
-  function demoGen(b) {
-    const prompt = el('div', 'd-mono');
-    const pr = el('span', 'd-acc');
-    prompt.append(el('span', 'd-dim', '&gt; brief:&nbsp;'), pr);
-    const out = el('div');
-    out.style.marginTop = '12px';
-    b.append(prompt, out, foot('3 warianty · 1,4 s · spójne z brand voice'));
-    const lines = ['„Zima należy do odważnych."', '„Ciepło, które wygląda jak projekt."', '„FW26 — na temperatury i spojrzenia."'];
-    typeTo(pr, 'premiera kolekcji FW26 — ton: pewny, minimal', 24, () => {
-      lines.forEach((t, i) => dt(() => {
-        const l = el('div', 'd-mono');
-        l.innerHTML = `<span class="d-acc">H${i + 1}</span>&nbsp;&nbsp;`;
-        const sp = el('span');
-        l.append(sp);
-        out.append(l);
-        typeTo(sp, t, 13);
-      }, 400 + i * 700));
-      dt(() => { b.innerHTML = ''; demoGen(b); }, 400 + 3 * 700 + 3000);
-    });
-  }
-
-  function demoVoice(b) {
-    const tones = [
-      ['Korporacyjny', 'Szanowni Państwo, z przyjemnością informujemy o premierze nowej kolekcji.'],
-      ['Social', 'Drop jest. Nowa kolekcja właśnie wylądowała — leć, zanim zniknie.'],
-      ['Twój brand', 'Nowa kolekcja. Bez kompromisów — dokładnie tak, jak lubisz.']
-    ];
-    const tabs = el('div', 'd-tabs');
-    const txt = el('div', 'd-vtext');
-    let cur = 0, paused = false;
-    const tabEls = tones.map(([t], i) => {
-      const tb = el('button', 'd-tab', t);
-      tb.addEventListener('click', () => { paused = true; show(i); });
-      tabs.append(tb);
-      return tb;
-    });
-    function show(i) {
-      cur = i;
-      tabEls.forEach((t, k) => t.classList.toggle('on', k === i));
-      txt.style.opacity = 0;
-      dt(() => { txt.textContent = tones[i][1]; txt.style.opacity = 1; }, 240);
-    }
-    b.append(tabs, txt, foot('jeden komunikat · trzy głosy · 100% spójności'));
-    show(0);
-    di(() => { if (!paused) show((cur + 1) % tones.length); }, 2600);
-  }
-
-  function demoLLM(b) {
-    const chat = el('div');
-    b.append(chat, foot('asystent na danych marki · 24/7'));
-    const seq = [
-      ['me', 'Macie ten model w rozmiarze M?'],
-      ['ai', 'Tak — ostatnie 3 sztuki. Rezerwuję na 30 minut?'],
-      ['me', 'Poproszę.'],
-      ['ai', 'Zarezerwowane ✓ Link do płatności już u Ciebie.']
-    ];
-    function run() {
-      chat.innerHTML = '';
-      let delay = 300;
-      seq.forEach(([who, t]) => {
-        dt(() => {
-          const bb = el('div', 'd-bubble' + (who === 'me' ? ' me' : ''), t);
-          chat.append(bb);
-          requestAnimationFrame(() => bb.classList.add('show'));
-        }, delay);
-        delay += who === 'ai' ? 1600 : 1100;
-      });
-      dt(run, delay + 2400);
-    }
-    run();
-  }
-
-  function demoAuto(b) {
-    const flow = el('div', 'd-row');
-    flow.style.cssText = 'gap:8px;flex-wrap:wrap;';
-    const nodes = ['Nowy lead', 'Scoring AI', 'Segment', 'Kampania 1:1'].map(t => el('div', 'd-node', t));
-    nodes.forEach((n, i) => {
-      flow.append(n);
-      if (i < nodes.length - 1) flow.append(el('span', 'd-acc', '→'));
-    });
-    const stats = el('div', 'd-mono');
-    stats.style.marginTop = '18px';
-    let leads = 214, hot = 38, conv = 12, k = 0;
-    const paint = () => {
-      stats.innerHTML = `leady: <span class="d-acc">${leads}</span> · hot: <span class="d-acc">${hot}</span> · konwersje: <span class="d-acc">${conv}</span>`;
-    };
-    paint();
-    b.append(flow, stats, foot('lejek pracuje sam · realtime'));
-    di(() => {
-      nodes.forEach((n, i) => n.classList.toggle('hot', i === k % nodes.length));
-      if (k % nodes.length === nodes.length - 1) {
-        leads += 1 + Math.floor(Math.random() * 3);
-        hot += 1;
-        if (k % (nodes.length * 2) === nodes.length * 2 - 1) conv += 1;
-        paint();
-      }
-      k++;
-    }, 650);
-  }
-
-  function demoCRM(b) {
-    const data = [['Anna · TechCo', 92], ['Marek · RetailX', 61], ['Julia · FinApp', 34]];
-    const rows = data.map(([name, score], i) => {
-      const r = el('div', 'd-row');
-      r.style.cssText = 'gap:14px;margin-bottom:14px;';
-      const nm = el('span', 'd-mono', name);
-      nm.style.cssText = 'width:42%;flex-shrink:0;font-size:11.5px;';
-      const bar = el('div', 'd-bar');
-      const fill = el('i');
-      bar.append(fill);
-      const sc = el('span', 'd-mono d-dim', '0');
-      sc.style.cssText = 'width:54px;text-align:right;font-size:11.5px;';
-      r.append(nm, bar, sc);
-      b.append(r);
-      return { fill, sc, score, nm, hot: i === 0 };
-    });
-    const ft = foot('');
-    b.append(ft);
-    rows.forEach(({ fill, sc, score, nm, hot }) => {
-      dt(() => { fill.style.width = score + '%'; }, 200);
-      let v = 0;
-      const id = di(() => {
-        v = Math.min(score, v + 3);
-        sc.textContent = v + (hot && v === score ? ' · HOT' : '');
-        if (v >= score) {
-          clearInterval(id);
-          if (hot) { sc.classList.add('d-acc'); sc.classList.remove('d-dim'); nm.classList.add('d-acc'); }
-        }
-      }, 36);
-    });
-    dt(() => {
-      const sp = el('span');
-      ft.append(sp);
-      typeTo(sp, 'AI: follow-up do Anny dziś 14:00 · szansa 87%', 22);
-    }, 1500);
-    dt(() => { b.innerHTML = ''; demoCRM(b); }, 7200);
-  }
-
-  function demoPerf(b) {
-    const ab = el('div', 'd-ab');
-    const mk = (label, copy) => {
-      const card = el('div', 'd-ad');
-      card.append(el('div', 'd-mono d-dim', label), el('div', 'd-adcopy', copy));
-      const ctr = el('div', 'd-mono', 'CTR: <span class="d-dim">0,0%</span>');
-      card.append(ctr);
-      ab.append(card);
-      return { card, ctr };
-    };
-    const A = mk('Wariant A', 'Kup teraz — dostawa w 24h.');
-    const B = mk('Wariant B', 'Zostały 3 sztuki. Dziś dostawa gratis.');
-    const ft = foot('');
-    b.append(ab, ft);
-    let a = 0, bb = 0;
-    const id = di(() => {
-      a = Math.min(1.2, a + 0.06);
-      bb = Math.min(3.8, bb + 0.19);
-      A.ctr.innerHTML = `CTR: <span class="d-dim">${a.toFixed(1).replace('.', ',')}%</span>`;
-      B.ctr.innerHTML = `CTR: <span class="d-acc">${bb.toFixed(1).replace('.', ',')}%</span>`;
-      if (bb >= 3.8) {
-        clearInterval(id);
-        B.card.classList.add('win');
-        ft.innerHTML = '→ wygrywa <span class="d-acc">wariant B</span> · ROAS 4,7×';
-      }
-    }, 90);
-    dt(() => { b.innerHTML = ''; demoPerf(b); }, 8000);
-  }
-
-  function demoVideo(b) {
-    const row = el('div', 'd-row');
-    row.style.gap = '10px';
-    const frames = [0, 1, 2, 3].map(() => {
-      const f = el('div', 'd-frame', '▶');
-      row.append(f);
-      return f;
-    });
-    const prog = el('div', 'd-mono');
-    prog.style.marginTop = '14px';
-    b.append(row, prog, foot('4 ujęcia · 12 s · 9:16 · brand-safe'));
-    let p = 0;
-    const id = di(() => {
-      p = Math.min(100, p + 2);
-      const blocks = Math.round(p / 100 * 14);
-      prog.innerHTML = `render: <span class="d-acc">${'█'.repeat(blocks)}</span><span class="d-dim">${'░'.repeat(14 - blocks)}</span> ${p}%`;
-      frames.forEach((f, i) => { if (p >= (i + 1) * 25) f.classList.add('done'); });
-      if (p >= 100) clearInterval(id);
-    }, 70);
-    dt(() => { b.innerHTML = ''; demoVideo(b); }, 7400);
-  }
-
-  // привязка демо по data-demo (а не по индексу) — чтобы добавление/скрытие строк
-  // через CMS не ломало соответствие строка↔демо
-  const DEMO_MAP = { strategy: demoStrategy, gen: demoGen, voice: demoVoice, llm: demoLLM, auto: demoAuto, crm: demoCRM, perf: demoPerf, video: demoVideo };
-
-  const SVC_AUTO_MS = 20000;  // сами переключаются раз в 20 с
-  let svcIdx = -1, svcAutoId = null, svcHoverT = null;
-  function selectSvc(i, user) {
-    if (!svcRows.length || i < 0 || i >= svcRows.length) return;
-    // действие юзера не выключает автопрокрутку навсегда — только отодвигает
-    // следующий автошаг на полный интервал
-    if (user && svcAutoId) { stopSvcAuto(); startSvcAuto(); }
-    if (i === svcIdx) return;
-    svcIdx = i;
-    svcRows.forEach((r, k) => r.classList.toggle('on', k === i));
-    svcTitle.textContent = `Demo — ${('0' + (i + 1)).slice(-2)} / ${SVC_NAMES[i]}`;
-    const dEl = svcRows[i].querySelector('.svc-desc');
-    svcDesc.textContent = dEl ? dEl.textContent : '';
-    demoTimers.forEach(id => { clearTimeout(id); clearInterval(id); });
-    demoTimers = [];
-    svcBody.innerHTML = '';
-    const fn = DEMO_MAP[svcRows[i].getAttribute('data-demo') || ''];
-    if (fn) fn(svcBody);
-  }
-  function startSvcAuto() {
-    if (svcAutoId || !svcRows.length) return;
-    svcAutoId = setInterval(() => {
-      if (document.hidden) return;
-      selectSvc((svcIdx + 1) % svcRows.length, false);
-    }, SVC_AUTO_MS);
-  }
-  function stopSvcAuto() {
-    if (svcAutoId) { clearInterval(svcAutoId); svcAutoId = null; }
-  }
-  // (пере)инициализация списка услуг — вызывается после перестройки строк из CMS
-  function initServices() {
-    svcRows = Array.from(document.querySelectorAll('.svc-row'));
-    SVC_NAMES = svcRows.map(r => { const n = r.querySelector('.svc-name'); return n ? n.textContent : ''; });
-    svcIdx = -1;
-    svcRows.forEach((r, i) => {
-      if (r._svcBound) return;          // не навешивать повторно на те же узлы
-      r._svcBound = true;
-      r.addEventListener('click', () => selectSvc(i, true), { signal });
-      // debounce: пролёт мыши по списку не должен щёлкать демо подряд
-      r.addEventListener('mouseenter', () => {
-        if (COARSE) return;
-        clearTimeout(svcHoverT);
-        svcHoverT = setTimeout(() => selectSvc(i, true), 120);
-      }, { signal });
-      r.addEventListener('mouseleave', () => clearTimeout(svcHoverT), { signal });
-    });
-    selectSvc(0, false);
-  }
-  window.fiqInitServices = initServices;
-  initServices();
+  /* ===== Services (mapa procesu) =====
+     Демо-панель и симуляции удалены (2026-08-14): секция — стек карточек фаз,
+     «зелёный луч» по карточкам — чистый CSS (.svc-beam, стаггер по --i).
+     fiqInitServices оставлен no-op: Home.jsx зовёт его после применения CMS. */
+  window.fiqInitServices = () => {};
 
   /* ===== What-media: полосы берут картинку из CMS-ключа what_visual =====
      Разрезка — чистый CSS (12 полос с background-position); тут только синк URL:
@@ -723,6 +436,110 @@ export function initLanding({ onNavigate }) {
     }
   }
 
+  /* ===== Frost glass (2026-08-14): «матовое стекло» карточек =====
+     backdrop-filter внутри 3D-барабана не сэмплит фиксированный канвас (Chromium:
+     3D-трансформ-предки = граница backdrop root), поэтому морозим сами: в каждую
+     карточку кладётся canvas, куда каждый кадр рисуется downscale-каскад региона
+     #neural под ней (двойное масштабирование ≈ blur, почти бесплатно).
+     Rect'ы читаются ДО записи трансформов барабана (урок team.js), пиксели
+     берутся ПОСЛЕ drawNeural — тот же кадр, никакого лага. */
+  const frost = { items: [], tick: 0, lastY: -1 };
+  const frostOff = document.createElement('canvas');
+  const frostOffCtx = frostOff.getContext('2d');
+  function frostCollect() {
+    frost.items = [];
+    frost.lastY = -1; // строки могли перестроиться — рект-кэш невалиден
+    document.querySelectorAll('.what-board .diff-item, .svc-list .svc-row, .who-grid .who-item').forEach(el => {
+      let c = el.querySelector(':scope > .frost-c');
+      if (!c) {
+        c = document.createElement('canvas');
+        c.className = 'frost-c';
+        c.setAttribute('aria-hidden', 'true');
+        el.prepend(c);
+      }
+      frost.items.push({ el, c, ctx: c.getContext('2d'), slide: el.closest('.slide'), r: null });
+    });
+  }
+  function frostRects() {
+    frost.tick++;
+    if (ySmooth === frost.lastY && frost.tick % 20) return; // покой: ревизия раз в 20 кадров
+    frost.lastY = ySmooth;
+    for (const it of frost.items) {
+      it.r = (it.slide && it.slide.classList.contains('shown')) ? it.el.getBoundingClientRect() : null;
+    }
+  }
+  function frostDraw() {
+    if (WEAK && frost.tick % 2) return;
+    const kx = canvas.width / vw, ky = canvas.height / vh;
+    for (const it of frost.items) {
+      const r = it.r;
+      if (!r || r.width < 10 || r.bottom < -20 || r.top > vh + 20) continue;
+      const w = Math.round(r.width), h = Math.round(r.height);
+      const dw = Math.max(2, Math.round(w / 12)), dh = Math.max(2, Math.round(h / 12));
+      if (it.c.width !== w || it.c.height !== h) { it.c.width = w; it.c.height = h; }
+      if (frostOff.width < dw) frostOff.width = dw;
+      if (frostOff.height < dh) frostOff.height = dh;
+      frostOffCtx.clearRect(0, 0, dw, dh);
+      frostOffCtx.drawImage(canvas, r.left * kx, r.top * ky, r.width * kx, r.height * ky, 0, 0, dw, dh);
+      it.ctx.clearRect(0, 0, w, h);
+      it.ctx.globalAlpha = 0.9;
+      it.ctx.drawImage(frostOff, 0, 0, dw, dh, 0, 0, w, h);
+    }
+  }
+  frostCollect();
+  addEventListener('fiq:content-ready', frostCollect, { signal });
+
+  /* ===== Who «Co robimy»: живой спарклайн pipeline в hero-карточке =====
+     Ховер по карточкам категорий даёт импульс вверх — «каждый obszar кормит pipeline». */
+  const spark = { c: null, ctx: null, v: [], boost: 0, glow: 0, last: 0 };
+  function sparkCollect() {
+    spark.c = document.querySelector('.wh-spark');
+    spark.ctx = spark.c ? spark.c.getContext('2d') : null;
+    if (spark.c && !spark.v.length) {
+      let y = 0.62;
+      for (let i = 0; i < 46; i++) { y = clamp(y + (Math.random() - 0.56) * 0.07, 0.1, 0.9); spark.v.push(y); }
+    }
+    document.querySelectorAll('.who-grid .who-item').forEach(el => {
+      if (el._sparkBound) return; el._sparkBound = true;
+      el.addEventListener('mouseenter', () => { spark.boost = 1; spark.glow = 1; }, { signal });
+    });
+  }
+  function sparkTick(now) {
+    if (!spark.ctx) return;
+    const c = spark.c;
+    const slide = c.closest('.slide');
+    if (!slide || !slide.classList.contains('shown')) return;
+    if (now - spark.last > (spark.boost > 0.05 ? 90 : 170)) {
+      spark.last = now;
+      let y = spark.v[spark.v.length - 1] + (Math.random() - 0.56) * 0.09 - spark.boost * 0.06;
+      if (y < 0.1) y = 0.55 + Math.random() * 0.2; // рост «зафиксирован» — новая волна
+      spark.v.push(clamp(y, 0.06, 0.92)); spark.v.shift();
+      spark.boost *= 0.82;
+    }
+    spark.glow *= 0.94;
+    const w = c.clientWidth | 0, h = c.clientHeight | 0;
+    if (!w) return;
+    if (c.width !== w * 2) { c.width = w * 2; c.height = h * 2; }
+    const g = spark.ctx, W = c.width, H = c.height, n = spark.v.length;
+    g.clearRect(0, 0, W, H);
+    g.lineWidth = 2.5;
+    g.strokeStyle = 'rgba(184,255,0,0.9)';
+    g.shadowColor = 'rgba(184,255,0,0.9)';
+    g.shadowBlur = 4 + spark.glow * 14;
+    g.beginPath();
+    for (let i = 0; i < n; i++) {
+      const x = (i / (n - 1)) * (W - 10) + 5;
+      const y = spark.v[i] * (H - 10) + 5;
+      i ? g.lineTo(x, y) : g.moveTo(x, y);
+    }
+    g.stroke();
+    g.shadowBlur = 0;
+    g.fillStyle = '#B8FF00';
+    g.beginPath(); g.arc(W - 5, spark.v[n - 1] * (H - 10) + 5, 4, 0, 6.3); g.fill();
+  }
+  sparkCollect();
+  addEventListener('fiq:content-ready', sparkCollect, { signal });
+
   /* ===== Main loop ===== */
   function frame(time) {
     if (destroyed) return;
@@ -737,6 +554,7 @@ export function initLanding({ onNavigate }) {
       const d = Math.abs(pSmooth - TEAM_SLIDE);
       team.tick(performance.now(), d < 1.15, Math.round(ySmooth), d < 0.45);
     }
+    frostRects(); // тоже читает layout — до записей барабана
     updateDrum();
 
     if (!COARSE) {
@@ -747,6 +565,8 @@ export function initLanding({ onNavigate }) {
     }
 
     drawNeural(time);
+    frostDraw(); // пиксели «за стеклом» — из свежеотрисованного канваса
+    sparkTick(performance.now());
     rafId = requestAnimationFrame(frame);
   }
 
@@ -778,12 +598,8 @@ export function initLanding({ onNavigate }) {
     fontsAlive = false;
     cancelAnimationFrame(rafId);
     ac.abort();
-    stopSvcAuto();
-    demoTimers.forEach(id => { clearTimeout(id); clearInterval(id); });
-    demoTimers = [];
     claimTimers.forEach(id => { clearTimeout(id); clearInterval(id); });
     claimTimers.length = 0;
-    clearTimeout(svcHoverT);
     delete window.fiqInitServices;
     delete window.fiqRemeasure;
     document.documentElement.classList.remove('mode-3d', 'coarse');

@@ -25,7 +25,7 @@ export default function LandingShell() {
         <button className="rail-item" data-i="2"><span className="rail-name">Oferta</span><span className="rail-tick"></span></button>
         <button className="rail-item" data-i="3"><span className="rail-name">Produkt</span><span className="rail-tick"></span></button>
         <button className="rail-item" data-i="4"><span className="rail-name">Model</span><span className="rail-tick"></span></button>
-        <button className="rail-item" data-i="5"><span className="rail-name">Dla kogo</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="5"><span className="rail-name">Co robimy</span><span className="rail-tick"></span></button>
         <button className="rail-item" data-i="6"><span className="rail-name">Grupa</span><span className="rail-tick"></span></button>
         <button className="rail-item" data-i="7"><span className="rail-name">Kontakt</span><span className="rail-tick"></span></button>
       </div>
@@ -89,35 +89,39 @@ export default function LandingShell() {
           <section className="slide" id="czym-jestesmy" data-hideable="sec:czym-jestesmy">
             <div className="slide-inner">
               <div className="what-grid">
-                <div className="what-left">
-                  <div className="section-label rv rv1" data-edit="what_label">01 — Czym jesteśmy</div>
-                  <h2 className="rv rv2" data-edit="what_h2" data-edit-type="html">Agencja<br />AI-native.<br />Tylko.</h2>
-                  <p className="rv rv3" data-edit="what_p1">
-                    Większość agencji mówi, że „używa AI". My jesteśmy z AI zbudowani.
-                    Każdy proces, każda strategia, każdy system komunikacji — zaprojektowane
-                    z myślą o możliwościach, które AI otwiera, a nie tych, które ogranicza.
-                  </p>
-                  <p className="rv rv4" data-edit="what_p2">
-                    To nie kwestia narzędzi. To fundamentalna różnica w sposobie myślenia
-                    o marketingu, treści i brandzie w erze generatywnej.
-                  </p>
+                <div className="what-head">
+                  <div className="what-left">
+                    <div className="section-label rv rv1" data-edit="what_label">01 — Czym jesteśmy</div>
+                    <h2 className="rv rv2" data-edit="what_h2" data-edit-type="html">Agencja<br />AI-native.<br />Tylko.</h2>
+                  </div>
+                  <div className="what-lead rv rv3">
+                    <p data-edit="what_p1">
+                      Większość agencji mówi, że „używa AI". My jesteśmy z AI zbudowani.
+                      Każdy proces, każda strategia, każdy system komunikacji — zaprojektowane
+                      z myślą o możliwościach, które AI otwiera, a nie tych, które ogranicza.
+                    </p>
+                    <p data-edit="what_p2">
+                      To nie kwestia narzędzi. To fundamentalna różnica w sposobie myślenia
+                      o marketingu, treści i brandzie w erze generatywnej.
+                    </p>
+                  </div>
                 </div>
-                <div className="what-right">
-                  <div className="diff-item rv rv2">
+                <div className="what-board">
+                  <div className="diff-item rv rv3">
                     <div className="diff-num">01</div>
                     <div className="diff-text">
                       <h3 data-edit="what_diff1_h">AI-native, nie AI-assisted</h3>
                       <p data-edit="what_diff1_p">Nie doklejamy AI do sprawdzonych metod. Budujemy od zera modele operacyjne, w których AI jest rdzeniem, a nie dodatkiem.</p>
                     </div>
                   </div>
-                  <div className="diff-item rv rv3">
+                  <div className="diff-item rv rv4">
                     <div className="diff-num">02</div>
                     <div className="diff-text">
                       <h3 data-edit="what_diff2_h">Strategia, nie prompt-crafting</h3>
                       <p data-edit="what_diff2_p">Nasz wkład to architektura systemów komunikacji. Generatywna egzekucja jest ich konsekwencją, nie punktem wyjścia.</p>
                     </div>
                   </div>
-                  <div className="diff-item rv rv4">
+                  <div className="diff-item rv rv5">
                     <div className="diff-num">03</div>
                     <div className="diff-text">
                       <h3 data-edit="what_diff3_h">Wyłącznie retainer</h3>
@@ -129,6 +133,20 @@ export default function LandingShell() {
                     <div className="diff-text">
                       <h3 data-edit="what_diff4_h">Danych, umysłu, egzekucji</h3>
                       <p data-edit="what_diff4_p">Data driven. Mind created. AI executed. Trzy filary każdego projektu — równoważne, wzajemnie zależne.</p>
+                    </div>
+                  </div>
+                  <div className="diff-item rv rv5">
+                    <div className="diff-num">05</div>
+                    <div className="diff-text">
+                      <h3 data-edit="what_diff5_h">Marka, która sprzedaje</h3>
+                      <p data-edit="what_diff5_p">Brand awareness, który buduje rozpoznawalność i wspiera konwersję, a nie żyje obok niej.</p>
+                    </div>
+                  </div>
+                  <div className="diff-item rv rv6">
+                    <div className="diff-num">06</div>
+                    <div className="diff-text">
+                      <h3 data-edit="what_diff6_h">Wszystko mierzalne</h3>
+                      <p data-edit="what_diff6_p">Dashboard od wydatku do przychodu. Zawsze wiesz, za co płacisz i co to dało.</p>
                     </div>
                   </div>
                   <div className="what-media rv rv6" id="whatMedia">
@@ -151,42 +169,45 @@ export default function LandingShell() {
             <div className="slide-inner">
               <div className="services-head">
                 <div>
-                  <div className="section-label rv rv1" data-edit="svc_label">02 — Obszary kompetencji</div>
-                  <h2 className="rv rv2" data-edit="svc_h2">To, co robimy.</h2>
+                  <div className="section-label rv rv1" data-edit="svc_label">02 — jak pracujemy</div>
+                  <h2 className="rv rv2" data-edit="svc_h2">Mapa procesu.</h2>
                 </div>
-                <div className="svc-hint rv rv3" data-edit="svc_hint">{'// wybierz usługę — przykład na żywo'}</div>
+                <div className="svc-hint rv rv3" data-edit="svc_hint">Każde działanie ma przełożyć się na liczbę, którą widzi Twój zarząd.</div>
               </div>
               <div className="svc-wrap rv rv3">
                 <div className="svc-list" id="svcList" data-list="svc">
-                  <button className="svc-row" data-demo="strategy">
-                    <span className="svc-num">01</span><span className="svc-name" data-edit="svc1_name">AI Strategy</span><span className="svc-desc" data-edit="svc1_desc">Mapujemy potencjał AI dla Twojej marki i budujemy roadmapę transformacji komunikacyjnej.</span><span className="svc-arrow">→</span>
-                  </button>
-                  <button className="svc-row" data-demo="gen">
-                    <span className="svc-num">02</span><span className="svc-name" data-edit="svc2_name">Generative Content</span><span className="svc-desc" data-edit="svc2_desc">Systemy produkcji treści w skali. Spójne, brandowane, wydajne — niemożliwe bez AI.</span><span className="svc-arrow">→</span>
-                  </button>
-                  <button className="svc-row" data-demo="voice">
-                    <span className="svc-num">03</span><span className="svc-name" data-edit="svc3_name">Brand Voice AI</span><span className="svc-desc" data-edit="svc3_desc">Uczymy AI mówić głosem Twojej marki. Tworzmy modele językowe zasilone tożsamością brandu.</span><span className="svc-arrow">→</span>
-                  </button>
-                  <button className="svc-row" data-demo="llm">
-                    <span className="svc-num">04</span><span className="svc-name" data-edit="svc4_name">LLM Integration</span><span className="svc-desc" data-edit="svc4_desc">Wdrażamy duże modele językowe w procesy marketingowe, sprzedażowe i obsługi klienta.</span><span className="svc-arrow">→</span>
-                  </button>
-                  <button className="svc-row" data-demo="auto">
-                    <span className="svc-num">05</span><span className="svc-name" data-edit="svc5_name">Marketing Automation AI</span><span className="svc-desc" data-edit="svc5_desc">Inteligentne lejki, personalizacja w czasie rzeczywistym, kampanie reagujące na dane.</span><span className="svc-arrow">→</span>
-                  </button>
-                  <button className="svc-row" data-demo="crm">
-                    <span className="svc-num">06</span><span className="svc-name" data-edit="svc6_name">CRM &amp; Sales AI</span><span className="svc-desc" data-edit="svc6_desc">AI w procesach sprzedażowych: scoring, follow-upy, analiza pipeline'u i przewidywanie churnu.</span><span className="svc-arrow">→</span>
-                  </button>
-                  <button className="svc-row" data-demo="perf">
-                    <span className="svc-num">07</span><span className="svc-name" data-edit="svc7_name">Performance Marketing AI</span><span className="svc-desc" data-edit="svc7_desc">Generatywne kreacje reklamowe, dynamiczny copy i optymalizacja kampanii prowadzona przez modele.</span><span className="svc-arrow">→</span>
-                  </button>
-                  <button className="svc-row" data-demo="video">
-                    <span className="svc-num">08</span><span className="svc-name" data-edit="svc8_name">AI Video &amp; Visual</span><span className="svc-desc" data-edit="svc8_desc">Produkcja wideo i wizualizacji w skali. Od konceptu do dystrybucji — AI w każdym etapie.</span><span className="svc-arrow">→</span>
-                  </button>
-                </div>
-                <div className="svc-demo" data-hideable="demo">
-                  <div className="svc-demo-head"><span id="svcDemoTitle">Demo</span><span className="svc-live" data-edit="demo_live">● live</span></div>
-                  <p className="svc-demo-desc" id="svcDemoDesc"></p>
-                  <div className="svc-demo-body" id="svcDemoBody"></div>
+                  {[
+                    { demo: 'strategy', name: 'Discover rozpoznanie', desc: 'Zanim wydasz pierwszą złotówkę, wiemy, czy i gdzie warto grać. Analizujemy rynek, konkurencję i Twojego klienta, opieramy decyzje o twarde benchmarki.', foot: 'Czego klasyczna agencja nie robi w ogóle.', chips: [['Market Radar', 'analiza rynku'], ['Benchmarks', 'benchmarki'], ['Rival Map', 'konkurencja'], ['ICP Decode', 'analiza TG']] },
+                    { demo: 'gen', name: 'Define strategia', desc: 'Tu powstaje plan wzrostu. To praca agencji strategicznej w pełnej skali: ustalamy, co sprzedajemy i w jakiej cenie, budujemy pozycjonowanie i platformę marki, projektujemy spójny system komunikacji oraz lejek, który zamienia uwagę w sprzedaż.', foot: 'Tu rodzi się lejek i obietnica marki.', chips: [['Offer Design', 'strategia produktu'], ['Brand Core', 'platforma marki'], ['Comms Engine', 'komunikacja'], ['Funnel Design', 'lejek']] },
+                    { demo: 'voice', name: 'Create kreacja i realizacja', desc: 'Tu dział kreatywny zamienia strategię w kampanie, które działają. Koncepcja, key visuals i narracja, a potem produkcja contentu w skali (AI-native) i wdrożenie na kanałach. Robimy zarówno kampanie brand awareness, jak i, przede wszystkim, leadowe.', foot: 'Jedyny obszar pokrywany przez starą agencję.', chips: [['Creative Lab', 'kreacja'], ['Launch Line', 'realizacja'], ['Lead Engine', 'leady i sprzedaż']] },
+                    { demo: 'llm', name: 'Convert sprzedaż i wynik', desc: 'Serce modelu. Optymalizujemy kampanie na żywo, mierzymy ROI od wydatku do przychodu i wspieramy Twój dział sprzedaży. To tutaj bierzemy odpowiedzialność za wynik.', foot: 'Serce modelu — tu bierzemy odpowiedzialność za wynik.', chips: [['Live Ops', 'optymalizacja na żywo'], ['ROI Radar', 'wydatek → przychód'], ['Sales Assist', 'wsparcie handlowców']] },
+                    { demo: 'auto', name: 'Grow lojalność i ludzie', desc: 'Prawa strona lejka, gdzie wynik się utrzymuje i rośnie: retencja, programy lojalnościowe, wzrost wartości klienta oraz motywacja zespołów, które dowożą sprzedaż.', foot: 'Prawa strona lejka: wynik się utrzymuje i rośnie.', chips: [['Loyalty Loop', 'retencja i lojalność'], ['LTV Boost', 'wartość klienta w czasie']] },
+                  ].map((f, i) => {
+                    const sp = f.name.indexOf(' ');
+                    return (
+                      <div className="svc-row" data-demo={f.demo} style={{ '--i': i }} key={f.demo}>
+                        <div className="svc-main">
+                          <div className="svc-top">
+                            <span className="svc-num">{('0' + (i + 1)).slice(-2)}</span>
+                            <span className="svc-title">{sp > 0 ? f.name.slice(0, sp) : f.name}</span>
+                            <span className="svc-cap">{sp > 0 ? f.name.slice(sp + 1) : ''}</span>
+                            <span className="svc-name" data-edit={`svc${i + 1}_name`}>{f.name}</span>
+                          </div>
+                          <p className="svc-desc" data-edit={`svc${i + 1}_desc`}>{f.desc}</p>
+                          <div className="svc-foot">{f.foot}</div>
+                        </div>
+                        <div className="svc-side">
+                          <span className="svc-chips-src">{f.chips.map(c => c.join(' | ')).join('; ')}</span>
+                          <div className="svc-chips" aria-hidden="true">
+                            {f.chips.map(c => (
+                              <span className="svc-chip" key={c[0]}><b>{c[0]}</b><i>{c[1]}</i></span>
+                            ))}
+                          </div>
+                        </div>
+                        <span className="svc-beam" aria-hidden="true"></span>
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -300,20 +321,45 @@ export default function LandingShell() {
           {/* 5 / WHO */}
           <section className="slide" id="dla-kogo" data-hideable="sec:dla-kogo">
             <div className="slide-inner">
-              <div className="section-label rv rv1" data-edit="who_label">05 — Dla kogo</div>
-              <h2 className="who-h2 rv rv2" data-edit="who_h2" data-edit-type="html">Szukamy<br />konkretnych<br />partnerów.</h2>
+              <div className="section-label rv rv1" data-edit="who_label">05 — Co robimy</div>
+              <h2 className="who-h2 rv rv2" data-edit="who_h2" data-edit-type="html">Od pierwszego leada po<br />stałego klienta.</h2>
               <div className="who-grid" data-list="who">
-                <div className="who-item rv rv3" data-n="01">
-                  <h3 data-edit="who1_h">CMO i Marketing Directorzy</h3>
-                  <p data-edit="who1_p">W firmach 50M+ PLN przychodu, którzy widzą AI jako zmianę strukturalną — nie taktyczny eksperyment.</p>
+                <div className="who-item who-hero rv rv3" data-n="01">
+                  <div className="wh-main">
+                    <div className="who-tag">Główna specjalizacja</div>
+                    <h3 data-edit="who1_h">Kampanie leadowe i sprzedażowe B2B</h3>
+                    <p data-edit="who1_p">Sekwencje ABM, lead magnets, landing pages, nurturing i scoring. Cel jest jeden: pipeline i sprzedaż, nie kliknięcia. Generujemy kontakty gotowe do rozmowy handlowej i pilnujemy ich aż do domknięcia.</p>
+                    <a className="wh-cta" href="/kontakt" data-wipe>Chcę więcej leadów</a>
+                  </div>
+                  <div className="wh-stats">
+                    <div className="wh-stat"><div className="wh-stat-l">Cel</div><div className="wh-stat-v"><span>pipeline ↑</span><canvas className="wh-spark" aria-hidden="true"></canvas></div></div>
+                    <div className="wh-stat"><div className="wh-stat-l">Mierzymy</div><div className="wh-stat-v"><span>koszt / lead</span></div></div>
+                  </div>
                 </div>
                 <div className="who-item rv rv4" data-n="02">
-                  <h3 data-edit="who2_h">Scale-upy i firmy technologiczne</h3>
-                  <p data-edit="who2_p">Z dużym wolumenem komunikacji, potrzebą skali i otwartością na niekonwencjonalne podejście do brandu.</p>
+                  <div className="who-tag">Digital</div>
+                  <h3 data-edit="who2_h">Kampanie brand awareness</h3>
+                  <p data-edit="who2_p">Rozpoznawalność, która pracuje na sprzedaż. Spójna marka w każdym kanale, podpięta pod lejek.</p>
                 </div>
-                <div className="who-item rv rv5" data-n="03">
-                  <h3 data-edit="who3_h">Klienci Fastline Advertising</h3>
-                  <p data-edit="who3_p">Gotowi na następny poziom — z dotychczasową współpracy jako fundamentem zaufania i znajomości marki.</p>
+                <div className="who-item rv rv4" data-n="03">
+                  <div className="who-tag">Produkcja</div>
+                  <h3 data-edit="who3_h">Realizacja kampanii</h3>
+                  <p data-edit="who3_p">Od konceptu po publikację. Content AI-native: szybciej, więcej i spójnie, na każdy format.</p>
+                </div>
+                <div className="who-item rv rv5" data-n="04">
+                  <div className="who-tag">Relacje</div>
+                  <h3 data-edit="who4_h">Eventy B2B</h3>
+                  <p data-edit="who4_p">Spotkania, które budują relacje i kontrakty. Format premium nastawiony na konkretny efekt sprzedażowy.</p>
+                </div>
+                <div className="who-item rv rv5" data-n="05">
+                  <div className="who-tag">Sprzedaż</div>
+                  <h3 data-edit="who5_h">Programy sprzedażowe</h3>
+                  <p data-edit="who5_p">Mechaniki, które motywują handel i przyspieszają domknięcia. Marketing i sales grają do jednej bramki.</p>
+                </div>
+                <div className="who-item rv rv6" data-n="06">
+                  <div className="who-tag">Retencja</div>
+                  <h3 data-edit="who6_h">Programy lojalnościowe</h3>
+                  <p data-edit="who6_p">Klienci wracają i kupują więcej. Wzrost wartości klienta (CLV), nie tylko pogoń za nowymi.</p>
                 </div>
               </div>
             </div>
