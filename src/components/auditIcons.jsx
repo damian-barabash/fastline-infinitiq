@@ -34,24 +34,25 @@ const P = {
   brain: <><path d="M9 4a3 3 0 00-3 3v1a3 3 0 00-2 3 3 3 0 002 3v1a3 3 0 003 3h3V4z" /><path d="M15 4a3 3 0 013 3v1a3 3 0 012 3 3 3 0 01-2 3v1a3 3 0 01-3 3h-3V4z" /><path d="M12 4v16" /></>,
   hand: <><path d="M8 12V6a1.5 1.5 0 013 0v5" /><path d="M11 11V4.5a1.5 1.5 0 013 0V11" /><path d="M14 11V6a1.5 1.5 0 013 0v7" /><path d="M17 13V9.5a1.5 1.5 0 013 0V15a6 6 0 01-6 6h-2a6 6 0 01-5.2-3L4 13.5a1.5 1.5 0 012.5-1.5L8 14" /></>,
   compass: <><circle cx="12" cy="12" r="9" /><path d="M15.5 8.5l-2 5-5 2 2-5z" /></>,
+  globe: <><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18" /></>,
+  check: <><circle cx="12" cy="12" r="9" /><path d="M8 12.5l2.6 2.6L16.5 9" /></>,
+  warn: <><path d="M12 3l9.5 17h-19z" /><path d="M12 9.5v4.5" /><circle cx="12" cy="17" r="0.9" fill="currentColor" stroke="none" /></>,
+  arrow: <><path d="M5 12h14M13 6l6 6-6 6" /></>,
+  mail: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="M3 7l9 6 9-6" /></>,
+  calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M3 10h18M8 3v4M16 3v4" /></>,
+  trend: <><path d="M3 17l6-6 4 4 8-8" /><path d="M15 7h6v6" /></>,
 };
 
-// иконка + «зmysł» продукта из каталога FIQ (по id продукта)
-const PRODUCT_ICON = { 1: 'robot', 2: 'phone', 3: 'target', 4: 'doc', 5: 'heart', 6: 'chart', 7: 'coins', 8: 'box', 9: 'clock', 10: 'tag', 11: 'pen', 12: 'search', 13: 'star', 14: 'play', 15: 'layers', 16: 'spark', 17: 'users', 18: 'book' };
-const SENSE_ICON = { Brain: 'brain', Mind: 'spark', Hand: 'hand', Heart: 'heart', Eyes: 'eye' };
-export function productIcon(id, name) { return PRODUCT_ICON[+id] || serviceIcon(name); }
-export function senseIcon(sense) { return SENSE_ICON[sense] || 'chip'; }
-
-export function Ic({ name, size = 22 }) {
+export function Ic({ name, size = 22, sw = 1.6 }) {
   return (
     <svg className="au-ic" width={size} height={size} viewBox="0 0 24 24" fill="none"
-      stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      stroke="currentColor" strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       {P[name] || P.spark}
     </svg>
   );
 }
 
-// подбор иконки под название AI-услуги
+// подбор иконки под название AI-услуги (старые аудиты)
 export function serviceIcon(name) {
   const n = String(name || '').toLowerCase();
   if (/agent|obsług|chat|klient/.test(n)) return 'robot';
@@ -64,38 +65,164 @@ export function serviceIcon(name) {
   return 'chip';
 }
 
-// шкала-пончик 0-100
-export function Gauge({ value, label }) {
+// иконка + «zmysł» продукта из каталога FIQ (по id продукта)
+const PRODUCT_ICON = { 1: 'robot', 2: 'phone', 3: 'target', 4: 'doc', 5: 'heart', 6: 'chart', 7: 'coins', 8: 'box', 9: 'clock', 10: 'tag', 11: 'pen', 12: 'search', 13: 'star', 14: 'play', 15: 'layers', 16: 'spark', 17: 'users', 18: 'book' };
+const SENSE_ICON = { Brain: 'brain', Mind: 'spark', Hand: 'hand', Heart: 'heart', Eyes: 'eye' };
+export function productIcon(id, name) { return PRODUCT_ICON[+id] || serviceIcon(name); }
+export function senseIcon(sense) { return SENSE_ICON[sense] || 'chip'; }
+
+// иконка метрики по подписи
+export function metricIcon(label) {
+  const n = String(label || '').toLowerCase();
+  if (/schema|dane strukt/.test(n)) return 'chip';
+  if (/open ?graph|og\b|social/.test(n)) return 'layers';
+  if (/canonical/.test(n)) return 'check';
+  if (/hreflang|języ|lang/.test(n)) return 'globe';
+  if (/blog|treś|artyk|aktual/.test(n)) return 'pen';
+  if (/chat|czat|agent/.test(n)) return 'message';
+  if (/rezerw|wizyt|kalend/.test(n)) return 'calendar';
+  if (/opini|recenz|ocen/.test(n)) return 'star';
+  if (/telefon|phone/.test(n)) return 'phone';
+  if (/faq/.test(n)) return 'book';
+  if (/szybk|speed|ładow/.test(n)) return 'speed';
+  return 'eye';
+}
+
+// ===== шкала-пончик 0-100 (большая, анимированная: рисуется при появлении) =====
+export function Gauge({ value, label, size = 150, sub }) {
   const v = Math.max(0, Math.min(100, Math.round(+value || 0)));
-  const R = 34, C = 2 * Math.PI * R;
+  const R = 40, C = 2 * Math.PI * R;
+  const tone = v >= 70 ? 'good' : v >= 45 ? 'mid' : 'poor';
   return (
-    <div className="au-gauge">
-      <svg viewBox="0 0 84 84">
-        <circle className="au-gauge-bg" cx="42" cy="42" r={R} />
-        <circle className="au-gauge-fg" cx="42" cy="42" r={R}
-          strokeDasharray={`${(C * v / 100).toFixed(1)} ${C.toFixed(1)}`} transform="rotate(-90 42 42)" />
+    <div className={'au-gauge t-' + tone} style={{ '--gs': size + 'px' }}>
+      <svg viewBox="0 0 100 100">
+        <circle className="au-gauge-bg" cx="50" cy="50" r={R} />
+        <circle className="au-gauge-fg" cx="50" cy="50" r={R}
+          style={{ '--dash': (C * v / 100).toFixed(1), '--circ': C.toFixed(1) }}
+          strokeDasharray={`${(C * v / 100).toFixed(1)} ${C.toFixed(1)}`} transform="rotate(-90 50 50)" />
+        <circle className="au-gauge-tick" cx="50" cy="50" r={R + 7} strokeDasharray="1 5.3" />
       </svg>
-      <div className="au-gauge-val">{v}</div>
+      <div className="au-gauge-val"><span className="au-count" data-to={v}>0</span></div>
       <div className="au-gauge-label">{label}</div>
+      {sub && <div className="au-gauge-sub">{sub}</div>}
     </div>
   );
 }
 
-// декоративный «растущий график» (контакт-секция) — цвета из темы страницы
+// ===== радар 4 осей (оценки) =====
+export function Radar({ scores }) {
+  const axes = [
+    ['google', 'Google'], ['ai', 'AI'], ['technika', 'Technika'], ['tresc', 'Treść'],
+  ];
+  const cx = 110, cy = 110, R = 82;
+  const pt = (i, r) => { const a = -Math.PI / 2 + i * Math.PI / 2; return [cx + Math.cos(a) * r, cy + Math.sin(a) * r]; };
+  const poly = axes.map(([k], i) => pt(i, R * Math.max(0.06, Math.min(100, +scores?.[k] || 0) / 100)).join(',')).join(' ');
+  return (
+    <svg className="au-radar" viewBox="0 0 220 220" aria-hidden="true">
+      {[0.25, 0.5, 0.75, 1].map(f => <polygon key={f} className="au-radar-ring" points={axes.map((_, i) => pt(i, R * f).join(',')).join(' ')} />)}
+      {axes.map((_, i) => <line key={i} className="au-radar-axis" x1={cx} y1={cy} x2={pt(i, R)[0]} y2={pt(i, R)[1]} />)}
+      <polygon className="au-radar-area" points={poly} />
+      {axes.map(([k], i) => { const [x, y] = pt(i, R * Math.max(0.06, Math.min(100, +scores?.[k] || 0) / 100)); return <circle key={k} className="au-radar-dot" cx={x} cy={y} r="4.5" />; })}
+      {axes.map(([k, l], i) => { const [x, y] = pt(i, R + 20); return <text key={k} className="au-radar-lbl" x={x} y={y + 4} textAnchor="middle">{l} {Math.round(+scores?.[k] || 0)}</text>; })}
+    </svg>
+  );
+}
+
+// ===== горизонтальный бар с подписью и значением =====
+export function Bar({ label, value, max = 100, text, tone = '' }) {
+  const w = Math.max(3, Math.min(100, (+value || 0) / (max || 1) * 100));
+  return (
+    <div className={'au-bar ' + tone}>
+      <div className="au-bar-head"><span className="au-bar-label">{label}</span><b className="au-bar-val">{text ?? value}</b></div>
+      <div className="au-bar-track"><i style={{ '--w': w + '%' }} /></div>
+    </div>
+  );
+}
+
+// ===== счётчик сигналов «N z M» в виде сегментов =====
+export function Segments({ value, total, label }) {
+  return (
+    <div className="au-segs">
+      <div className="au-segs-row">{Array.from({ length: total }).map((_, i) => <i key={i} className={i < value ? 'on' : ''} />)}</div>
+      <div className="au-segs-label"><b>{value}/{total}</b> {label}</div>
+    </div>
+  );
+}
+
+// ===== декоративная нейро-сеть (фон hero) =====
+export function NetBg() {
+  const nodes = [];
+  let s = 7;
+  const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+  for (let i = 0; i < 26; i++) nodes.push([60 + rnd() * 680, 40 + rnd() * 320, 2 + rnd() * 2.5, 3 + rnd() * 5]);
+  const links = [];
+  for (let i = 0; i < nodes.length; i++) for (let j = i + 1; j < nodes.length; j++) {
+    const dx = nodes[i][0] - nodes[j][0], dy = nodes[i][1] - nodes[j][1];
+    if (Math.hypot(dx, dy) < 120) links.push([i, j]);
+  }
+  return (
+    <svg className="au-net" viewBox="0 0 800 400" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
+      {links.map(([a, b], i) => <line key={i} x1={nodes[a][0]} y1={nodes[a][1]} x2={nodes[b][0]} y2={nodes[b][1]} className="au-net-link" style={{ '--d': (i % 7) * 0.9 + 's' }} />)}
+      {nodes.map(([x, y, r, d], i) => <circle key={i} cx={x} cy={y} r={r} className="au-net-node" style={{ '--d': d + 's' }} />)}
+    </svg>
+  );
+}
+
+// ===== уголки-видоискатель для карточек =====
+export function Corners() {
+  return (
+    <svg className="au-corners" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 14V0h14M86 0h14v14M100 86v14H86M14 100H0V86" vectorEffect="non-scaling-stroke" />
+    </svg>
+  );
+}
+
+// ===== мини-спарклайн (декор в карточках) =====
+export function Spark({ seed = 1, up = true }) {
+  let s = seed * 131 + 7;
+  const rnd = () => { s = (s * 9301 + 49297) % 233280; return s / 233280; };
+  const pts = [];
+  let y = up ? 34 : 10;
+  for (let i = 0; i <= 12; i++) { y += (up ? -1.8 : 1.8) + (rnd() - 0.5) * 6; y = Math.max(4, Math.min(38, y)); pts.push([i * 10, y]); }
+  const d = pts.map((p, i) => (i ? 'L' : 'M') + p[0] + ' ' + p[1].toFixed(1)).join(' ');
+  return (
+    <svg className="au-spark" viewBox="0 0 120 42" aria-hidden="true">
+      <path className="au-spark-fill" d={d + ' L120 42 L0 42 Z'} />
+      <path className="au-spark-line" d={d} />
+      <circle className="au-spark-dot" cx={pts[12][0]} cy={pts[12][1]} r="3" />
+    </svg>
+  );
+}
+
+// ===== декоративный «растущий график» (контакт-секция) =====
 export function GrowthDeco() {
   return (
     <svg className="au-growth" viewBox="0 0 320 180" fill="none" aria-hidden="true">
-      {[0, 1, 2, 3, 4, 5].map(i => <line key={'h' + i} x1="0" y1={30 * i + 10} x2="320" y2={30 * i + 10} stroke="rgba(var(--fg-rgb),0.06)" />)}
-      {[0, 1, 2, 3, 4, 5, 6, 7].map(i => <line key={'v' + i} x1={i * 45 + 5} y1="0" x2={i * 45 + 5} y2="180" stroke="rgba(var(--fg-rgb),0.04)" />)}
-      <path d="M5 160 L50 150 L95 155 L140 120 L185 105 L230 70 L275 55 L315 20" stroke="var(--acc)" strokeWidth="2" />
+      {[0, 1, 2, 3, 4, 5].map(i => <line key={'h' + i} x1="0" y1={30 * i + 10} x2="320" y2={30 * i + 10} stroke="rgba(var(--fg-rgb),0.08)" />)}
+      {[0, 1, 2, 3, 4, 5, 6, 7].map(i => <line key={'v' + i} x1={i * 45 + 5} y1="0" x2={i * 45 + 5} y2="180" stroke="rgba(var(--fg-rgb),0.05)" />)}
+      <path className="au-growth-line" d="M5 160 L50 150 L95 155 L140 120 L185 105 L230 70 L275 55 L315 20" stroke="var(--acc)" strokeWidth="2.5" />
       <path d="M5 160 L50 150 L95 155 L140 120 L185 105 L230 70 L275 55 L315 20 L315 180 L5 180 Z" fill="url(#auGrad)" stroke="none" />
       <defs>
         <linearGradient id="auGrad" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0" stopColor="var(--acc)" stopOpacity="0.22" />
+          <stop offset="0" stopColor="var(--acc)" stopOpacity="0.28" />
           <stop offset="1" stopColor="var(--acc)" stopOpacity="0" />
         </linearGradient>
       </defs>
-      {[[140, 120], [230, 70], [315, 20]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="3.5" fill="var(--bg)" stroke="var(--acc)" strokeWidth="2" />)}
+      {[[140, 120], [230, 70], [315, 20]].map(([x, y], i) => <circle key={i} cx={x} cy={y} r="4.5" fill="var(--bg)" stroke="var(--acc)" strokeWidth="2.5" />)}
+    </svg>
+  );
+}
+
+// ===== «орбита» AI-ботов (секция промптов) =====
+export function Orbit() {
+  return (
+    <svg className="au-orbit" viewBox="0 0 200 200" aria-hidden="true">
+      <circle className="au-orbit-ring" cx="100" cy="100" r="78" />
+      <circle className="au-orbit-ring" cx="100" cy="100" r="52" style={{ '--dur': '22s', '--dir': 'reverse' }} />
+      <circle className="au-orbit-core" cx="100" cy="100" r="18" />
+      <g className="au-orbit-sat" style={{ '--dur': '14s' }}><circle cx="100" cy="22" r="7" /></g>
+      <g className="au-orbit-sat" style={{ '--dur': '19s', '--dir': 'reverse' }}><circle cx="100" cy="48" r="5" /></g>
+      <g className="au-orbit-sat" style={{ '--dur': '11s', '--delay': '-4s' }}><circle cx="100" cy="22" r="4" /></g>
     </svg>
   );
 }
