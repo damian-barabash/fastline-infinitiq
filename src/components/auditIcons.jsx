@@ -111,19 +111,20 @@ export function Gauge({ value, label, size = 150, sub }) {
 
 // ===== радар 4 осей (оценки) =====
 export function Radar({ scores }) {
-  const axes = [
-    ['google', 'Google'], ['ai', 'AI'], ['technika', 'Technika'], ['tresc', 'Treść'],
-  ];
-  const cx = 110, cy = 110, R = 82;
+  const axes = [['google', 'Google'], ['ai', 'AI'], ['technika', 'Technika'], ['tresc', 'Treść']];
+  const cx = 150, cy = 122, R = 70;
+  const val = (k) => Math.max(0, Math.min(100, +scores?.[k] || 0));
   const pt = (i, r) => { const a = -Math.PI / 2 + i * Math.PI / 2; return [cx + Math.cos(a) * r, cy + Math.sin(a) * r]; };
-  const poly = axes.map(([k], i) => pt(i, R * Math.max(0.06, Math.min(100, +scores?.[k] || 0) / 100)).join(',')).join(' ');
+  const poly = axes.map(([k], i) => pt(i, R * Math.max(0.06, val(k) / 100)).join(',')).join(' ');
+  const anchor = ['middle', 'start', 'middle', 'end'];
+  const off = [[0, -22], [14, -2], [0, 22], [-14, -2]];
   return (
-    <svg className="au-radar" viewBox="0 0 220 220" aria-hidden="true">
+    <svg className="au-radar" viewBox="0 0 300 250" aria-hidden="true">
       {[0.25, 0.5, 0.75, 1].map(f => <polygon key={f} className="au-radar-ring" points={axes.map((_, i) => pt(i, R * f).join(',')).join(' ')} />)}
       {axes.map((_, i) => <line key={i} className="au-radar-axis" x1={cx} y1={cy} x2={pt(i, R)[0]} y2={pt(i, R)[1]} />)}
       <polygon className="au-radar-area" points={poly} />
-      {axes.map(([k], i) => { const [x, y] = pt(i, R * Math.max(0.06, Math.min(100, +scores?.[k] || 0) / 100)); return <circle key={k} className="au-radar-dot" cx={x} cy={y} r="4.5" />; })}
-      {axes.map(([k, l], i) => { const [x, y] = pt(i, R + 20); return <text key={k} className="au-radar-lbl" x={x} y={y + 4} textAnchor="middle">{l} {Math.round(+scores?.[k] || 0)}</text>; })}
+      {axes.map(([k], i) => { const [x, y] = pt(i, R * Math.max(0.06, val(k) / 100)); return <circle key={k} className="au-radar-dot" cx={x} cy={y} r="5" />; })}
+      {axes.map(([k, l], i) => { const [x, y] = pt(i, R); const lx = x + off[i][0], ly = y + off[i][1]; return <text key={k} className="au-radar-lbl" x={lx} y={ly} textAnchor={anchor[i]}>{l}<tspan className="au-radar-num" x={lx} dy="17">{Math.round(val(k))}</tspan></text>; })}
     </svg>
   );
 }
@@ -168,13 +169,9 @@ export function NetBg() {
   );
 }
 
-// ===== уголки-видоискатель для карточек =====
+// ===== уголки-видоискатель для карточек (4 угла фикс-размера, без растяжения) =====
 export function Corners() {
-  return (
-    <svg className="au-corners" viewBox="0 0 100 100" preserveAspectRatio="none" aria-hidden="true">
-      <path d="M0 14V0h14M86 0h14v14M100 86v14H86M14 100H0V86" vectorEffect="non-scaling-stroke" />
-    </svg>
-  );
+  return <span className="au-corners" aria-hidden="true"><i /><i /><i /><i /></span>;
 }
 
 // ===== мини-спарклайн (декор в карточках) =====

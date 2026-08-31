@@ -69,25 +69,13 @@
 /* ===== hero ===== */
 .au-hero { padding: 90px 0 80px; border-bottom: 1px solid var(--mid); position: relative; }
 .au-hero-inner { position: relative; z-index: 2; }
-.au-net { position: absolute; inset: -20px 0 0 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: 0.9; }
-.au-net-link { stroke: rgba(var(--acc-rgb),0.22); stroke-width: 1; stroke-dasharray: 6 8; animation: auDash 6s linear infinite; animation-delay: var(--d, 0s); }
-.au-net-node { fill: var(--acc); opacity: 0.55; animation: auPulse var(--d, 4s) ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
-@keyframes auDash { to { stroke-dashoffset: -56; } }
-@keyframes auPulse { 0%, 100% { opacity: 0.25; transform: scale(0.8); } 50% { opacity: 0.85; transform: scale(1.25); } }
 .au-hero-mark { position: absolute; right: -40px; top: 40px; width: min(560px, 48%); z-index: 1; pointer-events: none; color: var(--acc); }
 .au-hero-mark svg { width: 100%; height: auto; display: block; }
-.au-hero-mark .au-mark-svg { position: absolute; inset: 0; opacity: 0; animation: auFadeIn 1.2s ease 2.2s forwards; }
-.au-hero-mark .au-mark-svg { opacity: 0.08; animation: none; }
+.au-hero-mark .au-mark-svg { position: absolute; inset: 0; opacity: 0.08; }
 .au-hero-mark .au-mark-stroke path { stroke-dasharray: 4200; stroke-dashoffset: 4200; opacity: 0.45; animation: auDraw 3.2s ease-out 0.3s forwards, auMarkFloat 9s ease-in-out 3.5s infinite; }
 @keyframes auDraw { to { stroke-dashoffset: 0; } }
 @keyframes auMarkFloat { 0%, 100% { opacity: 0.45; } 50% { opacity: 0.2; } }
 @keyframes auFadeIn { to { opacity: 0.1; } }
-.au-hero-beam {
-  position: absolute; left: 0; right: 0; height: 2px; top: 0; z-index: 1; pointer-events: none;
-  background: linear-gradient(90deg, transparent, rgba(var(--acc-rgb),0.7), transparent);
-  animation: auBeam 7s ease-in-out infinite;
-}
-@keyframes auBeam { 0% { top: 0; opacity: 0; } 8% { opacity: 1; } 92% { opacity: 1; } 100% { top: 100%; opacity: 0; } }
 .au-client-logo {
   display: inline-flex; align-items: center; margin-bottom: 40px;
   background: rgba(var(--fg-rgb),0.05); border: 1px solid var(--mid); padding: 18px 28px;
@@ -135,13 +123,14 @@
 .au-gauge-label { margin-top: 16px; font-family: var(--mono); font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase; color: var(--text); text-align: center; line-height: 1.5; font-weight: 500; }
 .au-gauge-sub { margin-top: 6px; font-size: 13px; color: var(--muted); text-align: center; }
 .au-radar-wrap { border: 1px solid var(--mid); background: rgba(var(--fg-rgb),0.03); padding: 18px 20px 16px; display: flex; flex-direction: column; align-items: center; justify-content: center; min-width: 250px; }
-.au-radar { width: 230px; height: 230px; }
+.au-radar { width: 300px; height: 250px; }
 .au-radar-ring { fill: none; stroke: rgba(var(--fg-rgb),0.14); stroke-width: 1; }
 .au-radar-axis { stroke: rgba(var(--fg-rgb),0.18); stroke-width: 1; }
 .au-radar-area { fill: rgba(var(--acc-rgb),0.22); stroke: var(--acc); stroke-width: 2.5; stroke-linejoin: round; transform-box: fill-box; transform-origin: center; transform: scale(0.2); opacity: 0; transition: transform 1.2s cubic-bezier(.22,1,.36,1) 0.4s, opacity 0.6s ease 0.4s; }
 .au-vis .au-radar-area { transform: scale(1); opacity: 1; }
 .au-radar-dot { fill: var(--bg); stroke: var(--acc); stroke-width: 2.5; }
-.au-radar-lbl { font-family: var(--mono); font-size: 11px; letter-spacing: 0.06em; fill: var(--text); text-transform: uppercase; }
+.au-radar-lbl { font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; fill: var(--text); text-transform: uppercase; }
+.au-radar-num { font-family: var(--disp); font-weight: 700; font-size: 15px; fill: var(--fg); }
 .au-radar-cap { margin-top: 6px; font-family: var(--mono); font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: var(--muted); }
 
 /* ===== секции и заголовки ===== */
@@ -170,7 +159,12 @@
 .au-grid3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 24px; }
 .au-card { padding: 36px 32px 34px; border: 1px solid var(--mid); background: rgba(var(--fg-rgb),0.03); position: relative; transition: transform 0.3s, border-color 0.3s; }
 .au-card:hover { transform: translateY(-4px); border-color: rgba(var(--acc-rgb),0.6); }
-.au-corners { position: absolute; inset: 6px; width: calc(100% - 12px); height: calc(100% - 12px); fill: none; stroke: rgba(var(--acc-rgb),0.55); stroke-width: 1.5; pointer-events: none; }
+.au-corners { position: absolute; inset: 7px; pointer-events: none; }
+.au-corners i { position: absolute; width: 14px; height: 14px; border: 0 solid rgba(var(--acc-rgb),0.7); }
+.au-corners i:nth-child(1) { left: 0; top: 0; border-left-width: 2px; border-top-width: 2px; }
+.au-corners i:nth-child(2) { right: 0; top: 0; border-right-width: 2px; border-top-width: 2px; }
+.au-corners i:nth-child(3) { right: 0; bottom: 0; border-right-width: 2px; border-bottom-width: 2px; }
+.au-corners i:nth-child(4) { left: 0; bottom: 0; border-left-width: 2px; border-bottom-width: 2px; }
 .au-card-ic {
   width: 64px; height: 64px; display: flex; align-items: center; justify-content: center;
   border: 1px solid rgba(var(--acc-rgb),0.45); color: var(--acc); margin-bottom: 26px; background: rgba(var(--acc-rgb),0.07);
@@ -496,7 +490,7 @@
   .au-sub, .au-lead { font-size: 17px; }
   .au-gauge { --gs: 120px; padding: 20px 8px 18px; }
   .au-gauge-val { top: 20px; }
-  .au-radar { width: 200px; height: 200px; }
+  .au-radar { width: 250px; height: 215px; }
   .au-radar-wrap { flex-direction: column; min-width: 0; }
   .au-hero-mark { width: 82%; right: -80px; top: 0; opacity: 0.8; }
   .au-client-logo img { max-height: 56px; max-width: 220px; }

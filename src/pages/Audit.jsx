@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { sbPublic } from '../lib/supabase.js';
-import { Ic, Gauge, Radar, Bar, Segments, NetBg, Corners, Spark, GrowthDeco, Orbit, serviceIcon, productIcon, senseIcon, metricIcon } from '../components/auditIcons.jsx';
+import { Ic, Gauge, Radar, Bar, Segments, Corners, Spark, GrowthDeco, Orbit, serviceIcon, productIcon, senseIcon, metricIcon } from '../components/auditIcons.jsx';
 import { LogoFull, LogoMark, LogoMarkStroke } from '../components/logoSvg.jsx';
 import auditCss from '../styles/audit.css?inline';
 
@@ -184,9 +184,7 @@ export default function Audit() {
         <main className="au-main">
           {/* ===== HERO ===== */}
           <section className="au-hero">
-            <NetBg />
             <div className="au-hero-mark"><LogoMarkStroke /><LogoMark /></div>
-            <div className="au-hero-beam" aria-hidden="true" />
             <div className="au-hero-inner">
               {audit.logo_url && (
                 <div className={'au-client-logo' + (audit.site_meta?.logo_light ? ' dark' : '')}>
