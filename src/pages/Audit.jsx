@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { sbPublic } from '../lib/supabase.js';
-import { Ic, Gauge, GrowthDeco, serviceIcon } from '../components/auditIcons.jsx';
+import { Ic, Gauge, GrowthDeco, serviceIcon, productIcon, senseIcon } from '../components/auditIcons.jsx';
 import auditCss from '../styles/audit.css?inline';
 
 // Публичная страница аудита для клиента (по образцу mayko.rocks/fastline-geo,
@@ -27,6 +27,7 @@ const SCOPE = {
   ],
 };
 
+const TIER_LABEL = { 1: 'Start', 2: 'Wzrost', 3: 'Skala' };
 const DIAG_ICONS = ['search', 'eye', 'layers'];
 const WHY_ICONS = ['bolt', 'rocket', 'clock'];
 const POT_W = { wysoki: 100, 'średni': 62, sredni: 62, niski: 30 };
@@ -80,6 +81,9 @@ export default function Audit() {
   const whyNow = nzObj(c.why_now);
   const plan = nzObj(c.plan);
   const services = nzObj(c.ai_services);
+  // produkty z katalogu FIQ (audyt v24+) + pakiety liczone w edge; ręczna cena z panelu nadpisuje sumę pakietu
+  const products = nzObj(c.products).filter(p => p.id && p.name).map(p => ({ ...p, scope: nzStr(p.scope), kpi: nzStr(p.kpi) }));
+  const autoPackages = (Array.isArray(c.packages) ? c.packages : []).filter(p => p && Array.isArray(p.product_ids) && p.product_ids.length);
   const faq = nzObj(c.faq).filter(f => (f.q || '').trim() && (f.a || '').trim());
   const scores = c.scores && typeof c.scores === 'object' ? c.scores : null;
   const competitors = nzObj(c.competitors);
@@ -144,7 +148,7 @@ export default function Audit() {
           <section className="au-hero">
             <div className="au-hero-bg" aria-hidden="true">AUDYT</div>
             {audit.logo_url && (
-              <div className="au-client-logo"><img src={audit.logo_url} alt={audit.client_name} onError={e => { e.target.parentNode.style.display = 'none'; }} /></div>
+              <div className={'au-client-logo' + (audit.site_meta?.logo_light ? ' dark' : '')}><img src={audit.logo_url} alt={audit.client_name} onError={e => { e.target.parentNode.style.display = 'none'; }} /></div>
             )}
             <div className="au-eyebrow">★ Oferta audytu SEO · GEO — {audit.client_name} · ważna 14 dni</div>
             <h1 className="au-h1">{c.hero?.headline || `Widoczność ${audit.client_name} w Google i w AI`}</h1>
@@ -311,6 +315,7 @@ export default function Audit() {
                 {competitors.map((k, i) => (
                   <div className="au-comp-card" key={i}>
                     <div className="au-comp-name"><Ic name="users" size={18} /> {k.name}</div>
+                    {k.profile && <div className="au-comp-profile">{k.profile}</div>}
                     <div className="au-comp-block">
                       <div className="au-comp-tag">Czym dziś wygrywa</div>
                       <p>{k.strengths}</p>
@@ -451,8 +456,63 @@ export default function Audit() {
             </section>
           )}
 
-          {/* USŁUGI AI DLA KLIENTA */}
-          {services.length > 0 && (
+          {/* PRODUKTY AI Z KATALOGU FIQ (audyt v24+) */}
+          {products.length > 0 && (
+            <section className="au-section">
+              <div className="au-label">{no()} — Produkty AI dopasowane do {audit.client_name}</div>
+              <p className="au-p">Fastline InfinitiQ to 18 gotowych systemów AI, które sprzedają, obsługują i zarządzają. Z katalogu wybraliśmy {products.length} produktów, które odpowiadają na to, co widzimy na Waszej stronie i w Waszej branży — każdy opisany pod Wasz biznes, z ceną katalogową.</p>
+              <div className="au-products">
+                {products.map((p) => (
+                  <article className={'au-prod tier-' + (p.tier || 2)} key={p.id}>
+                    <div className="au-prod-head">
+                      <div className="au-prod-ic"><Ic name={productIcon(p.id, p.name)} size={26} /></div>
+                      <div className="au-prod-meta">
+                        <div className="au-prod-tags">
+                          <span className="au-prod-no">#{String(p.id).padStart(2, '0')}</span>
+                          <span className="au-prod-group">{p.group}</span>
+                          {p.sense && <span className="au-prod-sense"><Ic name={senseIcon(p.sense)} size={11} /> {p.sense}</span>}
+                          <span className={'au-prod-tier t' + (p.tier || 2)}>{TIER_LABEL[p.tier] || 'Wzrost'}</span>
+                        </div>
+                        <h3>{p.name}</h3>
+                        {p.tagline && <div className="au-prod-tagline">{p.tagline}</div>}
+                      </div>
+                      <div className="au-prod-price">
+                        <div className="au-prod-price-row"><span>Wdrożenie</span><b>{p.impl_label}</b></div>
+                        <div className="au-prod-price-row"><span>Abonament</span><b>{p.sub_label}</b></div>
+                      </div>
+                    </div>
+                    <div className="au-prod-body">
+                      <div className="au-prod-col">
+                        <div className="au-prod-tag">Dlaczego u Was</div>
+                        <p>{p.why}</p>
+                        {p.example && <div className="au-prod-example"><span className="au-prod-example-ic"><Ic name="message" size={14} /></span><span>{p.example}</span></div>}
+                      </div>
+                      <div className="au-prod-col">
+                        <div className="au-prod-tag">Co wdrażamy</div>
+                        <ul className="au-prod-scope">
+                          {(p.scope.length ? p.scope : nzStr(p.does)).map((s, k) => <li key={k}>{s}</li>)}
+                        </ul>
+                      </div>
+                      <div className="au-prod-col">
+                        <div className="au-prod-tag">Efekt</div>
+                        <p>{p.effect}</p>
+                        {p.kpi.length > 0 && (
+                          <div className="au-prod-kpi">
+                            <div className="au-prod-kpi-label"><Ic name="chart" size={12} /> Mierzymy</div>
+                            {p.kpi.map((k, i) => <span key={i}>{k}</span>)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </article>
+                ))}
+              </div>
+              <div className="au-note">Ceny netto z katalogu produktów Fastline InfinitiQ (segment MŚP): wdrożenie jednorazowe + abonament miesięczny, „od” — finalna wycena po rozmowie. InfinitiQ Secure (prywatna warstwa AI, RODO i EU AI Act) w cenie każdego produktu.</div>
+            </section>
+          )}
+
+          {/* USŁUGI AI DLA KLIENTA (starsze audyty bez katalogu) */}
+          {products.length === 0 && services.length > 0 && (
             <section className="au-section">
               <div className="au-label">{no()} — Co możemy zbudować z AI dla {audit.client_name}</div>
               <p className="au-p">Poza widocznością w Google i AI jesteśmy agencją AI-native — projektujemy i wdrażamy systemy, które pracują w Waszym biznesie na co dzień. Dopasowane do Waszej branży:</p>
@@ -472,7 +532,57 @@ export default function Audit() {
             </section>
           )}
 
-          {/* ZAKRES I INWESTYCJA */}
+          {/* PAKIETY Z KATALOGU (audyt v24+): sumy liczone w edge z cen katalogowych; ręczna cena z panelu nadpisuje */}
+          {autoPackages.length > 0 && (
+            <section className="au-section">
+              <div className="au-label">{no()} — Pakiety i inwestycja</div>
+              <p className="au-p">Nie trzeba brać wszystkiego naraz. Zaczynacie od pakietu, który zamyka najpilniejszy problem, a kolejne produkty dokładacie, gdy zobaczycie wynik — wszystkie podpinają się do tego samego organizmu: jednej bazy wiedzy, jednego głosu marki, jednej warstwy InfinitiQ Secure.</p>
+              <div className="au-packages au-packs">
+                {autoPackages.map((pk, i) => {
+                  const manual = (packages[i]?.price || '').trim();
+                  const items = pk.product_ids.map(id => products.find(p => p.id === id)).filter(Boolean);
+                  return (
+                    <div className={'au-pack' + (i === 1 ? ' feat' : '')} key={pk.key || i}>
+                      {i === 1 && <div className="au-pack-tag">Najczęściej wybierany</div>}
+                      <div className="au-pack-name">{pk.name}{pk.subtitle ? ` · ${pk.subtitle}` : ''}</div>
+                      {pk.goal && <p className="au-pack-goal">{pk.goal}</p>}
+                      <ul className="au-pack-items">
+                        {items.map(p => (
+                          <li key={p.id}>
+                            <span className="au-pack-item-ic"><Ic name={productIcon(p.id, p.name)} size={14} /></span>
+                            <span className="au-pack-item-name">{p.name}</span>
+                            <em>{p.sub_label}</em>
+                          </li>
+                        ))}
+                      </ul>
+                      <div className="au-pack-total">
+                        <div className="au-pack-price">{manual || pk.sub_label}</div>
+                        {!manual && <div className="au-pack-sub">wdrożenie {pk.impl_label}<br />{pk.year_label}</div>}
+                      </div>
+                      <div className="au-pack-bars" aria-hidden="true">
+                        {[0, 1, 2].map(b => <i key={b} className={b <= i ? 'on' : ''} />)}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="au-scope au-scope-after">
+                <div className="au-scope-col">
+                  <div className="au-scope-head"><Ic name="chip" size={16} /> W każdym pakiecie: fundament techniczny</div>
+                  {SCOPE.basic.map((t, i) => <div className="au-scope-item" key={i}>{t}</div>)}
+                </div>
+                <div className="au-scope-col">
+                  <div className="au-scope-head"><Ic name="robot" size={16} /> W każdym pakiecie: widoczność w AI (GEO)</div>
+                  {SCOPE.geo.map((t, i) => <div className="au-scope-item" key={i}>{t}</div>)}
+                </div>
+              </div>
+              {prices.note && <div className="au-note">{prices.note}</div>}
+              <div className="au-note">Sumy pakietów = ceny katalogowe „od” wybranych produktów (netto). Wdrożenie, integracje i utrzymanie są po naszej stronie — model: wdrożenie jednorazowe + abonament miesięczny. Szacunek pierwszego roku = wdrożenie + 12 abonamentów.</div>
+            </section>
+          )}
+
+          {/* ZAKRES I INWESTYCJA (starsze audyty: pakiety ręczne) */}
+          {autoPackages.length === 0 && (
           <section className="au-section">
             <div className="au-label">{no()} — Zakres i inwestycja</div>
             <div className="au-scope">
@@ -500,6 +610,7 @@ export default function Audit() {
             {prices.note && <div className="au-note">{prices.note}</div>}
             {!hasPrices && <div className="au-note">Szczegółową wycenę przedstawiamy po rozmowie — zakres dopasowujemy do celów.</div>}
           </section>
+          )}
 
           {/* FAQ */}
           {faq.length > 0 && (

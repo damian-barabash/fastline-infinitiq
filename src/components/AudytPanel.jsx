@@ -147,7 +147,7 @@ export default function AudytPanel() {
             <div className="ap-eyebrow">★ Audyty SEO · GEO</div>
             <h2 className="ap-title">Audyt dla klienta</h2>
           </div>
-          <div className="ap-hint">analiza AI 2–5 min · ceny uzupełniasz ręcznie po analizie</div>
+          <div className="ap-hint">analiza AI 3–5 min · produkty i pakiety z katalogu FIQ dobierają się same, ceny możesz nadpisać</div>
         </div>
 
         {/* nowy audyt */}
@@ -233,11 +233,17 @@ export default function AudytPanel() {
             {openPrices === a.id && priceDraft && (
               <div className="ap-prices">
                 <div className="ap-prices-head">Pakiety i inwestycja (widoczne na stronie audytu)</div>
+                {Array.isArray(a.content?.packages) && a.content.packages.length > 0 && (
+                  <div className="ap-prices-auto">
+                    Pakiety Start / Wzrost / Skala liczą się automatycznie z cen katalogu produktów FIQ — puste pole = suma katalogowa
+                    ({a.content.packages.map(p => `${p.name}: ${p.sub_label || ''}`).join(' · ')}). Wpisz cenę, żeby nadpisać.
+                  </div>
+                )}
                 {priceDraft.packages.map((p, i) => (
                   <div className="ap-price-row" key={i}>
                     <input className="ap-pname" value={p.name} placeholder="Nazwa pakietu"
                       onChange={e => setPriceDraft(d => { const n = { ...d, packages: d.packages.map((x, k) => k === i ? { ...x, name: e.target.value } : x) }; return n; })} />
-                    <input className="ap-pprice" value={p.price} placeholder="np. 4 800 zł netto"
+                    <input className="ap-pprice" value={p.price} placeholder={Array.isArray(a.content?.packages) && a.content.packages.length ? 'puste = suma z katalogu' : 'np. 4 800 zł netto'}
                       onChange={e => setPriceDraft(d => { const n = { ...d, packages: d.packages.map((x, k) => k === i ? { ...x, price: e.target.value } : x) }; return n; })} />
                   </div>
                 ))}

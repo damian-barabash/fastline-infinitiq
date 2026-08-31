@@ -422,3 +422,79 @@
 .au-mx-no { color: rgba(var(--fg-rgb), 0.3); font-family: 'IBM Plex Mono', monospace; }
 .au-mx-num { font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; color: rgba(var(--fg-rgb), 0.7); }
 .au-mx-num.best { color: #2fbf71; font-weight: 600; }
+
+/* ===== jasne logo klienta (białe SVG) — zawsze na ciemnej plaszce ===== */
+.au-client-logo.dark { background: #141414; border-color: rgba(0,0,0,0.3); }
+
+/* ===== profil konkurenta ===== */
+.au-comp-profile { font-size: 13px; line-height: 1.55; color: rgba(var(--fg-rgb),0.5); margin-top: -6px; }
+
+/* ===== produkty z katalogu FIQ ===== */
+.au-products { display: flex; flex-direction: column; gap: 18px; }
+.au-prod { border: 1px solid var(--mid); background: rgba(var(--fg-rgb),0.015); position: relative; }
+.au-prod::before { content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 3px; background: rgba(var(--acc-rgb),0.35); }
+.au-prod.tier-1::before { background: var(--acc); box-shadow: 0 0 14px rgba(var(--acc-rgb),0.45); }
+.au-prod-head { display: grid; grid-template-columns: 56px 1fr auto; gap: 20px; align-items: start; padding: 24px 26px 18px 28px; border-bottom: 1px solid rgba(var(--fg-rgb),0.07); }
+.au-prod-ic {
+  width: 56px; height: 56px; display: flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(var(--acc-rgb),0.35); color: var(--acc); background: rgba(var(--acc-rgb),0.05);
+}
+.au-prod-tags { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 10px; }
+.au-prod-tags > span {
+  font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase;
+  padding: 4px 8px; border: 1px solid var(--mid); color: rgba(var(--fg-rgb),0.5); display: inline-flex; align-items: center; gap: 5px; line-height: 1.2;
+}
+.au-prod-no { color: var(--acc) !important; border-color: rgba(var(--acc-rgb),0.45) !important; }
+.au-prod-sense .au-ic { color: var(--acc); }
+.au-prod-tier.t1 { color: var(--acc-ink) !important; background: var(--acc); border-color: var(--acc) !important; }
+.au-prod-tier.t2 { color: var(--acc) !important; border-color: rgba(var(--acc-rgb),0.5) !important; }
+.au-prod-meta h3 {
+  font-family: 'Space Grotesk', sans-serif; font-stretch: normal; font-weight: 700; text-transform: uppercase;
+  font-size: clamp(18px, 2vw, 24px); line-height: 1.15; color: var(--fg);
+}
+.au-prod-tagline { margin-top: 8px; font-size: 14px; line-height: 1.55; color: rgba(var(--fg-rgb),0.55); max-width: 640px; }
+.au-prod-price { text-align: right; min-width: 170px; border-left: 1px solid rgba(var(--fg-rgb),0.08); padding-left: 20px; }
+.au-prod-price-row { display: flex; justify-content: space-between; gap: 14px; align-items: baseline; padding: 4px 0; }
+.au-prod-price-row span { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(var(--fg-rgb),0.45); }
+.au-prod-price-row b {
+  font-family: 'Space Grotesk', sans-serif; font-stretch: normal; font-weight: 700; font-size: 16px; color: var(--fg); white-space: nowrap;
+}
+.au-prod-price-row:last-child b { color: var(--acc); }
+.au-prod-body { display: grid; grid-template-columns: 1.15fr 1fr 1fr; gap: 1px; background: rgba(var(--fg-rgb),0.07); }
+.au-prod-col { background: rgba(var(--bg-rgb),0.9); padding: 20px 24px 22px 28px; }
+.au-prod-col:not(:first-child) { padding-left: 24px; }
+.au-prod-tag { font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: var(--acc); margin-bottom: 10px; }
+.au-prod-col p { font-size: 14px; line-height: 1.65; color: rgba(var(--fg-rgb),0.7); }
+.au-prod-scope { list-style: none; margin: 0; padding: 0; }
+.au-prod-scope li { font-size: 13.5px; line-height: 1.55; color: rgba(var(--fg-rgb),0.7); padding: 7px 0 7px 20px; position: relative; border-top: 1px solid rgba(var(--fg-rgb),0.06); }
+.au-prod-scope li:first-child { border-top: none; padding-top: 0; }
+.au-prod-scope li::before { content: '→'; position: absolute; left: 0; color: var(--acc); font-family: 'IBM Plex Mono', monospace; font-size: 12px; }
+.au-prod-example {
+  margin-top: 14px; display: flex; gap: 10px; align-items: flex-start; font-size: 13px; line-height: 1.6; color: rgba(var(--fg-rgb),0.55);
+  border: 1px solid rgba(var(--fg-rgb),0.1); background: rgba(var(--fg-rgb),0.025); padding: 11px 14px; border-radius: 0 14px 14px 14px; font-style: italic;
+}
+.au-prod-example-ic { color: var(--acc); flex-shrink: 0; margin-top: 2px; display: flex; }
+.au-prod-kpi { margin-top: 14px; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.au-prod-kpi-label { width: 100%; font-family: 'IBM Plex Mono', monospace; font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(var(--fg-rgb),0.45); display: flex; align-items: center; gap: 6px; margin-bottom: 2px; }
+.au-prod-kpi > span { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.04em; color: var(--acc); border: 1px dashed rgba(var(--acc-rgb),0.4); padding: 4px 9px; line-height: 1.4; }
+
+/* ===== pakiety z katalogu ===== */
+.au-packs .au-pack { display: flex; flex-direction: column; padding: 30px 26px 26px; }
+.au-pack-goal { font-size: 13.5px; line-height: 1.6; color: rgba(var(--fg-rgb),0.6); margin: -6px 0 18px; min-height: 0; }
+.au-pack-items { list-style: none; margin: 0 0 20px; padding: 0; border-top: 1px solid rgba(var(--fg-rgb),0.08); flex: 1; }
+.au-pack-items li { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid rgba(var(--fg-rgb),0.07); font-size: 13.5px; color: var(--fg); }
+.au-pack-item-ic { color: var(--acc); display: flex; flex-shrink: 0; }
+.au-pack-item-name { flex: 1; line-height: 1.35; }
+.au-pack-items em { font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; color: rgba(var(--fg-rgb),0.45); white-space: nowrap; }
+.au-pack-total { margin-top: auto; }
+.au-pack-sub { margin-top: 8px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.06em; line-height: 1.7; color: rgba(var(--fg-rgb),0.5); }
+.au-scope-after { margin-top: 32px; margin-bottom: 0; }
+
+@media (max-width: 880px) {
+  .au-prod-head { grid-template-columns: 46px 1fr; padding: 20px 18px 16px 20px; gap: 14px; }
+  .au-prod-ic { width: 46px; height: 46px; }
+  .au-prod-price { grid-column: 1 / -1; text-align: left; border-left: none; padding-left: 0; border-top: 1px solid rgba(var(--fg-rgb),0.08); padding-top: 10px; min-width: 0; }
+  .au-prod-price-row { justify-content: flex-start; gap: 12px; }
+  .au-prod-body { grid-template-columns: 1fr; }
+  .au-prod-col, .au-prod-col:not(:first-child) { padding: 18px 20px 20px; }
+}

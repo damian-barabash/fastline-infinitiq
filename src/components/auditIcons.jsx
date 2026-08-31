@@ -23,7 +23,24 @@ const P = {
   funnel: <><path d="M3 4h18l-7 8v7l-4-2v-5z" /></>,
   speed: <><path d="M4 17a8.5 8.5 0 0116 0" /><path d="M12 17l4.2-5.2" /><circle cx="12" cy="17" r="1.4" fill="currentColor" stroke="none" /><path d="M5.5 13.5l1 .6M18.5 13.5l-1 .6M12 8.5v1.2" /></>,
   flag: <><path d="M5 21V4" /><path d="M5 4h13l-2.5 4L18 12H5" /></>,
+  phone: <><path d="M5 4h4l2 5-2.5 1.5a11 11 0 005 5L15 13l5 2v4a2 2 0 01-2 2A16 16 0 013 6a2 2 0 012-2z" /></>,
+  doc: <><path d="M6 3h8l4 4v14H6z" /><path d="M14 3v4h4M9 12h6M9 16h6" /></>,
+  heart: <><path d="M12 20s-7-4.4-7-10a4 4 0 017-2.6A4 4 0 0119 10c0 5.6-7 10-7 10z" /></>,
+  coins: <><ellipse cx="12" cy="6" rx="7" ry="3" /><path d="M5 6v6c0 1.7 3.1 3 7 3s7-1.3 7-3V6" /><path d="M5 12v6c0 1.7 3.1 3 7 3s7-1.3 7-3v-6" /></>,
+  tag: <><path d="M3 12V4h8l9 9-8 8z" /><circle cx="7.5" cy="8.5" r="1.4" fill="currentColor" stroke="none" /></>,
+  star: <><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z" /></>,
+  book: <><path d="M4 5a2 2 0 012-2h13v16H6a2 2 0 00-2 2z" /><path d="M4 19a2 2 0 012-2h13M8 7h7" /></>,
+  cart: <><path d="M3 4h2l2.4 11h11l2-7H7" /><circle cx="9" cy="19" r="1.4" /><circle cx="17" cy="19" r="1.4" /></>,
+  brain: <><path d="M9 4a3 3 0 00-3 3v1a3 3 0 00-2 3 3 3 0 002 3v1a3 3 0 003 3h3V4z" /><path d="M15 4a3 3 0 013 3v1a3 3 0 012 3 3 3 0 01-2 3v1a3 3 0 01-3 3h-3V4z" /><path d="M12 4v16" /></>,
+  hand: <><path d="M8 12V6a1.5 1.5 0 013 0v5" /><path d="M11 11V4.5a1.5 1.5 0 013 0V11" /><path d="M14 11V6a1.5 1.5 0 013 0v7" /><path d="M17 13V9.5a1.5 1.5 0 013 0V15a6 6 0 01-6 6h-2a6 6 0 01-5.2-3L4 13.5a1.5 1.5 0 012.5-1.5L8 14" /></>,
+  compass: <><circle cx="12" cy="12" r="9" /><path d="M15.5 8.5l-2 5-5 2 2-5z" /></>,
 };
+
+// иконка + «зmysł» продукта из каталога FIQ (по id продукта)
+const PRODUCT_ICON = { 1: 'robot', 2: 'phone', 3: 'target', 4: 'doc', 5: 'heart', 6: 'chart', 7: 'coins', 8: 'box', 9: 'clock', 10: 'tag', 11: 'pen', 12: 'search', 13: 'star', 14: 'play', 15: 'layers', 16: 'spark', 17: 'users', 18: 'book' };
+const SENSE_ICON = { Brain: 'brain', Mind: 'spark', Hand: 'hand', Heart: 'heart', Eyes: 'eye' };
+export function productIcon(id, name) { return PRODUCT_ICON[+id] || serviceIcon(name); }
+export function senseIcon(sense) { return SENSE_ICON[sense] || 'chip'; }
 
 export function Ic({ name, size = 22 }) {
   return (

@@ -122,3 +122,4 @@ body.fiq-edit .ap-wrap a { pointer-events: auto; }
   .ap-price-row { grid-template-columns: 1fr; }
   .fiq-tabs { margin-left: 0; }
 }
+.ap-prices-auto { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; line-height: 1.7; letter-spacing: 0.04em; color: rgba(245,245,240,0.5); margin: -6px 0 12px; }
