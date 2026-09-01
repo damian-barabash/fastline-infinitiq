@@ -512,6 +512,7 @@
 .au-sig-row.on .au-sig-name { color: var(--fg); }
 .au-sig-val { flex: 0 1 auto; max-width: 46%; font-family: var(--mono); font-size: 13.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); text-align: right; overflow-wrap: break-word; }
 .au-sig-row.on .au-sig-val { color: var(--acc); }
+.au-sig-where { display: block; font-style: normal; font-family: var(--mono); font-size: 12.5px; letter-spacing: 0.04em; color: var(--muted); margin-top: 3px; }
 
 /* profil firmy (diagnoza) */
 .au-profile { border: 1px solid var(--mid); background: rgba(var(--fg-rgb),0.03); padding: 30px 32px; margin-bottom: 30px; }

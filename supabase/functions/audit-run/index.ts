@@ -324,8 +324,106 @@ async function pickLogo(body: string, html: string, base: string, ld: unknown[])
 }
 
 // ======================= STRONA KLIENTA: pobranie + sygnały =======================
-type SubPage = { url: string; title: string; h1: string[]; h2: string[]; text: string };
-const SUB_HINTS = /o-nas|about|o-firmie|firma|oferta|offer|uslugi|usługi|services|produkt|product|cennik|pricing|ceny|kontakt|contact|realizacje|portfolio|dla-firm|b2b|wspolpraca|współpraca|sklep|shop|opinie|reviews|faq|blog|aktualnosci|news/i;
+type SubPage = { url: string; title: string; h1: string[]; h2: string[]; text: string; scan: PageScan };
+
+// Sygnały, których szukamy na KAŻDEJ pobranej stronie, nie tylko na głównej.
+// Powód: mapa siedzi zwykle na /kontakt, a ceny na /cennik — skan wyłącznie strony
+// głównej pokazywał „BRAK" przy elementach, które na stronie realnie są.
+type PageScan = {
+  maps: boolean; prices: boolean; booking: boolean; chat: string; whatsapp: boolean; messenger: boolean;
+  ecommerce: boolean; video: boolean; newsletter: boolean; reviewsWidget: boolean; forms: number;
+  analytics: boolean; pixel: boolean; faqSchema: boolean; cms: string;
+  phones: string[]; emails: string[]; socials: string[]; city: string;
+};
+
+function detectCms(lc: string): string {
+  if (/wp-content|wp-includes|wp-json/.test(lc)) return "WordPress";
+  if (/shopify/.test(lc)) return "Shopify";
+  if (/prestashop/.test(lc)) return "PrestaShop";
+  if (/wix\.com|wixstatic/.test(lc)) return "Wix";
+  if (/squarespace/.test(lc)) return "Squarespace";
+  if (/webflow/.test(lc)) return "Webflow";
+  if (/joomla/.test(lc)) return "Joomla";
+  if (/webwave|ww_element|ww_google|w-object/.test(lc)) return "WebWave";
+  if (/dudamobile|dudaone|\bduda\b|irp\.cdn-website|_dm_/.test(lc)) return "Duda";
+  if (/tilda\.(cc|ws)|tildacdn/.test(lc)) return "Tilda";
+  if (/jimdo/.test(lc)) return "Jimdo";
+  if (/weebly/.test(lc)) return "Weebly";
+  if (/godaddy|websitebuilder/.test(lc)) return "GoDaddy";
+  if (/shoper|sky-shop|idosell|iai-shop|shoplo|selly/.test(lc)) return "sklep SaaS (PL)";
+  return "";
+}
+
+function scanPage(html: string, body: string): PageScan {
+  // ⚠️ Kluczowa lekcja z audytu Pony Academy (01.09): elementy STRUKTURALNE szukamy
+  // w `body` (bez <script>/<style>), a nie w surowym HTML. Kreatory stron (WebWave,
+  // Duda, Wix) doklejają do KAŻDEJ podstrony ten sam globalny bundle, w którym siedzi
+  // np. `ww_googleMaps_element` — szukanie w surowym HTML „znajdowało" mapę wszędzie.
+  // Skrypty zewnętrzne (czat, analityka, piksel, CMS) odwrotnie — tylko w surowym HTML.
+  const lc = html.toLowerCase();
+  const text = stripTags(body);
+  return {
+    maps: /data-element-type=["']googlemaps["']|ww_googlemaps|maps\.google|google\.com\/maps|maps\.googleapis|\/maps\/embed|openstreetmap|mapbox-gl|leaflet-container|class=["'][^"']*google-?map/i.test(body),
+    prices: /\d[\d\s]{0,7}(?:[.,]\d{2})?\s*(?:zł|pln)\b/i.test(text),
+    booking: /booksy|calendly|zencal|bookero|nakiedy|reservio|moment\.pl|planfy|versum/i.test(html) ||
+      /zarezerwuj|rezerwuj online|umów wizyt|umow wizyt|rezerwacja online|zapisz się na (?:zajęcia|trening|kurs)/i.test(text),
+    chat: /tawk\.to|tidio|smartsupp|livechat|crisp\.chat|intercom|drift\.com|zendesk|hubspot.*chat|fb-customerchat|callpage|thulium|botpress|manychat/i.test(html)
+      ? (html.match(/tawk|tidio|smartsupp|livechat|crisp|intercom|drift|zendesk|callpage|thulium|manychat/i)?.[0] ?? "tak")
+      : "",
+    whatsapp: /wa\.me\/|api\.whatsapp\.com/i.test(body),
+    messenger: /m\.me\/|messenger\.com/i.test(body),
+    ecommerce: /woocommerce|shopify|prestashop|idosell|shoper/i.test(html) || /add-to-cart|dodaj do koszyka|\/koszyk|\/cart\b|\/checkout/i.test(body),
+    video: /youtube\.com\/embed|youtu\.be|player\.vimeo|<video/i.test(body),
+    newsletter: /newsletter|zapisz się do|zapisz sie do|subscribe/i.test(text),
+    reviewsWidget: /trustpilot|opineo|elfsight.*review|widget.*opini/i.test(html) || /opinie klientów|referencje/i.test(text),
+    forms: (body.match(/<form\b/gi) || []).length,
+    analytics: /gtag\(|googletagmanager|google-analytics|fbq\(|facebook\.net\/.*fbevents|hotjar|clarity\.ms/i.test(html),
+    pixel: /fbq\(|fbevents\.js/i.test(html),
+    faqSchema: /"@type"\s*:\s*"FAQPage"/i.test(html),
+    cms: detectCms(lc),
+    phones: [...phonesOf(body)],
+    emails: [...new Set((body.match(/[a-z0-9._%+-]+@[a-z0-9.-]+\.[a-z]{2,}/gi) || []).map((e) => e.toLowerCase()).filter((e) => !/example|sentry|wixpress|webwave|duda|\.png|\.jpg|\.svg|\.webp/.test(e)))],
+    socials: [...new Set((body.match(/https?:\/\/(?:www\.)?(facebook|instagram|linkedin|youtube|tiktok|x|twitter)\.com\/[^"'\s<)]+/gi) || []).map((u) => u.match(/(facebook|instagram|linkedin|youtube|tiktok|x|twitter)\.com/i)![1].toLowerCase().replace("twitter", "x")))],
+    city: (() => {
+      const m = text.match(/\b\d{2}-\d{3}\s+((?:Nowy|Nowa|Nowe|Stary|Stara|Stare|Biała|Biały|Zielona|Dąbrowa|Ostrowiec|Piotrków|Tomaszów|Gorzów|Rawa|Sucha|Wysokie|Konstancin|Józefów)\s[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+|[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:-[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?)/);
+      return m ? m[1] : "";
+    })(),
+  };
+}
+const SUB_HINTS = /o-nas|about|o-firmie|firma|oferta|offer|uslugi|usługi|services|produkt|product|cennik|pricing|ceny|kontakt|contact|realizacje|portfolio|dla-firm|b2b|wspolpraca|współpraca|sklep|shop|opinie|reviews|faq|blog|aktualnosci|news|formularz|zgloszenie|zgłoszenie|zapisy|zapisz|rezerwacj|booking|dojazd|lokalizacja/i;
+// Adresy z sitemapy — tak robi wyszukiwarka i tylko tak da się znaleźć podstrony
+// stron budowanych kreatorem: menu bywa rysowane skryptem, więc w kodzie NIE MA
+// do nich żadnego linku (audyt Pony Academy: 6 linków w kodzie vs 11 w sitemapie).
+async function sitemapUrls(base: string, host: string): Promise<string[]> {
+  const out = new Set<string>();
+  const candidates = new Set<string>([`${base.replace(/\/+$/, "")}/sitemap.xml`, `${base.replace(/\/+$/, "")}/sitemap_index.xml`]);
+  try {
+    const { res, text } = await fetchText(`${base.replace(/\/+$/, "")}/robots.txt`, 8000, {}, 200_000);
+    if (res.ok) for (const m of text.matchAll(/^\s*sitemap:\s*(\S+)/gim)) candidates.add(m[1].trim());
+  } catch { /* brak robots.txt to nie błąd */ }
+
+  const readSitemap = async (url: string, depth = 0): Promise<void> => {
+    if (depth > 1 || out.size > 80) return;
+    try {
+      const { res, text } = await fetchText(url, 9000, {}, 2_000_000);
+      if (!res.ok) return;
+      const locs = [...text.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/gi)].map((m) => m[1]);
+      const isIndex = /<sitemapindex/i.test(text);
+      for (const loc of locs.slice(0, isIndex ? 5 : 200)) {
+        if (isIndex) await readSitemap(loc, depth + 1);
+        else {
+          try {
+            const u = new URL(loc);
+            if (u.hostname.replace(/^www\./, "") === host) out.add(u.origin + u.pathname.replace(/\/+$/, ""));
+          } catch { /* pomijamy śmieci */ }
+        }
+      }
+    } catch { /* sitemapa może nie istnieć */ }
+  };
+  for (const c of [...candidates].slice(0, 4)) await readSitemap(c);
+  return [...out];
+}
+
 async function fetchSubpages(body: string, base: string, host: string): Promise<SubPage[]> {
   const seen = new Set<string>();
   const links: { url: string; prio: number }[] = [];
@@ -347,10 +445,35 @@ async function fetchSubpages(body: string, base: string, host: string): Promise<
     // priorytet: podstrony 1. poziomu z nazwą-podpowiedzią; blog/aktualności niżej
     let prio = (hint ? 10 : 0) - depth * 2 - (/blog|aktualnosci|news|kariera|career|polityka|privacy|regulamin|cookies|rodo/i.test(path) ? 8 : 0);
     if (/o-nas|about|oferta|uslugi|usługi|services|produkt|product|cennik|pricing|kontakt|contact/i.test(path)) prio += 4;
+    // strony z sygnałami biznesowymi: formularz zapisu, rezerwacja, opinie, FAQ, dojazd
+    // (bez nich raportowaliśmy „brak formularza", choć formularz był o jedno kliknięcie dalej)
+    if (/formularz|zgloszenie|zgłoszenie|zapisy|rezerwacj|opinie|faq|dojazd/i.test(path)) prio += 5;
     links.push({ url: key, prio });
   }
+  // dołączamy adresy z sitemapy, których nie ma w kodzie strony (menu z JS)
+  const fromSitemap = await sitemapUrls(base, host);
+  let orphans = 0;
+  for (const u of fromSitemap) {
+    let uo: URL;
+    try { uo = new URL(u); } catch { continue; }
+    const path = uo.pathname.replace(/\/+$/, "");
+    if (!path) continue;
+    if (/\.(pdf|jpg|jpeg|png|gif|webp|svg|zip|mp4|xml|css|js)(\?|$)/i.test(path)) continue;
+    if (/wp-admin|wp-login|\/tag\/|\/author\/|\/feed|\/cart|\/koszyk|\/checkout/i.test(path)) continue;
+    const key = uo.origin + path;
+    if (seen.has(key)) continue;
+    seen.add(key);
+    orphans++;
+    const depth = path.split("/").filter(Boolean).length;
+    let prio = (SUB_HINTS.test(path) ? 10 : 1) - depth * 2;
+    if (/o-nas|about|oferta|uslugi|usługi|services|produkt|product|cennik|pricing|kontakt|contact/i.test(path)) prio += 4;
+    if (/formularz|zgloszenie|zgłoszenie|zapisy|rezerwacj|opinie|faq|dojazd/i.test(path)) prio += 5;
+    links.push({ url: key, prio });
+  }
+  console.log("linki: w kodzie", links.length - orphans, "| z sitemapy dodatkowo", orphans);
+
   links.sort((a, b) => b.prio - a.prio);
-  const pick = links.slice(0, 5);
+  const pick = links.slice(0, 7); // pobieramy równolegle, więc szerszy skan nie kosztuje czasu
   const pages = await Promise.all(pick.map(async (l) => {
     try {
       const { res, text } = await fetchText(l.url, 16000, {}, 1_500_000);
@@ -362,6 +485,7 @@ async function fetchSubpages(body: string, base: string, host: string): Promise<
         h1: extractAll(/<h1[^>]*>([\s\S]*?)<\/h1>/gi, b, 3).map(stripTags).filter(Boolean),
         h2: extractAll(/<h2[^>]*>([\s\S]*?)<\/h2>/gi, b, 8).map(stripTags).filter(Boolean),
         text: stripTags(b.replace(/<(header|nav|footer)[\s\S]*?<\/\1>/gi, " ")).slice(0, 1700),
+        scan: scanPage(text, b),
       } as SubPage;
     } catch (e) { console.log("podstrona", l.url, "błąd:", e instanceof Error ? e.message : String(e)); return null; }
   }));
@@ -414,7 +538,7 @@ async function fetchSite(url: string) {
   });
   if (!city) city = decodeEntities(extract(/addressLocality["']?\s*[:>]\s*["']?([^"',<]{2,40})/i, html)).trim();
   if (!city) {
-    const m = html.match(/\b\d{2}-\d{3}\s+([A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:[\s-][A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?)/);
+    const m = html.match(/\b\d{2}-\d{3}\s+((?:Nowy|Nowa|Nowe|Stary|Stara|Stare|Biała|Biały|Zielona|Dąbrowa|Ostrowiec|Piotrków|Tomaszów|Gorzów|Rawa|Sucha|Wysokie|Konstancin|Józefów)\s[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+|[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+(?:-[A-ZĄĆĘŁŃÓŚŹŻ][a-ząćęłńóśźż]+)?)/);
     if (m) city = m[1];
   }
 
@@ -463,7 +587,72 @@ async function fetchSite(url: string) {
   };
 
   const [logoInfo, subpages] = await Promise.all([pickLogo(body, html, base, ld), fetchSubpages(body, base, host)]);
-  return { finalUrl: base, host, title, desc, ogTitle, h1, h2, h3, text, perf, html, body, signals, subpages, ...logoInfo };
+
+  // ── scalenie sygnałów ze wszystkich pobranych stron ────────────────────────
+  // Do wersji z 01.09 sygnały liczyliśmy wyłącznie ze strony głównej, więc mapa
+  // z /kontakt i ceny z /cennik raportowane były jako „BRAK". Teraz bierzemy sumę
+  // ze wszystkich stron i ZAPAMIĘTUJEMY, na której stronie element znaleziono —
+  // dzięki temu w audycie widać „jest · /cennik", a nie gołe „jest".
+  const pageOf = (u: string) => { try { return new URL(u).pathname || "/"; } catch { return u; } };
+  const scans: { where: string; scan: PageScan }[] = [
+    { where: "/", scan: scanPage(html, body) },
+    ...subpages.map((sp) => ({ where: pageOf(sp.url), scan: sp.scan })),
+  ];
+  const src: Record<string, string> = {};
+  const firstWith = (key: keyof PageScan, sigKey: string): string => {
+    const hit = scans.find(({ scan }) => {
+      const v = scan[key];
+      return typeof v === "number" ? v > 0 : Array.isArray(v) ? v.length > 0 : Boolean(v);
+    });
+    if (hit) src[sigKey] = hit.where;
+    return hit ? hit.where : "";
+  };
+  const anyBool = (key: keyof PageScan, sigKey: string) => Boolean(firstWith(key, sigKey));
+  const uniq = (key: "phones" | "emails" | "socials") =>
+    [...new Set(scans.flatMap(({ scan }) => scan[key] as string[]))];
+
+  signals.maps = anyBool("maps", "maps");
+  signals.pricesOnSite = anyBool("prices", "pricesOnSite");
+  signals.booking = anyBool("booking", "booking");
+  signals.ecommerce = anyBool("ecommerce", "ecommerce");
+  signals.video = anyBool("video", "video");
+  signals.newsletter = anyBool("newsletter", "newsletter");
+  signals.reviewsWidget = anyBool("reviewsWidget", "reviewsWidget");
+  signals.whatsapp = anyBool("whatsapp", "whatsapp");
+  signals.messenger = anyBool("messenger", "messenger");
+  signals.analytics = anyBool("analytics", "analytics");
+  signals.pixel = anyBool("pixel", "pixel");
+  signals.faqSchema = signals.faqSchema || anyBool("faqSchema", "faqSchema");
+  const chatHit = scans.find(({ scan }) => scan.chat);
+  if (chatHit) { signals.chatWidget = chatHit.scan.chat; src.chatWidget = chatHit.where; }
+  const formHit = scans.find(({ scan }) => scan.forms > 0);
+  if (formHit) { signals.forms = Math.max(signals.forms, formHit.scan.forms); src.forms = formHit.where; }
+  const cmsHit = scans.find(({ scan }) => scan.cms);
+  if (!signals.cms && cmsHit) { signals.cms = cmsHit.scan.cms; src.cms = cmsHit.where; }
+  const cityHit = scans.find(({ scan }) => scan.city);
+  if (!signals.city && cityHit) signals.city = cityHit.scan.city;
+  signals.phones = uniq("phones").slice(0, 6);
+  signals.emails = uniq("emails").slice(0, 4);
+  signals.socials = uniq("socials");
+  if (signals.phones.length) firstWith("phones", "phones");
+  if (signals.emails.length) firstWith("emails", "emails");
+  if (signals.socials.length) firstWith("socials", "socials");
+
+  // Ile treści strona pokazuje bez JS. Kreatory stron potrafią dorysowywać sekcje
+  // skryptem — wtedy ani my, ani boty AI nie widzą ich w kodzie, i trzeba to napisać
+  // wprost zamiast raportować „brak".
+  const visibleText = stripTags(body).replace(/\s+/g, " ").trim().length;
+  const jsHeavy = visibleText < 1200 || visibleText / Math.max(1, html.length) < 0.012;
+  const scanInfo = {
+    pages: scans.map((x) => x.where),
+    src,
+    jsHeavy,
+    visibleChars: visibleText,
+    builder: signals.cms || "",
+  };
+  console.log("sygnały scalone z", scans.length, "stron; jsHeavy:", jsHeavy, "; źródła:", JSON.stringify(src));
+
+  return { finalUrl: base, host, title, desc, ogTitle, h1, h2, h3, text, perf, html, body, signals, subpages, scanInfo, ...logoInfo };
 }
 type SiteMeta = Awaited<ReturnType<typeof fetchSite>>;
 
@@ -907,7 +1096,7 @@ function deepClean<T>(v: T): T {
 type RivalLite = Omit<Rival, "html">;
 type StageState = {
   url: string; finalUrl: string; host: string; title: string; desc: string; h1n: number;
-  brief: string; briefShort: string; perf: SiteMeta["perf"]; signals: SiteMeta["signals"];
+  brief: string; briefShort: string; perf: SiteMeta["perf"]; signals: SiteMeta["signals"]; scanInfo?: SiteMeta["scanInfo"];
   logo: string; light: boolean; small: boolean; favicon: string; subpages: string[];
   linked: string[]; brandText: string; phones: string[];
   psi: Awaited<ReturnType<typeof fetchPSI>>; theme: Awaited<ReturnType<typeof extractTheme>>;
@@ -1045,7 +1234,7 @@ ${briefShort.slice(0, 3600)}`;
       const linked = [...new Set([...meta.html.matchAll(/https?:\/\/([a-z0-9.-]+\.[a-z]{2,})/gi)].map(m => normDomain(m[1])).filter(d => d && !sameSite(d, meta.host)))].slice(0, 300);
       const st: StageState = {
         url, finalUrl: meta.finalUrl, host: meta.host, title: meta.title, desc: meta.desc, h1n: meta.h1.length,
-        brief, briefShort, perf: meta.perf, signals: meta.signals,
+        brief, briefShort, perf: meta.perf, signals: meta.signals, scanInfo: meta.scanInfo,
         logo: meta.logo, light: meta.light, small: meta.small, favicon: meta.favicon, subpages: meta.subpages.map(p => p.url),
         linked, brandText: stripTags(meta.body).toLowerCase().slice(0, 30_000), phones: meta.signals.phones,
         psi, theme, r1, r2, manualRivals, startedAt: new Date().toISOString(),
@@ -1334,7 +1523,10 @@ ${st.brief.slice(0, 3600)}`;
         favicon: st.favicon || null, logo_light: st.light, logo_small: st.small,
         signals: { ...st.signals, navLabels: undefined },
         subpages: st.subpages,
-        version: 24,
+        // gdzie znaleziono każdy sygnał + czy strona buduje treść skryptem —
+        // strona audytu pokazuje na tej podstawie „jest · /cennik" i tłumaczy braki
+        scan: st.scanInfo ?? null,
+        version: 25,
       }),
       generated_at: new Date().toISOString(),
       error: null,

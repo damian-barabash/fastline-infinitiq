@@ -216,35 +216,38 @@ export default function Audit() {
   const sm = audit?.site_meta || {};
   const sig = sm.signals && typeof sm.signals === 'object' ? sm.signals : null;
   const subpages = Array.isArray(sm.subpages) ? sm.subpages : [];
+  // gdzie znaleziono dany sygnał (np. „/cennik") — zapisuje to edge przy skanie stron
+  const scan = sm.scan && typeof sm.scan === 'object' ? sm.scan : null;
+  const foundOn = (key) => (scan?.src?.[key] && scan.src[key] !== '/' ? scan.src[key] : '');
   const oferta = nzStr(c.oferta);
   // pełna inwentaryzacja sygnałów znalezionych w kodzie strony (fakty, nie opinie)
   const signalRows = !sig ? [] : [
-    ['Meta description', !!sm.desc, ''],
-    ['Dane strukturalne Schema.org', !!sig.hasSchema, nzStr(sig.schemaTypes).join(', ') || 'obecne'],
-    ['Schema FAQ (pytania i odpowiedzi)', !!sig.faqSchema, ''],
-    ['Open Graph (podgląd linku)', !!sig.hasOg, ''],
-    ['Adres kanoniczny (canonical)', !!sig.hasCanonical, ''],
-    ['Wersje językowe (hreflang)', !!sig.hasHreflang, nzStr(sig.langs).join(', ')],
-    ['Wersja mobilna (viewport)', !!sig.viewport, ''],
-    ['Blog / aktualności', !!sig.blog, ''],
-    ['Funkcje sklepu / koszyk', !!sig.ecommerce, ''],
-    ['Rezerwacja online', !!sig.booking, ''],
-    ['Czat lub agent na stronie', !!sig.chatWidget, String(sig.chatWidget || '')],
-    ['WhatsApp', !!sig.whatsapp, ''],
-    ['Messenger', !!sig.messenger, ''],
-    ['Mapa Google', !!sig.maps, ''],
-    ['Formularze kontaktowe', +sig.forms > 0, +sig.forms ? `${sig.forms}` : ''],
-    ['Zapis na newsletter', !!sig.newsletter, ''],
-    ['Ceny widoczne na stronie', !!sig.pricesOnSite, ''],
-    ['Opinie klientów', !!sig.reviewsWidget || !!sig.reviews, ''],
-    ['Materiały wideo', !!sig.video, ''],
-    ['Analityka ruchu', !!sig.analytics, ''],
-    ['Pixel reklamowy', !!sig.pixel, ''],
-    ['Baner zgód (cookies)', !!sig.cookieBanner, ''],
-    ['Numery telefonu w kodzie', nzStr(sig.phones).length > 0, nzStr(sig.phones).length ? `${nzStr(sig.phones).length}` : ''],
-    ['Adresy e-mail', nzStr(sig.emails).length > 0, nzStr(sig.emails).length ? `${nzStr(sig.emails).length}` : ''],
-    ['Profile w social media', nzStr(sig.socials).length > 0, nzStr(sig.socials).join(', ')],
-    ['System zarządzania treścią (CMS)', !!sig.cms, String(sig.cms || '')],
+    ['Meta description', !!sm.desc, '', 'desc'],
+    ['Dane strukturalne Schema.org', !!sig.hasSchema, nzStr(sig.schemaTypes).join(', ') || 'obecne', 'schema'],
+    ['Schema FAQ (pytania i odpowiedzi)', !!sig.faqSchema, '', 'faqSchema'],
+    ['Open Graph (podgląd linku)', !!sig.hasOg, '', 'og'],
+    ['Adres kanoniczny (canonical)', !!sig.hasCanonical, '', 'canonical'],
+    ['Wersje językowe (hreflang)', !!sig.hasHreflang, nzStr(sig.langs).join(', '), 'hreflang'],
+    ['Wersja mobilna (viewport)', !!sig.viewport, '', 'viewport'],
+    ['Blog / aktualności', !!sig.blog, '', 'blog'],
+    ['Funkcje sklepu / koszyk', !!sig.ecommerce, '', 'ecommerce'],
+    ['Rezerwacja online', !!sig.booking, '', 'booking'],
+    ['Czat lub agent na stronie', !!sig.chatWidget, String(sig.chatWidget || ''), 'chatWidget'],
+    ['WhatsApp', !!sig.whatsapp, '', 'whatsapp'],
+    ['Messenger', !!sig.messenger, '', 'messenger'],
+    ['Mapa Google', !!sig.maps, '', 'maps'],
+    ['Formularze kontaktowe', +sig.forms > 0, +sig.forms ? `${sig.forms}` : '', 'forms'],
+    ['Zapis na newsletter', !!sig.newsletter, '', 'newsletter'],
+    ['Ceny widoczne na stronie', !!sig.pricesOnSite, '', 'pricesOnSite'],
+    ['Opinie klientów', !!sig.reviewsWidget || !!sig.reviews, '', 'reviewsWidget'],
+    ['Materiały wideo', !!sig.video, '', 'video'],
+    ['Analityka ruchu', !!sig.analytics, '', 'analytics'],
+    ['Pixel reklamowy', !!sig.pixel, '', 'pixel'],
+    ['Baner zgód (cookies)', !!sig.cookieBanner, '', 'cookieBanner'],
+    ['Numery telefonu w kodzie', nzStr(sig.phones).length > 0, nzStr(sig.phones).length ? `${nzStr(sig.phones).length}` : '', 'phones'],
+    ['Adresy e-mail', nzStr(sig.emails).length > 0, nzStr(sig.emails).length ? `${nzStr(sig.emails).length}` : '', 'emails'],
+    ['Profile w social media', nzStr(sig.socials).length > 0, nzStr(sig.socials).join(', '), 'socials'],
+    ['System zarządzania treścią (CMS)', !!sig.cms, String(sig.cms || ''), 'cms'],
   ];
   const sigOn = signalRows.filter(r => r[1]).length;
   const rate = (v, good, poor) => v == null ? '' : v <= good ? ' m-good' : v <= poor ? ' m-mid' : ' m-poor';
@@ -399,17 +402,28 @@ export default function Audit() {
                     <Segments value={sigOn} total={signalRows.length} label="elementów obecnych na stronie" />
                   </div>
                   <div className="au-sig">
-                    {signalRows.map(([name, on, extra], i) => (
-                      <div className={'au-sig-row' + (on ? ' on' : '')} key={i}>
-                        <span className="au-sig-mark">{on ? <Ic name="check" size={19} /> : <Ic name="warn" size={19} />}</span>
-                        <span className="au-sig-name">{name}</span>
-                        <span className="au-sig-val">{on ? (extra || 'jest') : 'brak'}</span>
-                      </div>
-                    ))}
+                    {signalRows.map(([name, on, extra, key], i) => {
+                      const where = on ? foundOn(key) : '';
+                      return (
+                        <div className={'au-sig-row' + (on ? ' on' : '')} key={i}>
+                          <span className="au-sig-mark">{on ? <Ic name="check" size={19} /> : <Ic name="warn" size={19} />}</span>
+                          <span className="au-sig-name">{name}{where && <em className="au-sig-where">znaleziono na {where}</em>}</span>
+                          <span className="au-sig-val">{on ? (extra || 'jest') : 'nie znaleziono'}</span>
+                        </div>
+                      );
+                    })}
                   </div>
                   <div className="au-note">
                     To inwentaryzacja, nie ocena — nie każda firma potrzebuje wszystkich elementów. W kolejnych sekcjach
                     tłumaczymy, które z tych braków realnie kosztują Was klientów, a które można spokojnie zostawić na później.
+                  </div>
+                  <div className="au-note">
+                    <b>Jak to czytamy:</b> sprawdziliśmy kod {scan?.pages?.length || 1 + subpages.length}{' '}
+                    {plForm(scan?.pages?.length || 1 + subpages.length, 'strony', 'stron', 'stron')} — przy elementach
+                    znalezionych poza stroną główną piszemy, na której podstronie są.
+                    {scan?.jsHeavy
+                      ? ` „Nie znaleziono" znaczy dokładnie tyle: tego elementu nie ma w kodzie, który serwer wysyła przed uruchomieniem JavaScriptu. Wasza strona (${scan.builder || 'kreator stron'}) dorysowuje sporą część treści skryptem — w kodzie widać tylko ${scan.visibleChars} znaków tekstu. Google zwykle taki JavaScript wykona, ale roboty modeli AI (ChatGPT, Perplexity) najczęściej nie — i dla nich ta część strony po prostu nie istnieje. To nie jest błąd audytu, tylko realny problem widoczności w AI.`
+                      : ' „Nie znaleziono" znaczy, że elementu nie ma w kodzie żadnej z tych stron — a więc nie widzi go ani wyszukiwarka, ani model AI. Jeśli element jest na stronie, ale dorysowuje go skrypt, dla botów AI zwykle nie istnieje.'}
                   </div>
                 </>
               )}
