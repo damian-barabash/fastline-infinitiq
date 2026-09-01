@@ -130,12 +130,13 @@ export function Radar({ scores }) {
 }
 
 // ===== горизонтальный бар с подписью и значением =====
-export function Bar({ label, value, max = 100, text, tone = '' }) {
+export function Bar({ label, value, max = 100, text, tone = '', hint }) {
   const w = Math.max(3, Math.min(100, (+value || 0) / (max || 1) * 100));
   return (
     <div className={'au-bar ' + tone}>
       <div className="au-bar-head"><span className="au-bar-label">{label}</span><b className="au-bar-val">{text ?? value}</b></div>
       <div className="au-bar-track"><i style={{ '--w': w + '%' }} /></div>
+      {hint && <p className="au-bar-hint">{hint}</p>}
     </div>
   );
 }

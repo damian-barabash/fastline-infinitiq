@@ -32,6 +32,91 @@ const DIAG_ICONS = ['search', 'eye', 'layers'];
 const WHY_ICONS = ['bolt', 'rocket', 'clock'];
 const POT_W = { wysoki: 100, 'średni': 62, sredni: 62, niski: 30 };
 
+// Co oznaczają cztery wskaźniki z hero (opis stały — tłumaczy wykresy).
+const SCORE_LEGEND = [
+  ['Widoczność w Google', 'search', 'Na ile strona jest przygotowana, by wyszukiwarka rozumiała ofertę i pokazywała ją na zapytania klientów: tytuły, opisy, nagłówki, struktura adresów, treści odpowiadające na realne pytania.'],
+  ['Widoczność w AI', 'robot', 'Czy ChatGPT, Gemini, Perplexity i podsumowania AI w Google mają z czego zbudować odpowiedź o Waszej firmie: dane strukturalne, jednoznaczny opis oferty, treści w formie pytań i odpowiedzi, dostęp dla botów AI.'],
+  ['Technika strony', 'chip', 'Fundament, którego klient nie widzi, a robot ocenia w pierwszej kolejności: szybkość, wersja mobilna, adresy kanonicze, poprawny kod, brak błędów blokujących indeksację.'],
+  ['Jakość treści', 'pen', 'Ile realnej, konkretnej treści jest na stronie: opisy usług, ceny, odpowiedzi na pytania, dowody (opinie, realizacje, blog). To z tego materiału korzystają zarówno Google, jak i modele AI.'],
+];
+
+// Słownik: co znaczą pojęcia użyte w audycie (sekcja metodologii).
+const TERMS = [
+  ['SEO', 'search', 'Widoczność w klasycznej wyszukiwarce — wszystko, co sprawia, że Google rozumie stronę i pokazuje ją wysoko na zapytania klientów.'],
+  ['GEO', 'robot', 'Widoczność w odpowiedziach modeli AI (ChatGPT, Gemini, Perplexity, AI Overviews w Google). Model nie linkuje katalogu — cytuje źródło, które rozumie. Jeśli Waszej firmy nie da się jednoznacznie opisać danymi, po prostu nie pada w odpowiedzi.'],
+  ['Schema.org', 'chip', 'Dane strukturalne — ukryte w kodzie „etykiety”, które mówią maszynie wprost: to jest firma, to usługa, to cena, to opinia, to pytanie i odpowiedź. Główne źródło, z którego AI buduje wiedzę o firmie.'],
+  ['Open Graph', 'layers', 'Zestaw znaczników decydujących o tym, jak wygląda link do strony wklejony na Facebooku, LinkedInie, WhatsAppie czy w Messengerze: tytuł, opis i obrazek. Brak = goły, nieklikalny link.'],
+  ['Canonical', 'check', 'Adres uznawany za „oryginał” danej podstrony. Bez niego ta sama treść pod kilkoma adresami rozbija siłę strony na duplikaty.'],
+  ['Hreflang', 'globe', 'Informacja o wersjach językowych. Bez niej wyszukiwarka nie wie, komu pokazać wersję polską, a komu angielską — istotne przy sprzedaży za granicę.'],
+  ['Core Web Vitals', 'speed', 'Zestaw pomiarów szybkości i stabilności strony na telefonie, którymi Google ocenia komfort użytkownika. Realnie wpływają na pozycje i na to, ilu klientów nie doczeka się załadowania oferty.'],
+  ['LCP', 'clock', 'Czas, po którym widać największy element ekranu — moment, w którym klient uznaje, że strona się otworzyła. Norma Google: do 2,5 s.'],
+  ['TTFB', 'bolt', 'Czas odpowiedzi serwera na pierwsze żądanie. Wysoki TTFB opóźnia całą resztę, zanim cokolwiek zdąży się narysować.'],
+  ['CLS', 'layers', 'Miara „skakania” układu podczas ładowania. Wysoki CLS to przyciski uciekające spod palca i porzucone formularze.'],
+];
+
+// Skąd wzięliśmy dane (metodologia).
+const SOURCES = [
+  ['Kod i treść strony', 'doc', 'Pobraliśmy stronę główną wraz z podstronami i przeanalizowaliśmy nagłówki, treść, dane strukturalne, znaczniki oraz elementy sprzedażowe — dokładnie tak, jak robi to robot wyszukiwarki.'],
+  ['Google PageSpeed Insights', 'speed', 'Oficjalne narzędzie Google: pomiar Core Web Vitals w wersji mobilnej, uzupełniony naszymi pomiarami odpowiedzi serwera i wagi kodu.'],
+  ['Wyszukiwarka', 'users', 'Konkurentów nie zgadujemy — wpisujemy w wyszukiwarkę zapytania, którymi realnie szuka Wasz klient, i mierzymy strony, które wychodzą wysoko.'],
+  ['Katalog produktów Fastline InfinitiQ', 'brain', 'Osiemnaście gotowych systemów AI z cenami katalogowymi. Do audytu dobieramy tylko te, które odpowiadają na konkretne braki znalezione na Waszej stronie.'],
+];
+
+// Wyjaśnienia metryk „punktu wyjścia” — dopasowanie po nazwie metryki.
+const METRIC_EXPLAIN = [
+  [/faq/i, 'Pytania i odpowiedzi opisane w kodzie znacznikiem FAQ to materiał, który AI i Google najchętniej cytują w gotowych odpowiedziach — klient dostaje odpowiedź z Waszym nazwiskiem, zanim wejdzie na stronę.'],
+  [/schema|dane strukt/i, 'Dane strukturalne Schema.org tłumaczą treść na język maszyn: kto jest firmą, jaka jest oferta, gdzie działacie, ile kosztuje. Bez nich model AI musi zgadywać — i najczęściej pomija.'],
+  [/open ?graph|og:/i, 'Open Graph decyduje, jak wygląda link do Waszej strony wysłany w wiadomości lub wrzucony na social media. Bez niego zamiast miniatury z ofertą klient widzi surowy adres.'],
+  [/canonical/i, 'Adres kanoniczny wskazuje wyszukiwarce wersję główną podstrony i zapobiega rozbijaniu siły strony na duplikaty.'],
+  [/hreflang|wersj.*języ|języki/i, 'Znaczniki wersji językowych mówią wyszukiwarce, którą wersję pokazać któremu klientowi — bez nich zagraniczny ruch trafia na przypadkową wersję albo nie trafia wcale.'],
+  [/rezerw|umów|zapis|booking/i, 'Rezerwacja online zdejmuje z klienta konieczność dzwonienia w godzinach pracy. Każdy dodatkowy krok między decyzją a zapisem to realnie utracone zgłoszenia — najwięcej wieczorami i w weekendy.'],
+  [/chat|czat|agent/i, 'Czat lub agent na stronie łapie pytania w momencie największego zainteresowania. Bez niego klient z pytaniem wraca do wyszukiwarki — najczęściej do konkurencji, która odpowiedziała od razu.'],
+  [/mapa|google maps|lokaliz/i, 'Mapa i spójny adres to sygnał lokalny: na jego podstawie Google decyduje, czy pokazać Was w wynikach „w pobliżu” i w wizytówce firmy.'],
+  [/blog|aktual|artyk|treś/i, 'Regularne treści to jedyny materiał, z którego wyszukiwarka i modele AI mogą zbudować obraz eksperta. Strona bez świeżych treści z czasem znika z wyników na frazy poradnikowe.'],
+  [/newsletter|mail/i, 'Zapis na newsletter zamienia anonimowy ruch w kontakt, do którego możecie wrócić bez płacenia za reklamę po raz drugi.'],
+  [/cen|cennik|price/i, 'Widoczne ceny odsiewają przypadkowe zapytania i budują zaufanie. Modele AI chętnie cytują strony, które mówią o cenach konkretnie.'],
+  [/opini|recenz|ocen|review/i, 'Opinie z oznaczeniem w kodzie potrafią wyświetlić gwiazdki przy wyniku w Google i są jednym z najmocniejszych argumentów, które AI powtarza w odpowiedzi.'],
+  [/telefon|kontakt|phone/i, 'Dane kontaktowe widoczne na każdej podstronie skracają drogę od decyzji do zgłoszenia i są sygnałem wiarygodności dla wyszukiwarki.'],
+  [/szybk|speed|ładow|wydajn/i, 'Szybkość ładowania na telefonie jest oficjalnym czynnikiem rankingowym Google — i pierwszym powodem, dla którego klient zamyka stronę przed zobaczeniem oferty.'],
+  [/mobil|responsyw|viewport/i, 'Wersja mobilna jest wersją podstawową: Google ocenia stronę tak, jak wygląda na telefonie, bo tam trafia większość ruchu.'],
+  [/h1|nagłów|tytuł|title|meta ?opis|description/i, 'Tytuł, opis i nagłówki to pierwsze zdanie, jakie strona mówi o sobie wyszukiwarce. Puste albo powielone — kasują szansę na trafne dopasowanie do zapytania.'],
+  [/sklep|koszyk|e-?commerce/i, 'Funkcje sklepowe pozwalają domknąć sprzedaż bez rozmowy — a wyszukiwarce pokazać produkty wraz z cenami i dostępnością.'],
+  [/analit|pixel|tag manager/i, 'Bez analityki nie da się powiedzieć, które działanie przyniosło klienta — a więc ani powtórzyć tego, co działa, ani odciąć tego, co przepala budżet.'],
+];
+// polska odmiana rzeczownika po liczbie (1 adres / 2-4 adresy / 5+ adresów)
+const plForm = (n, one, few, many) => {
+  const a = Math.abs(+n || 0), d = a % 10, h = a % 100;
+  if (a === 1) return one;
+  return (d >= 2 && d <= 4 && !(h >= 12 && h <= 14)) ? few : many;
+};
+const explainMetric = (label) => (METRIC_EXPLAIN.find(([re]) => re.test(String(label || '')))?.[1]) || null;
+
+// Definicje pomiarów szybkości (podpowiedź pod każdym słupkiem).
+const CWV_HINT = {
+  lcp: 'Największy element ekranu — moment, w którym klient uznaje, że strona się otworzyła. Norma Google: do 2,5 s.',
+  fcp: 'Pierwszy widoczny fragment treści. Do tej chwili klient patrzy na puste tło.',
+  tbt: 'Czas, w którym strona jest narysowana, ale nie reaguje na dotyk — kliknięcia „nie działają”. Norma: poniżej 200 ms.',
+  cls: 'Skakanie układu podczas ładowania. Powyżej 0,1 klient trafia palcem w element, który właśnie się przesunął.',
+  ttfb: 'Czas odpowiedzi serwera na pierwsze żądanie — opóźnia wszystko, co dzieje się dalej. Norma: do 500 ms.',
+  html: 'Waga samego kodu strony (bez zdjęć). Im więcej kodu i skryptów, tym dłużej telefon składa stronę do kupy.',
+};
+
+// Rodzaje intencji wyszukiwania (legenda pod tabelą fraz).
+const INTENT_LEGEND = [
+  ['lokalna', 'compass', 'Klient szuka usługi u siebie — z nazwą miasta albo z „w pobliżu”. Decyzję podejmuje szybko, zwykle wybiera jedną z trzech pierwszych firm.'],
+  ['zakupowa', 'cart', 'Klient wie, czego chce, i szuka miejsca zakupu. Najkrótsza droga do pieniędzy, ale i największa konkurencja.'],
+  ['porównawcza', 'layers', 'Klient zestawia opcje: „X czy Y”, „ranking”, „opinie”. Tu wygrywa ten, kto ma treść porównawczą i konkretne dane.'],
+  ['informacyjna', 'book', 'Klient dopiero zbiera wiedzę. Odpowiadając na te pytania, budujecie zaufanie zanim pojawi się potrzeba zakupu — i to te treści najczęściej cytuje AI.'],
+];
+
+// Model sprzedaży / zasięg — rozwinięcie skrótów z analizy.
+const MODEL_LABEL = {
+  b2c: 'B2C — sprzedaż do klienta końcowego',
+  b2b: 'B2B — sprzedaż do firm',
+  'b2b+b2c': 'B2B + B2C — firmy i klienci końcowi',
+  'b2c+b2b': 'B2B + B2C — firmy i klienci końcowi',
+};
+
 const nzObj = (a) => Array.isArray(a) ? a.filter(x => x && Object.values(x).some(v => String(v || '').trim())) : [];
 const nzStr = (a) => Array.isArray(a) ? a.filter(s => String(s || '').trim()) : [];
 
@@ -128,6 +213,40 @@ export default function Audit() {
   const speed = c.speed && typeof c.speed === 'object' ? c.speed : null;
   const psi = speed?.psi || null;
   const perf = speed?.local || null;
+  const sm = audit?.site_meta || {};
+  const sig = sm.signals && typeof sm.signals === 'object' ? sm.signals : null;
+  const subpages = Array.isArray(sm.subpages) ? sm.subpages : [];
+  const oferta = nzStr(c.oferta);
+  // pełna inwentaryzacja sygnałów znalezionych w kodzie strony (fakty, nie opinie)
+  const signalRows = !sig ? [] : [
+    ['Meta description', !!sm.desc, ''],
+    ['Dane strukturalne Schema.org', !!sig.hasSchema, nzStr(sig.schemaTypes).join(', ') || 'obecne'],
+    ['Schema FAQ (pytania i odpowiedzi)', !!sig.faqSchema, ''],
+    ['Open Graph (podgląd linku)', !!sig.hasOg, ''],
+    ['Adres kanoniczny (canonical)', !!sig.hasCanonical, ''],
+    ['Wersje językowe (hreflang)', !!sig.hasHreflang, nzStr(sig.langs).join(', ')],
+    ['Wersja mobilna (viewport)', !!sig.viewport, ''],
+    ['Blog / aktualności', !!sig.blog, ''],
+    ['Funkcje sklepu / koszyk', !!sig.ecommerce, ''],
+    ['Rezerwacja online', !!sig.booking, ''],
+    ['Czat lub agent na stronie', !!sig.chatWidget, String(sig.chatWidget || '')],
+    ['WhatsApp', !!sig.whatsapp, ''],
+    ['Messenger', !!sig.messenger, ''],
+    ['Mapa Google', !!sig.maps, ''],
+    ['Formularze kontaktowe', +sig.forms > 0, +sig.forms ? `${sig.forms}` : ''],
+    ['Zapis na newsletter', !!sig.newsletter, ''],
+    ['Ceny widoczne na stronie', !!sig.pricesOnSite, ''],
+    ['Opinie klientów', !!sig.reviewsWidget || !!sig.reviews, ''],
+    ['Materiały wideo', !!sig.video, ''],
+    ['Analityka ruchu', !!sig.analytics, ''],
+    ['Pixel reklamowy', !!sig.pixel, ''],
+    ['Baner zgód (cookies)', !!sig.cookieBanner, ''],
+    ['Numery telefonu w kodzie', nzStr(sig.phones).length > 0, nzStr(sig.phones).length ? `${nzStr(sig.phones).length}` : ''],
+    ['Adresy e-mail', nzStr(sig.emails).length > 0, nzStr(sig.emails).length ? `${nzStr(sig.emails).length}` : ''],
+    ['Profile w social media', nzStr(sig.socials).length > 0, nzStr(sig.socials).join(', ')],
+    ['System zarządzania treścią (CMS)', !!sig.cms, String(sig.cms || '')],
+  ];
+  const sigOn = signalRows.filter(r => r[1]).length;
   const rate = (v, good, poor) => v == null ? '' : v <= good ? ' m-good' : v <= poor ? ' m-mid' : ' m-poor';
   const rateTone = (v, good, poor) => v == null ? '' : v <= good ? 'good' : v <= poor ? 'mid' : 'poor';
   const goodCount = plus.length, badCount = minus.length;
@@ -187,7 +306,7 @@ export default function Audit() {
             <div className="au-hero-mark"><LogoMarkStroke /><LogoMark /></div>
             <div className="au-hero-inner">
               {audit.logo_url && (
-                <div className={'au-client-logo' + (audit.site_meta?.logo_light ? ' dark' : '')}>
+                <div className={'au-client-logo' + (audit.site_meta?.logo_light ? ' dark' : '') + (audit.site_meta?.logo_small ? ' small' : '')}>
                   <img src={audit.logo_url} alt={audit.client_name} onError={e => { e.target.parentNode.style.display = 'none'; }} />
                 </div>
               )}
@@ -208,15 +327,124 @@ export default function Audit() {
                   </div>
                 </div>
               )}
+              {scores && (
+                <div className="au-legend">
+                  <div className="au-legend-head"><Ic name="compass" size={18} /> Jak czytać te cztery wskaźniki</div>
+                  <div className="au-legend-grid">
+                    {SCORE_LEGEND.map(([t, ic, txt], i) => (
+                      <div className="au-legend-item" key={i}>
+                        <div className="au-legend-title"><Ic name={ic} size={17} /> {t}</div>
+                        <p>{txt}</p>
+                      </div>
+                    ))}
+                  </div>
+                  <p className="au-legend-foot">
+                    Skala 0–100 opisuje gotowość strony, a nie sympatię do marki. Wynik poniżej 45 oznacza, że w tym obszarze
+                    tracicie klientów już dziś; 45–70 — fundament jest, ale nie pracuje na pełnych obrotach; powyżej 70 — obszar
+                    działa i warto go utrzymać. Każdą z tych ocen rozkładamy na czynniki w kolejnych sekcjach.
+                  </p>
+                </div>
+              )}
               <div className="au-hero-note"><LogoMark className="au-inline-mark" /> Przygotowane przez Fastline InfinitiQ · AI-Native Agency</div>
             </div>
           </section>
+
+          {/* ===== ZAKRES ANALIZY ===== */}
+          {(subpages.length > 0 || signalRows.length > 0) && (
+            <section className="au-section">
+              <SecHead no={no()} label="Zakres analizy" icon="doc" title="Co dokładnie sprawdziliśmy"
+                lead={`Ten audyt nie jest opinią ani szablonem. ${fmtDate(audit.generated_at || audit.created_at)} pobraliśmy Waszą stronę${subpages.length ? ` wraz z ${subpages.length} ${plForm(subpages.length, 'podstroną', 'podstronami', 'podstronami')}` : ''} i przeczytaliśmy ją tak, jak czyta ją robot wyszukiwarki oraz model AI: kod, nagłówki, dane strukturalne, elementy sprzedażowe i pomiary wydajności. Wszystko, co niżej, ma źródło w tym, co realnie znaleźliśmy — dlatego pokazujemy również surowe fakty, a nie tylko wnioski.`} />
+              <div className="au-scan">
+                <div className="au-scan-col">
+                  <div className="au-scan-head"><Ic name="layers" size={18} /> Przeanalizowane adresy</div>
+                  <ul className="au-scan-list">
+                    <li><span className="au-scan-ic"><Ic name="globe" size={16} /></span><span>{sm.finalUrl || audit.site_url}<em>strona główna</em></span></li>
+                    {subpages.map((u, i) => (
+                      <li key={i}><span className="au-scan-ic"><Ic name="arrow" size={16} /></span><span>{u}</span></li>
+                    ))}
+                  </ul>
+                  <p className="au-scan-note">
+                    Podstrony wybraliśmy tak, jak robi to wyszukiwarka: najpierw te, które opisują ofertę, cennik i kontakt.
+                    Z każdej pobraliśmy tytuł, nagłówki i treść — to na ich podstawie powstała diagnoza, dobór fraz i zapytań do wyszukiwarki.
+                  </p>
+                </div>
+                <div className="au-scan-col">
+                  <div className="au-scan-head"><Ic name="message" size={18} /> Co strona mówi o sobie</div>
+                  {sm.title && (
+                    <div className="au-scan-field">
+                      <div className="au-scan-label">Tytuł strony (widoczny w Google)</div>
+                      <p className="au-scan-quote">{sm.title}</p>
+                    </div>
+                  )}
+                  <div className="au-scan-field">
+                    <div className="au-scan-label">Opis strony (meta description)</div>
+                    {sm.desc
+                      ? <p className="au-scan-quote">{sm.desc}</p>
+                      : <p className="au-scan-quote empty">Brak — Google układa opis sam z przypadkowego fragmentu treści, a to on decyduje, czy klient kliknie właśnie Wasz wynik.</p>}
+                  </div>
+                  {perf && (
+                    <p className="au-scan-note">
+                      Pomiary techniczne strony głównej: kod waży {perf.htmlKb} KB, na stronie {perf.imgs} obrazów
+                      {perf.lazyImgs ? `, w tym ${perf.lazyImgs} ładowanych dopiero przy przewijaniu` : ', żaden nie jest ładowany dopiero przy przewijaniu'}
+                      , format WebP {perf.webp ? 'jest używany' : 'nie jest używany'}, doliczyliśmy się {perf.scripts} skryptów.
+                      Serwer odpowiada w {perf.ttfbMs} ms.
+                    </p>
+                  )}
+                </div>
+              </div>
+              {signalRows.length > 0 && (
+                <>
+                  <div className="au-sig-head">
+                    <div className="au-sig-title"><Ic name="chip" size={18} /> Sygnały znalezione w kodzie strony</div>
+                    <Segments value={sigOn} total={signalRows.length} label="elementów obecnych na stronie" />
+                  </div>
+                  <div className="au-sig">
+                    {signalRows.map(([name, on, extra], i) => (
+                      <div className={'au-sig-row' + (on ? ' on' : '')} key={i}>
+                        <span className="au-sig-mark">{on ? <Ic name="check" size={19} /> : <Ic name="warn" size={19} />}</span>
+                        <span className="au-sig-name">{name}</span>
+                        <span className="au-sig-val">{on ? (extra || 'jest') : 'brak'}</span>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="au-note">
+                    To inwentaryzacja, nie ocena — nie każda firma potrzebuje wszystkich elementów. W kolejnych sekcjach
+                    tłumaczymy, które z tych braków realnie kosztują Was klientów, a które można spokojnie zostawić na później.
+                  </div>
+                </>
+              )}
+            </section>
+          )}
 
           {/* ===== DIAGNOZA ===== */}
           {diagnosis.length > 0 && (
             <section className="au-section">
               <SecHead no={no()} label="Diagnoza" icon="search" title="Jak rozumiemy Waszą sytuację"
-                lead={`${c.branza ? c.branza + '. ' : ''}${c.klient_docelowy ? 'Klient docelowy: ' + c.klient_docelowy : ''}`} />
+                lead="Zanim zaproponujemy cokolwiek do wdrożenia, opisujemy, jak z zewnątrz — okiem klienta, wyszukiwarki i modelu AI — wygląda dziś Wasza firma. Poniżej profil odczytany wprost z treści strony oraz trzy obserwacje, które najmocniej wpływają na to, ilu klientów Was znajduje." />
+              {(c.firma || c.branza || c.model || c.zasieg || c.lokalizacja || c.klient_docelowy || oferta.length > 0) && (
+                <div className="au-profile">
+                  <div className="au-profile-head"><Ic name="target" size={18} /> Profil firmy odczytany ze strony</div>
+                  <div className="au-profile-rows">
+                    {c.firma && <div className="au-profile-row"><span>Firma</span><b>{c.firma}</b></div>}
+                    {c.branza && <div className="au-profile-row"><span>Branża</span><b>{c.branza}</b></div>}
+                    {c.model && <div className="au-profile-row"><span>Model sprzedaży</span><b>{MODEL_LABEL[String(c.model).toLowerCase()] || c.model}</b></div>}
+                    {c.zasieg && <div className="au-profile-row"><span>Zasięg działania</span><b>{c.zasieg}</b></div>}
+                    {c.lokalizacja && <div className="au-profile-row"><span>Lokalizacja</span><b>{c.lokalizacja}</b></div>}
+                    {c.klient_docelowy && <div className="au-profile-row"><span>Klient docelowy</span><b>{c.klient_docelowy}</b></div>}
+                  </div>
+                  {oferta.length > 0 && (
+                    <div className="au-profile-offer">
+                      <div className="au-profile-offer-label">Oferta, którą znaleźliśmy na stronie</div>
+                      <div className="au-chips">{oferta.map((o, i) => <span key={i}><Ic name="check" size={14} /> {o}</span>)}</div>
+                    </div>
+                  )}
+                  <p className="au-profile-note">
+                    Ten profil jest punktem odniesienia dla całego audytu: na jego podstawie dobieramy frazy, szukamy
+                    konkurentów w wyszukiwarce i wybieramy produkty z katalogu. Jeśli któryś element opisuje Was
+                    nieprecyzyjnie — to pierwszy sygnał, że strona mówi o firmie coś innego, niż zamierzacie.
+                  </p>
+                </div>
+              )}
               <div className="au-grid3">
                 {diagnosis.map((d, i) => (
                   <div className="au-card" key={i}>
@@ -235,19 +463,25 @@ export default function Audit() {
           {metrics.length > 0 && (
             <section className="au-section">
               <SecHead no={no()} label="Punkt wyjścia" icon="chip" title="Co widzą dziś Google i AI"
-                lead={`${metrics.length - metricsBad} z ${metrics.length} sygnałów działa. ${metricsBad ? `${metricsBad} do naprawy — to konkretne, mierzalne braki, nie opinia.` : 'Fundament jest — walczymy o skalę.'}`} />
+                lead={`${metrics.length - metricsBad} z ${metrics.length} sprawdzanych sygnałów działa${metricsBad ? `, ${metricsBad} wymaga naprawy` : ''}. To nie są opinie, tylko elementy, których obecność da się sprawdzić w kodzie strony w kilka sekund — i które w pierwszej kolejności decydują o tym, czy wyszukiwarka i model AI w ogóle rozumieją, co sprzedajecie. Przy każdym tłumaczymy, co konkretnie oznacza dla Waszej sprzedaży.`} />
               <div className="au-metrics">
                 {metrics.map((m, i) => {
                   const bad = /brak|nie|false|0/i.test(String(m.value || ''));
+                  const exp = explainMetric(m.label);
                   return (
                     <div className={'au-metric' + (bad ? ' bad' : ' good')} key={i}>
                       <div className="au-metric-ic"><Ic name={metricIcon(m.label)} size={26} sw={1.5} /></div>
                       <div className="au-metric-val">{m.value}</div>
                       <div className="au-metric-label">{m.label}</div>
+                      {exp && <p className="au-metric-exp">{exp}</p>}
                       <div className="au-metric-state">{bad ? <><Ic name="warn" size={14} /> do naprawy</> : <><Ic name="check" size={14} /> działa</>}</div>
                     </div>
                   );
                 })}
+              </div>
+              <div className="au-note">
+                Każdy z tych elementów naprawia się raz i pracuje bezterminowo — to najtańsza część odzyskiwania widoczności.
+                Kolejność wdrożenia proponujemy w sekcji rekomendacji, patrząc na to, co najszybciej przełoży się na zapytania od klientów.
               </div>
             </section>
           )}
@@ -255,7 +489,8 @@ export default function Audit() {
           {/* ===== ANALIZA +/- ===== */}
           {(plus.length > 0 || minus.length > 0) && (
             <section className="au-section">
-              <SecHead no={no()} label="Analiza obecnego stanu" icon="eye" title="Co działa, a co kosztuje widoczność" />
+              <SecHead no={no()} label="Analiza obecnego stanu" icon="eye" title="Co działa, a co kosztuje widoczność"
+                lead="Po lewej to, co już macie i na czym da się budować — tego nie ruszamy, tylko wzmacniamy. Po prawej rzeczy, które dziś kosztują Was zapytania: każdy punkt to konkret znaleziony na stronie, a nie ogólna uwaga o „potrzebie SEO”." />
               <div className="au-pm-bar">
                 <div className="au-pm-bar-track">
                   <i className="ok" style={{ '--w': `${Math.round(goodCount / Math.max(1, goodCount + badCount) * 100)}%` }} />
@@ -290,16 +525,16 @@ export default function Audit() {
           {(psi || perf) && (
             <section className="au-section">
               <SecHead no={no()} label="Szybkość strony" icon="speed" title="Jak szybko ładuje się strona na telefonie"
-                lead="Google mierzy Core Web Vitals na urządzeniach mobilnych — wolna strona traci pozycje i klientów, zanim zobaczą ofertę." />
+                lead="Google mierzy Core Web Vitals na urządzeniach mobilnych i traktuje je jako czynnik rankingowy — wolna strona traci pozycje, zanim ktokolwiek oceni ofertę. Drugi, dużo droższy skutek widać w sprzedaży: klient z telefonu rzadko czeka dłużej niż kilka sekund, a wraca do wyników wyszukiwania, gdzie czeka konkurencja. Poniżej każdy pomiar z progiem Google i wyjaśnieniem, co realnie oznacza." />
               <div className="au-speed">
                 {psi && <div className="au-speed-score"><Gauge value={psi.score} label="PageSpeed · mobile" size={190} /></div>}
                 <div className="au-speed-metrics">
-                  {psi?.lcp?.ms != null && <Bar label="LCP · największy element" value={Math.min(psi.lcp.ms, 6000)} max={6000} text={psi.lcp.text} tone={rateTone(psi.lcp.ms, 2500, 4000)} />}
-                  {psi?.fcp?.ms != null && <Bar label="FCP · pierwsza treść" value={Math.min(psi.fcp.ms, 5000)} max={5000} text={psi.fcp.text} tone={rateTone(psi.fcp.ms, 1800, 3000)} />}
-                  {psi?.tbt?.ms != null && <Bar label="TBT · blokada wątku" value={Math.min(psi.tbt.ms, 1200)} max={1200} text={psi.tbt.text} tone={rateTone(psi.tbt.ms, 200, 600)} />}
-                  {psi?.cls?.val != null && <Bar label="CLS · stabilność układu" value={Math.min(psi.cls.val, 0.5)} max={0.5} text={psi.cls.text} tone={rateTone(psi.cls.val, 0.1, 0.25)} />}
-                  {perf && <Bar label="TTFB · odpowiedź serwera" value={Math.min(perf.ttfbMs, 2500)} max={2500} text={`${perf.ttfbMs} ms`} tone={rateTone(perf.ttfbMs, 500, 1200)} />}
-                  {perf && <Bar label={`Waga HTML · skryptów: ${perf.scripts}`} value={Math.min(perf.htmlKb, 1500)} max={1500} text={`${perf.htmlKb} KB`} tone={rateTone(perf.htmlKb, 300, 800)} />}
+                  {psi?.lcp?.ms != null && <Bar label="LCP · największy element" value={Math.min(psi.lcp.ms, 6000)} max={6000} text={psi.lcp.text} tone={rateTone(psi.lcp.ms, 2500, 4000)} hint={CWV_HINT.lcp} />}
+                  {psi?.fcp?.ms != null && <Bar label="FCP · pierwsza treść" value={Math.min(psi.fcp.ms, 5000)} max={5000} text={psi.fcp.text} tone={rateTone(psi.fcp.ms, 1800, 3000)} hint={CWV_HINT.fcp} />}
+                  {psi?.tbt?.ms != null && <Bar label="TBT · blokada wątku" value={Math.min(psi.tbt.ms, 1200)} max={1200} text={psi.tbt.text} tone={rateTone(psi.tbt.ms, 200, 600)} hint={CWV_HINT.tbt} />}
+                  {psi?.cls?.val != null && <Bar label="CLS · stabilność układu" value={Math.min(psi.cls.val, 0.5)} max={0.5} text={psi.cls.text} tone={rateTone(psi.cls.val, 0.1, 0.25)} hint={CWV_HINT.cls} />}
+                  {perf && <Bar label="TTFB · odpowiedź serwera" value={Math.min(perf.ttfbMs, 2500)} max={2500} text={`${perf.ttfbMs} ms`} tone={rateTone(perf.ttfbMs, 500, 1200)} hint={CWV_HINT.ttfb} />}
+                  {perf && <Bar label={`Waga HTML · skryptów: ${perf.scripts}`} value={Math.min(perf.htmlKb, 1500)} max={1500} text={`${perf.htmlKb} KB`} tone={rateTone(perf.htmlKb, 300, 800)} hint={CWV_HINT.html} />}
                 </div>
               </div>
               {speedTips.length > 0 && (
@@ -317,7 +552,9 @@ export default function Audit() {
           {(competitors.length > 0 || matrix) && (
             <section className="au-section">
               <SecHead no={no()} label="Analiza konkurencji" icon="users" title="Kto dziś zbiera Waszych klientów"
-                lead={matrix ? `Zmierzyliśmy strony konkurentów tymi samymi narzędziami — ${matrix.search?.queries?.length ? 'znalezionych po zapytaniach, którymi realnie szukają klienci' : 'wskazanych do porównania'}. Poniżej twarde dane, nie opinie.` : 'Bez zmierzonych stron — opisujemy typy konkurentów, z którymi konkurujecie o klienta w Google i AI.'} />
+                lead={matrix
+                  ? `Konkurentów nie zgadujemy. ${matrix.search?.queries?.length ? 'Wpisaliśmy w wyszukiwarkę zapytania, którymi realnie szuka Wasz klient, odsialiśmy katalogi, portale i marketplace’y, a strony, które zostały, pobraliśmy i zmierzyliśmy' : 'Wskazane strony pobraliśmy i zmierzyliśmy'} tymi samymi narzędziami co Waszą. Poniżej porównanie oparte na twardych danych — plus opis tego, czym każdy z nich dziś wygrywa i gdzie zostawia Wam otwarte drzwi.`
+                  : 'Nie znaleźliśmy stron, które moglibyśmy uczciwie zmierzyć jako Waszą bezpośrednią konkurencję — zamiast wymyślać nazwy firm, opisujemy typy graczy, z którymi realnie konkurujecie o tego samego klienta w Google i w odpowiedziach AI. Każdy typ ma inną przewagę i inną lukę, którą możecie wykorzystać.'} />
               {matrix && (() => {
                 const cols = [matrix.client, ...matrix.rivals];
                 const best = (vals, lowIsBetter) => {
@@ -342,15 +579,34 @@ export default function Audit() {
                 ];
                 return (
                   <>
+                    {nzStr(matrix.search?.queries).length > 0 && (
+                      <div className="au-queries">
+                        <div className="au-queries-head"><Ic name="search" size={18} /> Zapytania, którymi szukaliśmy konkurencji</div>
+                        <div className="au-chips">{nzStr(matrix.search.queries).map((q, i) => <span key={i}><Ic name="search" size={14} /> {q}</span>)}</div>
+                        <p className="au-queries-note">
+                          To zapytania klienta końcowego, nie nazwy firm. Sprawdziliśmy, kto wychodzi na nich wysoko
+                          {matrix.search?.candidates ? `, przejrzeliśmy ${matrix.search.candidates} ${plForm(matrix.search.candidates, 'adres', 'adresy', 'adresów')}` : ''} i odrzuciliśmy katalogi
+                          firm, portale ogłoszeniowe, media oraz strony z Waszej własnej grupy. Zostały firmy, które realnie
+                          zabierają Wam to samo zapytanie.
+                        </p>
+                      </div>
+                    )}
                     <div className="au-mx-cards">
                       {cols.map((x, i) => (
                         <div className={'au-mx-card' + (i === 0 ? ' me' : '')} key={i}>
                           <div className="au-mx-card-name">{i === 0 ? audit.client_name : x.domain}{i === 0 && <span className="au-mx-you">Wy</span>}</div>
+                          {i > 0 && x.title && <div className="au-mx-card-title">{x.title}</div>}
                           <Segments value={sigCount(x)} total={SIGNALS.length} label="sygnałów widoczności" />
                           <Bar label="TTFB" value={x.ttfbMs || 0} max={maxTtfb} text={`${x.ttfbMs ?? '—'} ms`} tone={rateTone(x.ttfbMs, 500, 1200)} />
                         </div>
                       ))}
                     </div>
+                    <p className="au-p au-mx-intro">
+                      Osiem sygnałów widoczności w kartach wyżej to elementy, po których wyszukiwarka i model AI poznają
+                      stronę: opis, dane strukturalne, Open Graph, adres kanoniczny, wersje językowe, czat, blog i rezerwacja
+                      online. Im więcej z nich ma konkurent, tym łatwiej maszynie opowiedzieć o nim klientowi. Pełne
+                      zestawienie punkt po punkcie:
+                    </p>
                     <div className="au-table-wrap au-mx-wrap">
                       <table className="au-table au-mx">
                         <thead>
@@ -381,11 +637,20 @@ export default function Audit() {
                 </div>
               )}
               {competitors.length > 0 && (
+                <>
+                <p className="au-p au-comp-intro">
+                  {matrix
+                    ? 'Liczby pokazują, kto jest lepiej przygotowany technicznie. Poniżej druga strona tego samego obrazu: czym każdy z tych graczy realnie przyciąga klienta i gdzie zostawia lukę, w którą możecie wejść.'
+                    : 'Poniżej typy firm, które dziś odbierają zapytania od Waszych klientów. Przy każdym opisujemy, na czym stoi jego przewaga i którą jej częścią da się podważyć — bo w większości przypadków wygrywa nie lepsza usługa, tylko lepiej opisana.'}
+                </p>
                 <div className="au-comp">
-                  {competitors.map((k, i) => (
+                  {competitors.map((k, i) => {
+                    const rival = matrix?.rivals?.find(r => String(r.domain || '').toLowerCase() === String(k.name || '').toLowerCase());
+                    return (
                     <div className="au-comp-card" key={i}>
                       <Corners />
-                      <div className="au-comp-name"><span className="au-comp-ic"><Ic name="users" size={22} /></span> {k.name}</div>
+                      <div className="au-comp-name"><span className="au-comp-ic"><Ic name="users" size={22} /></span> <span>{k.name}</span></div>
+                      {rival?.title && <div className="au-comp-title">{rival.title}</div>}
                       {k.profile && <div className="au-comp-profile">{k.profile}</div>}
                       <Spark seed={i + 3} up={i % 2 === 0} />
                       <div className="au-comp-block">
@@ -397,8 +662,10 @@ export default function Audit() {
                         <p>{k.gap}</p>
                       </div>
                     </div>
-                  ))}
+                    );
+                  })}
                 </div>
+                </>
               )}
             </section>
           )}
@@ -407,7 +674,7 @@ export default function Audit() {
           {keywords.length > 0 && (
             <section className="au-section">
               <SecHead no={no()} label="Frazy" icon="search" title="Czym szukają Was klienci"
-                lead="Osiem zapytań, które realni klienci wpisują w Google, szukając takiej oferty. Potencjał = jak dużo klientów za tym stoi." />
+                lead={`${keywords.length} ${plForm(keywords.length, 'zapytanie, które', 'zapytania, które', 'zapytań, które')} realni klienci wpisują w wyszukiwarkę, szukając takiej oferty jak Wasza. Nie są to frazy z Waszej strony — to język klienta, który jeszcze Was nie zna. Intencja mówi, na jakim etapie decyzji jest pytający, a potencjał — ile realnego zainteresowania stoi za frazą w Waszej branży i lokalizacji.`} />
               <div className="au-kw">
                 {keywords.map((k, i) => (
                   <div className="au-kw-row" key={i}>
@@ -419,6 +686,22 @@ export default function Audit() {
                     </div>
                   </div>
                 ))}
+              </div>
+              <div className="au-legend au-legend-flat">
+                <div className="au-legend-head"><Ic name="compass" size={18} /> Co oznaczają intencje w tabeli</div>
+                <div className="au-legend-grid">
+                  {INTENT_LEGEND.map(([t, ic, txt], i) => (
+                    <div className="au-legend-item" key={i}>
+                      <div className="au-legend-title"><Ic name={ic} size={17} /> {t}</div>
+                      <p>{txt}</p>
+                    </div>
+                  ))}
+                </div>
+                <p className="au-legend-foot">
+                  Kolejność nie jest przypadkowa: zaczynamy od fraz o wysokim potencjale i jasnej intencji zakupowej lub
+                  lokalnej, bo tam najszybciej widać efekt w liczbie zapytań. Frazy informacyjne budują widoczność
+                  w dłuższym horyzoncie — i to one najczęściej trafiają do odpowiedzi modeli AI.
+                </p>
               </div>
               <div className="au-note">Szacunek na podstawie analizy AI — pełne wolumeny dostarczamy po podpięciu narzędzi w etapie 1.</div>
             </section>
@@ -471,7 +754,8 @@ export default function Audit() {
           {/* ===== DLACZEGO TERAZ ===== */}
           {whyNow.length > 0 && (
             <section className="au-section">
-              <SecHead no={no()} label="Dlaczego teraz" icon="clock" title="Dlaczego warto działać teraz" />
+              <SecHead no={no()} label="Dlaczego teraz" icon="clock" title="Dlaczego warto działać teraz"
+                lead="Widoczność nie znika z dnia na dzień — i tak samo nie wraca. Efekty pracy nad stroną narastają miesiącami, więc każdy kwartał zwłoki to nie tylko stracone zapytania dziś, ale i późniejszy start narastania jutro. Do tego dochodzi zmiana, która dzieje się właśnie teraz: część ruchu przenosi się z listy linków do gotowych odpowiedzi AI, a w nich miejsc jest znacznie mniej niż na pierwszej stronie Google." />
               <div className="au-grid3">
                 {whyNow.map((d, i) => (
                   <div className="au-card" key={i}>
@@ -489,7 +773,8 @@ export default function Audit() {
           {/* ===== PLAN ===== */}
           {plan.length > 0 && (
             <section className="au-section">
-              <SecHead no={no()} label="Plan działania" icon="compass" title="Trzy etapy — od fundamentu do skali" />
+              <SecHead no={no()} label="Plan działania" icon="compass" title="Trzy etapy — od fundamentu do skali"
+                lead="Pracujemy etapami, bo kolejność ma znaczenie: treści publikowane na niesprawnej technicznie stronie nie zdążą zapracować, a skalowanie bez pomiaru to przepalanie budżetu. Każdy etap kończy się czymś, co widać — nie prezentacją, tylko działającym elementem i liczbą, którą można porównać z punktem wyjścia." />
               <div className="au-plan">
                 {plan.map((s, i) => (
                   <div className="au-step" key={i}>
@@ -563,10 +848,16 @@ export default function Audit() {
                         {p.example && <div className="au-prod-example"><span className="au-prod-example-ic"><Ic name="message" size={18} /></span><span>{p.example}</span></div>}
                       </div>
                       <div className="au-prod-col">
-                        <div className="au-prod-tag"><Ic name="wrench" size={14} /> Co wdrażamy</div>
+                        <div className="au-prod-tag"><Ic name="wrench" size={14} /> Co wdrażamy u Was</div>
                         <ul className="au-prod-scope">
                           {(p.scope.length ? p.scope : nzStr(p.does)).map((s, k) => <li key={k}>{s}</li>)}
                         </ul>
+                        {p.scope.length > 0 && nzStr(p.does).length > 0 && (
+                          <div className="au-prod-does">
+                            <div className="au-prod-does-label"><Ic name="box" size={13} /> Standardowy zakres produktu</div>
+                            <ul>{nzStr(p.does).map((s, k) => <li key={k}>{s}</li>)}</ul>
+                          </div>
+                        )}
                       </div>
                       <div className="au-prod-col">
                         <div className="au-prod-tag"><Ic name="trend" size={14} /> Efekt</div>
@@ -690,10 +981,42 @@ export default function Audit() {
             </section>
           )}
 
+          {/* ===== METODOLOGIA I SŁOWNIK ===== */}
+          <section className="au-section au-method">
+            <SecHead no={no()} label="Metodologia" icon="book" title="Skąd wzięliśmy te wnioski"
+              lead="Audyt ma sens tylko wtedy, gdy da się sprawdzić, na czym stoi. Dlatego opisujemy wprost źródła danych i tłumaczymy każde pojęcie, którego użyliśmy — żeby ta rozmowa nie wymagała tłumacza z języka technicznego i żeby dało się nas rozliczyć z tego, co obiecujemy." />
+            <div className="au-sources">
+              {SOURCES.map(([t, ic, txt], i) => (
+                <div className="au-source" key={i}>
+                  <div className="au-source-ic"><Ic name={ic} size={28} sw={1.4} /></div>
+                  <div>
+                    <h3>{t}</h3>
+                    <p>{txt}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <div className="au-terms-head"><Ic name="book" size={18} /> Słownik pojęć użytych w audycie</div>
+            <div className="au-terms">
+              {TERMS.map(([t, ic, txt], i) => (
+                <div className="au-term" key={i}>
+                  <div className="au-term-name"><Ic name={ic} size={17} /> {t}</div>
+                  <p>{txt}</p>
+                </div>
+              ))}
+            </div>
+            <div className="au-note">
+              Czego ten audyt nie zawiera: danych z Waszej analityki i Search Console (nie mamy do nich dostępu przed
+              rozpoczęciem współpracy) oraz dokładnych wolumenów wyszukiwań z płatnych narzędzi. Te liczby podpinamy
+              w pierwszym etapie współpracy — wtedy każdą rekomendację da się dodatkowo zważyć realnym ruchem.
+            </div>
+          </section>
+
           {/* ===== FAQ ===== */}
           {faq.length > 0 && (
             <section className="au-section">
-              <SecHead no={no()} label="FAQ" icon="message" title="Najczęstsze pytania" />
+              <SecHead no={no()} label="FAQ" icon="message" title="Najczęstsze pytania"
+                lead="Pytania, które najczęściej padają na pierwszej rozmowie — odpowiadamy na nie od razu, żeby nie trzeba było na nie czekać." />
               <div className="au-faq">
                 {faq.map((f, i) => (
                   <details className="au-faq-item" key={i}>
@@ -711,7 +1034,12 @@ export default function Audit() {
             <div className="au-watermark right"><LogoMark /></div>
             <div className="au-label">{no()} — Co dalej</div>
             <h2 className="au-h2 big">Porozmawiajmy o wdrożeniu.</h2>
-            <p className="au-lead">Odpowiemy na pytania, doprecyzujemy zakres i ustalimy start. Pierwsza rozmowa — bez zobowiązań.</p>
+            <p className="au-lead">
+              Ten dokument jest punktem wyjścia, nie ofertą do podpisania. Na rozmowie przechodzimy przez rekomendacje
+              po kolei, ustalamy, co robimy najpierw, a co spokojnie może poczekać, i doprecyzowujemy zakres pod Wasz
+              budżet oraz tempo. Jeśli po tej rozmowie uznacie, że część rzeczy zrobicie sami — dostaniecie od nas
+              konkretną listę zamiast prezentacji. Pierwsza rozmowa jest bez zobowiązań i bez kosztu.
+            </p>
             <a className="au-cta" href="mailto:infinitiq@fastline.pl?subject=Audyt%20SEO%20%C2%B7%20GEO">Napisz do nas → infinitiq@fastline.pl</a>
           </section>
 

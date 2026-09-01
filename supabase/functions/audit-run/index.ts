@@ -233,28 +233,33 @@ function svgIsLight(svg: string): boolean {
   return lums.every(l => l > 0.8);
 }
 // Sprawdza, czy URL naprawdę oddaje obrazek (content-type / sygnatura). Zwraca też flagę "jasne logo".
-async function probeImage(url: string): Promise<{ ok: boolean; light: boolean }> {
+async function probeImage(url: string): Promise<{ ok: boolean; light: boolean; small: boolean }> {
   const ctrl = new AbortController();
   const t = setTimeout(() => ctrl.abort(), 5000);
   try {
     const r = await fetch(url, { signal: ctrl.signal, redirect: "follow", headers: { "User-Agent": UA, Accept: "image/*,*/*;q=0.5" } });
-    if (!r.ok) return { ok: false, light: false };
+    if (!r.ok) return { ok: false, light: false, small: false };
     const ct = (r.headers.get("content-type") || "").toLowerCase();
     const buf = new Uint8Array(await r.arrayBuffer());
-    if (buf.length < 80) return { ok: false, light: false };
+    if (buf.length < 80) return { ok: false, light: false, small: false };
     const head = new TextDecoder("latin1").decode(buf.slice(0, 512));
     const isSvg = ct.includes("svg") || /<svg[\s>]/i.test(head) || /<\?xml/i.test(head) && /\.svg(\?|$)/i.test(url);
     const isRaster = ct.startsWith("image/") || /^\x89PNG|^GIF8|^\xff\xd8\xff|^RIFF|^BM|^\x00\x00\x01\x00/.test(head);
     if (isSvg) {
       const svg = new TextDecoder().decode(buf.slice(0, 200_000));
-      if (!/<svg[\s>]/i.test(svg)) return { ok: false, light: false };
-      return { ok: true, light: svgIsLight(svg) };
+      if (!/<svg[\s>]/i.test(svg)) return { ok: false, light: false, small: false };
+      return { ok: true, light: svgIsLight(svg), small: false };
     }
-    if (!isRaster) return { ok: false, light: false };
-    return { ok: true, light: /white|light|bia[lł]|jasn|-w\.|_w\./i.test(url) };
-  } catch { return { ok: false, light: false }; } finally { clearTimeout(t); }
+    if (!isRaster) return { ok: false, light: false, small: false };
+    // wymiary z nagłówka PNG/GIF — favicon/mała ikonka renderuje się rozmyta w dużym rozmiarze
+    let w = 0, h = 0;
+    if (head.startsWith("\x89PNG") && buf.length > 24) { w = (buf[16] << 24) | (buf[17] << 16) | (buf[18] << 8) | buf[19]; h = (buf[20] << 24) | (buf[21] << 16) | (buf[22] << 8) | buf[23]; }
+    else if (head.startsWith("GIF8") && buf.length > 10) { w = buf[6] | (buf[7] << 8); h = buf[8] | (buf[9] << 8); }
+    const small = ct.includes("icon") || /\.ico(\?|$)/i.test(url) || (w > 0 && w <= 64 && h > 0 && h <= 64);
+    return { ok: true, light: /white|light|bia[lł]|jasn|-w\.|_w\./i.test(url), small };
+  } catch { return { ok: false, light: false, small: false }; } finally { clearTimeout(t); }
 }
-async function pickLogo(body: string, html: string, base: string, ld: unknown[]): Promise<{ logo: string; light: boolean; favicon: string }> {
+async function pickLogo(body: string, html: string, base: string, ld: unknown[]): Promise<{ logo: string; light: boolean; small: boolean; favicon: string }> {
   const cands: LogoCand[] = [];
   const push = (url: string, score: number, kind: string) => { if (url && !cands.some(c => c.url === url)) cands.push({ url, score, kind }); };
   const headerEnd = (() => { const m = /<\/header>/i.exec(body); return m ? m.index : Math.min(body.length, 60_000); })();
@@ -313,9 +318,9 @@ async function pickLogo(body: string, html: string, base: string, ld: unknown[])
   for (const c of cands) {
     if (probes++ >= 5) break;
     const p = await probeImage(c.url);
-    if (p.ok) { console.log("logo:", c.kind, c.url, p.light ? "(jasne)" : ""); return { logo: c.url, light: p.light, favicon }; }
+    if (p.ok) { console.log("logo:", c.kind, c.url, p.light ? "(jasne)" : "", p.small ? "(małe)" : ""); return { logo: c.url, light: p.light, small: p.small, favicon }; }
   }
-  return { logo: "", light: false, favicon };
+  return { logo: "", light: false, small: false, favicon };
 }
 
 // ======================= STRONA KLIENTA: pobranie + sygnały =======================
@@ -873,6 +878,26 @@ function buildPackages(picked: PickedProduct[], goals: Record<string, string>) {
   });
 }
 
+// Głęboka sanityzacja stringów przed zapisem do jsonb: Postgres odrzuca \u0000,
+// a ucięte slice()'m pary zastępcze (emoji przecięte w połowie) dają "unsupported Unicode
+// escape sequence" — cały UPDATE pada. toWellFormed (ES2024) zamienia samotne surogaty na U+FFFD.
+function deepClean<T>(v: T): T {
+  if (typeof v === "string") {
+    let s = v.replace(/\u0000/g, "");
+    // deno-lint-ignore no-explicit-any
+    if (typeof (s as any).toWellFormed === "function") s = (s as any).toWellFormed();
+    else s = s.replace(/[\uD800-\uDBFF](?![\uDC00-\uDFFF])/g, "\uFFFD").replace(/(^|[^\uD800-\uDBFF])([\uDC00-\uDFFF])/g, "$1\uFFFD");
+    return s as unknown as T;
+  }
+  if (Array.isArray(v)) return v.map(deepClean) as unknown as T;
+  if (v && typeof v === "object") {
+    const o: Record<string, unknown> = {};
+    for (const [k, x] of Object.entries(v as Record<string, unknown>)) o[k] = deepClean(x);
+    return o as unknown as T;
+  }
+  return v;
+}
+
 // ======================= stan między etapami (site_meta._stage) =======================
 // Izolat edge żyje max ~150 s, więc audyt jedzie w 3 etapach; każdy etap to osobne
 // wywołanie funkcji (sama się woła z nagłówkiem x-audit-key = service role):
@@ -883,7 +908,7 @@ type RivalLite = Omit<Rival, "html">;
 type StageState = {
   url: string; finalUrl: string; host: string; title: string; desc: string; h1n: number;
   brief: string; briefShort: string; perf: SiteMeta["perf"]; signals: SiteMeta["signals"];
-  logo: string; light: boolean; favicon: string; subpages: string[];
+  logo: string; light: boolean; small: boolean; favicon: string; subpages: string[];
   linked: string[]; brandText: string; phones: string[];
   psi: Awaited<ReturnType<typeof fetchPSI>>; theme: Awaited<ReturnType<typeof extractTheme>>;
   r1: Record<string, unknown>; r2: Record<string, unknown>; manualRivals: string[];
@@ -950,7 +975,9 @@ Deno.serve(async (req) => {
     await db.from("audits").update({ status: "error", error: msg }).eq("id", id);
   };
   const saveStage = async (st: StageState) => {
-    await db.from("audits").update({ site_meta: { ...(audit.site_meta ?? {}), _stage: st } }).eq("id", id);
+    const payload = { site_meta: deepClean({ ...(audit.site_meta ?? {}), _stage: st }) };
+    const { error } = await db.from("audits").update(payload).eq("id", id);
+    if (error) throw new Error(`Zapis stanu etapu nie powiódł się: ${error.message}`);
   };
   const next = async (n: number) => {
     const r = await fetch(`${supaUrl}/functions/v1/audit-run`, {
@@ -1019,7 +1046,7 @@ ${briefShort.slice(0, 3600)}`;
       const st: StageState = {
         url, finalUrl: meta.finalUrl, host: meta.host, title: meta.title, desc: meta.desc, h1n: meta.h1.length,
         brief, briefShort, perf: meta.perf, signals: meta.signals,
-        logo: meta.logo, light: meta.light, favicon: meta.favicon, subpages: meta.subpages.map(p => p.url),
+        logo: meta.logo, light: meta.light, small: meta.small, favicon: meta.favicon, subpages: meta.subpages.map(p => p.url),
         linked, brandText: stripTags(meta.body).toLowerCase().slice(0, 30_000), phones: meta.signals.phones,
         psi, theme, r1, r2, manualRivals, startedAt: new Date().toISOString(),
       };
@@ -1030,7 +1057,7 @@ ${briefShort.slice(0, 3600)}`;
     }
 
     const st = (audit.site_meta?._stage ?? null) as StageState | null;
-    if (!st) throw new Error(`Brak stanu etapu 1 (etap ${stage})`);
+    if (!st) throw new Error(`Brak zapisanego stanu etapu 1 (etap ${stage}) — kliknij „Ponów analizę"`);
     const r1 = st.r1;
 
     // ======================= ETAP 2: konkurenci =======================
@@ -1259,11 +1286,28 @@ ${st.brief.slice(0, 3600)}`;
     });
     const packages = buildPackages(picked, (r3.packages && typeof r3.packages === "object" ? r3.packages : {}) as Record<string, string>);
 
+    // fallback ocen: p1 bywa ucięty (repairJson gubi "scores") — liczymy z realnych sygnałów, żeby hero zawsze miał wskaźniki
+    const sg = st.signals;
+    const clamp = (n: number) => Math.max(5, Math.min(95, Math.round(n)));
+    const heur = {
+      technika: clamp(25 + (sg.hasSchema ? 14 : 0) + (sg.hasOg ? 10 : 0) + (sg.hasCanonical ? 10 : 0) + (sg.hasHreflang ? 5 : 0) + (sg.viewport ? 6 : 0) + (st.psi ? st.psi.score * 0.22 : 8)),
+      google: clamp(20 + (st.desc ? 10 : 0) + (st.h1n ? 8 : 0) + (sg.hasSchema ? 10 : 0) + (sg.blog ? 12 : 0) + (sg.hasCanonical ? 6 : 0) + (st.psi ? st.psi.score * 0.18 : 6)),
+      ai: clamp(12 + (sg.hasSchema ? 14 : 0) + (sg.faqSchema ? 12 : 0) + (sg.blog ? 10 : 0) + (st.desc ? 8 : 0) + (sg.hasOg ? 6 : 0)),
+      tresc: clamp(25 + (sg.blog ? 15 : 0) + (st.h1n ? 8 : 0) + (sg.faqSchema ? 8 : 0) + Math.min(20, st.subpages.length * 4)),
+    };
+    const aiScores = (r1.scores && typeof r1.scores === "object" ? r1.scores : {}) as Record<string, unknown>;
+    const scores: Record<string, number> = {};
+    for (const k of ["google", "ai", "technika", "tresc"] as const) {
+      const v = +String(aiScores[k] ?? "");
+      scores[k] = Number.isFinite(v) && v > 0 ? Math.min(100, v) : heur[k];
+    }
+
     const rivals = st.rivals ?? [];
     const measuredRivals = rivals.filter(r => r.measured);
     const unmeasuredRivals = rivals.filter(r => !r.measured);
     const content = {
       ...r1, ...st.r2, ...(st.r4 ?? {}),
+      scores,
       products, packages,
       speed: { psi: st.psi, local: st.perf },
       competitors: st.compCards ?? [],
@@ -1281,20 +1325,21 @@ ${st.brief.slice(0, 3600)}`;
     };
     delete (content as Record<string, unknown>).competitor_domains;
     delete (content as Record<string, unknown>).search_queries;
-    await db.from("audits").update({
+    const { error: finErr } = await db.from("audits").update({
       status: "ready",
-      content,
+      content: deepClean(content),
       logo_url: st.logo || null,
-      site_meta: {
+      site_meta: deepClean({
         title: st.title, desc: st.desc, finalUrl: st.finalUrl, theme: st.theme,
-        favicon: st.favicon || null, logo_light: st.light,
+        favicon: st.favicon || null, logo_light: st.light, logo_small: st.small,
         signals: { ...st.signals, navLabels: undefined },
         subpages: st.subpages,
         version: 24,
-      },
+      }),
       generated_at: new Date().toISOString(),
       error: null,
     }).eq("id", id);
+    if (finErr) throw new Error(`Zapis wyniku nie powiódł się: ${finErr.message}`);
     console.log("audyt", id, lap(), "gotowy (start etapu 1:", st.startedAt, ")");
   } catch (e) {
     await fail(e instanceof Error ? e.message : String(e));
