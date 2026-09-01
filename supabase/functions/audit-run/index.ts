@@ -354,7 +354,14 @@ function detectCms(lc: string): string {
   return "";
 }
 
-function scanPage(html: string, body: string): PageScan {
+// Skanujemy WYCINEK strony, nie całość: edge ma twardy limit czasu CPU, a przy
+// 5 stronach × ~0,5 s regexów po 1,8 MB worker bywał ubijany bez logu i bez błędu
+// (audyt flavourtec.net wisiał wtedy w „running"). Znaczniki, których szukamy,
+// siedzą w praktyce na początku dokumentu; ceny liczymy z tekstu widocznego.
+const SCAN_CAP = 300_000;
+function scanPage(rawHtml: string, rawBody: string): PageScan {
+  const html = rawHtml.length > SCAN_CAP ? rawHtml.slice(0, SCAN_CAP) : rawHtml;
+  const body = rawBody.length > SCAN_CAP ? rawBody.slice(0, SCAN_CAP) : rawBody;
   // ⚠️ Kluczowa lekcja z audytu Pony Academy (01.09): elementy STRUKTURALNE szukamy
   // w `body` (bez <script>/<style>), a nie w surowym HTML. Kreatory stron (WebWave,
   // Duda, Wix) doklejają do KAŻDEJ podstrony ten sam globalny bundle, w którym siedzi
@@ -364,7 +371,11 @@ function scanPage(html: string, body: string): PageScan {
   const text = stripTags(body);
   return {
     maps: /data-element-type=["']googlemaps["']|ww_googlemaps|maps\.google|google\.com\/maps|maps\.googleapis|\/maps\/embed|openstreetmap|mapbox-gl|leaflet-container|class=["'][^"']*google-?map/i.test(body),
-    prices: /\d[\d\s]{0,7}(?:[.,]\d{2})?\s*(?:zł|pln)\b/i.test(text),
+    // ⚠️ BEZ \b na końcu: w JavaScripcie \b działa tylko na znakach ASCII, więc po „ł"
+    // granica słowa nigdy nie zachodzi i ceny w złotych nie były wykrywane
+    // (Pony z cenami „300PLN" działało, FRA z „2 450,00 zł" — nie).
+    // pierwsza cyfra 1-9: „0,00 zł" z pustego koszyka to nie jest cena na stronie
+    prices: /[1-9][\d\s]{0,7}(?:[.,]\d{2})?\s*(?:zł(?:otych)?|pln)(?![a-z])/i.test(text),
     booking: /booksy|calendly|zencal|bookero|nakiedy|reservio|moment\.pl|planfy|versum/i.test(html) ||
       /zarezerwuj|rezerwuj online|umów wizyt|umow wizyt|rezerwacja online|zapisz się na (?:zajęcia|trening|kurs)/i.test(text),
     chat: /tawk\.to|tidio|smartsupp|livechat|crisp\.chat|intercom|drift\.com|zendesk|hubspot.*chat|fb-customerchat|callpage|thulium|botpress|manychat/i.test(html)
@@ -395,36 +406,61 @@ const SUB_HINTS = /o-nas|about|o-firmie|firma|oferta|offer|uslugi|usługi|servic
 // stron budowanych kreatorem: menu bywa rysowane skryptem, więc w kodzie NIE MA
 // do nich żadnego linku (audyt Pony Academy: 6 linków w kodzie vs 11 w sitemapie).
 async function sitemapUrls(base: string, host: string): Promise<string[]> {
+  // ⚠️ Sklepy na WordPressie mają sitemap-INDEKS (flavourtec.net: 14 map potomnych,
+  // w tym product-sitemap z tysiącami URL-i). Pierwsza wersja chodziła po nich
+  // sekwencyjnie z limitem 9 s każda i potrafiła zjeść cały 150-sekundowy izolat —
+  // audyt wisiał w „running". Dlatego: twardy budżet czasu, mało pobrań, równolegle
+  // i z pominięciem map produktowych (do audytu potrzebujemy stron, nie katalogu).
+  const DEADLINE = Date.now() + 12_000;
+  const left = () => DEADLINE - Date.now();
   const out = new Set<string>();
-  const candidates = new Set<string>([`${base.replace(/\/+$/, "")}/sitemap.xml`, `${base.replace(/\/+$/, "")}/sitemap_index.xml`]);
+  const root = base.replace(/\/+$/, "");
+  const candidates: string[] = [];
   try {
-    const { res, text } = await fetchText(`${base.replace(/\/+$/, "")}/robots.txt`, 8000, {}, 200_000);
-    if (res.ok) for (const m of text.matchAll(/^\s*sitemap:\s*(\S+)/gim)) candidates.add(m[1].trim());
+    const { res, text } = await fetchText(`${root}/robots.txt`, Math.min(4000, left()), {}, 100_000);
+    if (res.ok) for (const m of text.matchAll(/^\s*sitemap:\s*(\S+)/gim)) candidates.push(m[1].trim());
   } catch { /* brak robots.txt to nie błąd */ }
+  candidates.push(`${root}/sitemap.xml`, `${root}/sitemap_index.xml`);
 
-  const readSitemap = async (url: string, depth = 0): Promise<void> => {
-    if (depth > 1 || out.size > 80) return;
+  const SKIP_CHILD = /product|posts?-|tag|category|attachment|brand|author|kategoria|produkt/i;
+  const readOne = async (url: string): Promise<{ locs: string[]; isIndex: boolean }> => {
+    if (left() < 1500) return { locs: [], isIndex: false };
     try {
-      const { res, text } = await fetchText(url, 9000, {}, 2_000_000);
-      if (!res.ok) return;
-      const locs = [...text.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/gi)].map((m) => m[1]);
-      const isIndex = /<sitemapindex/i.test(text);
-      for (const loc of locs.slice(0, isIndex ? 5 : 200)) {
-        if (isIndex) await readSitemap(loc, depth + 1);
-        else {
-          try {
-            const u = new URL(loc);
-            if (u.hostname.replace(/^www\./, "") === host) out.add(u.origin + u.pathname.replace(/\/+$/, ""));
-          } catch { /* pomijamy śmieci */ }
-        }
-      }
-    } catch { /* sitemapa może nie istnieć */ }
+      const { res, text } = await fetchText(url, Math.min(6000, left()), {}, 500_000);
+      if (!res.ok) return { locs: [], isIndex: false };
+      return {
+        locs: [...text.matchAll(/<loc>\s*([^<\s]+)\s*<\/loc>/gi)].map((m) => m[1]),
+        isIndex: /<sitemapindex/i.test(text),
+      };
+    } catch { return { locs: [], isIndex: false }; }
   };
-  for (const c of [...candidates].slice(0, 4)) await readSitemap(c);
+  const addUrls = (locs: string[]) => {
+    for (const loc of locs.slice(0, 300)) {
+      try {
+        const u = new URL(loc);
+        if (u.hostname.replace(/^www\./, "") === host) out.add(u.origin + u.pathname.replace(/\/+$/, ""));
+      } catch { /* pomijamy śmieci */ }
+    }
+  };
+
+  for (const c of [...new Set(candidates)].slice(0, 3)) {
+    if (out.size || left() < 2000) break; // pierwsza działająca mapa wystarczy
+    const first = await readOne(c);
+    if (!first.locs.length) continue;
+    if (!first.isIndex) { addUrls(first.locs); continue; }
+    // indeks: bierzemy maksymalnie 3 mapy potomne, najpierw „page/strony", i to równolegle
+    const children = first.locs
+      .filter((u) => !SKIP_CHILD.test(u))
+      .concat(first.locs.filter((u) => SKIP_CHILD.test(u)))
+      .slice(0, 3);
+    const results = await Promise.all(children.map((u) => readOne(u)));
+    for (const r of results) addUrls(r.locs);
+  }
+  console.log("sitemap:", out.size, "adresów w", 12_000 - left(), "ms");
   return [...out];
 }
 
-async function fetchSubpages(body: string, base: string, host: string): Promise<SubPage[]> {
+async function fetchSubpages(body: string, base: string, host: string, limit = 7, maxBytes = 900_000): Promise<SubPage[]> {
   const seen = new Set<string>();
   const links: { url: string; prio: number }[] = [];
   for (const m of body.matchAll(/<a\b[^>]*href=["']([^"'#]+)["']/gi)) {
@@ -473,10 +509,10 @@ async function fetchSubpages(body: string, base: string, host: string): Promise<
   console.log("linki: w kodzie", links.length - orphans, "| z sitemapy dodatkowo", orphans);
 
   links.sort((a, b) => b.prio - a.prio);
-  const pick = links.slice(0, 7); // pobieramy równolegle, więc szerszy skan nie kosztuje czasu
+  const pick = links.slice(0, limit); // pobieramy równolegle, więc szerszy skan nie kosztuje czasu
   const pages = await Promise.all(pick.map(async (l) => {
     try {
-      const { res, text } = await fetchText(l.url, 16000, {}, 1_500_000);
+      const { res, text } = await fetchText(l.url, 16000, {}, maxBytes);
       if (!res.ok) { console.log("podstrona", l.url, res.status); return null; }
       const b = stripCode(text);
       return {
@@ -507,7 +543,17 @@ function phonesOf(html: string): Set<string> {
 }
 
 async function fetchSite(url: string) {
-  const { res, text: html, ttfbMs } = await fetchText(url, 15000, {}, 2_500_000);
+  // Strony ważące 1-2 MB (np. flavourtec.net: 1,87 MB) potrafią nie zmieścić się
+  // w 15 s przy wolniejszej chwili serwera — wtedy cały audyt kończył się błędem
+  // „The signal has been aborted". Jedno ponowienie z dłuższym limitem to naprawia.
+  let fetched: Awaited<ReturnType<typeof fetchText>>;
+  try {
+    fetched = await fetchText(url, 15000, {}, 2_500_000);
+  } catch (e) {
+    console.log("strona klienta: pierwsza próba nieudana —", String(e).slice(0, 120), "; ponawiam z limitem 30 s");
+    fetched = await fetchText(url, 30000, {}, 2_500_000);
+  }
+  const { res, text: html, ttfbMs } = fetched;
   if (!res.ok) throw new Error(`Strona klienta odpowiedziała ${res.status}`);
   const base = res.url || url;
   const host = new URL(base).hostname.replace(/^www\./, "");
@@ -586,7 +632,14 @@ async function fetchSite(url: string) {
     webp: /\.webp/i.test(html),
   };
 
-  const [logoInfo, subpages] = await Promise.all([pickLogo(body, html, base, ld), fetchSubpages(body, base, host)]);
+  // Ciężkie strony (flavourtec.net: 1,87 MB na stronę) potrafiły przy 7 podstronach
+  // × 1,5 MB przekroczyć 150-sekundowy limit izolatu i audyt wisiał w „running".
+  const heavy = html.length > 800_000;
+  const [logoInfo, subpages] = await Promise.all([
+    pickLogo(body, html, base, ld),
+    fetchSubpages(body, base, host, heavy ? 4 : 7, heavy ? 500_000 : 900_000),
+  ]);
+  if (heavy) console.log("ciężka strona:", Math.round(html.length / 1024), "KB — ograniczam skan podstron do 4×500 KB");
 
   // ── scalenie sygnałów ze wszystkich pobranych stron ────────────────────────
   // Do wersji z 01.09 sygnały liczyliśmy wyłącznie ze strony głównej, więc mapa
@@ -596,7 +649,7 @@ async function fetchSite(url: string) {
   const pageOf = (u: string) => { try { return new URL(u).pathname || "/"; } catch { return u; } };
   const scans: { where: string; scan: PageScan }[] = [
     { where: "/", scan: scanPage(html, body) },
-    ...subpages.map((sp) => ({ where: pageOf(sp.url), scan: sp.scan })),
+    ...subpages.slice(0, heavy ? 2 : 7).map((sp) => ({ where: pageOf(sp.url), scan: sp.scan })),
   ];
   const src: Record<string, string> = {};
   const firstWith = (key: keyof PageScan, sigKey: string): string => {
@@ -948,23 +1001,41 @@ async function fetchPSI(url: string) {
 
 // ======================= Barabash AI =======================
 async function askAI(system: string, user: string, maxTokens: number): Promise<string> {
-  const ctrl = new AbortController();
-  const t = setTimeout(() => ctrl.abort(), 110000);
-  let res: Response;
-  try {
-    res = await fetch(`${AI_URL}/chat/completions`, {
-      method: "POST", signal: ctrl.signal,
-      headers: { Authorization: `Bearer ${AI_KEY}`, "content-type": "application/json" },
-      body: JSON.stringify({
-        model: AI_MODEL,
-        messages: [{ role: "system", content: system }, { role: "user", content: user }],
-        stream: false, temperature: 0.35, max_tokens: maxTokens, think: false,
-      }),
-    });
-  } finally { clearTimeout(t); }
-  if (!res.ok) throw new Error(`Barabash AI: ${res.status} ${(await res.text()).slice(0, 200)}`);
-  const data = await res.json();
-  return data?.choices?.[0]?.message?.content ?? "";
+  // Bramka AI stoi za funnelem Tailscale i potrafi na moment zerwać połączenie
+  // („tls handshake eof"). Bez ponowienia jedno mrugnięcie sieci wywala cały,
+  // trzyminutowy pipeline audytu i zostawia klientowi stronę w stanie „błąd".
+  const call = async (): Promise<string> => {
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort(), 50000); // 2 próby × 50 s mieszczą się w 150-sekundowym izolacie
+    let res: Response;
+    try {
+      res = await fetch(`${AI_URL}/chat/completions`, {
+        method: "POST", signal: ctrl.signal,
+        headers: { Authorization: `Bearer ${AI_KEY}`, "content-type": "application/json" },
+        body: JSON.stringify({
+          model: AI_MODEL,
+          messages: [{ role: "system", content: system }, { role: "user", content: user }],
+          stream: false, temperature: 0.35, max_tokens: maxTokens, think: false,
+        }),
+      });
+    } finally { clearTimeout(t); }
+    if (!res.ok) throw new Error(`Barabash AI: ${res.status} ${(await res.text()).slice(0, 200)}`);
+    const data = await res.json();
+    return data?.choices?.[0]?.message?.content ?? "";
+  };
+  const NET = /tls|handshake|connect|econn|socket|network|eof|dns|unexpected end/i;
+  for (let attempt = 1; ; attempt++) {
+    try {
+      return await call();
+    } catch (e) {
+      const msg = String(e instanceof Error ? e.message : e);
+      // 429 z bramki i zerwane połączenie ponawiamy; błędy treści (400/401) nie mają sensu
+      const retryable = NET.test(msg) || /: 5\d\d |: 429 /.test(msg);
+      if (attempt >= 2 || !retryable) throw e;
+      console.log("askAI: próba", attempt, "nieudana —", msg.slice(0, 120), "; ponawiam");
+      await new Promise((r) => setTimeout(r, 1500));
+    }
+  }
 }
 function closeBrackets(s: string): string {
   let inStr = false, esc = false;
@@ -1100,7 +1171,7 @@ type StageState = {
   logo: string; light: boolean; small: boolean; favicon: string; subpages: string[];
   linked: string[]; brandText: string; phones: string[];
   psi: Awaited<ReturnType<typeof fetchPSI>>; theme: Awaited<ReturnType<typeof extractTheme>>;
-  r1: Record<string, unknown>; r2: Record<string, unknown>; manualRivals: string[];
+  r1?: Record<string, unknown>; r2?: Record<string, unknown>; manualRivals: string[];
   // po etapie 2
   rivals?: RivalLite[]; compCards?: Array<Record<string, unknown>>; r4?: Record<string, unknown>;
   searchInfo?: { queries: string[]; engines: string[]; candidates: number } | null;
@@ -1148,7 +1219,8 @@ Deno.serve(async (req) => {
 
   const db = createClient(supaUrl, service);
   const id = String(body.id ?? "");
-  const stage = Math.max(1, Math.min(3, +(body.stage ?? 1) || 1));
+  const stage = Math.max(1, Math.min(4, +(body.stage ?? 1) || 1));
+  const retry = Math.max(0, +(body.retry ?? 0) || 0);
   if (!id) return json({ error: "Brak id audytu" }, 400);
 
   const { data: audit, error: loadErr } = await db.from("audits").select("*").eq("id", id).maybeSingle();
@@ -1159,20 +1231,34 @@ Deno.serve(async (req) => {
   }
   if (stage === 1) await db.from("audits").update({ status: "running", error: null }).eq("id", id);
 
+  const TRANSIENT = /limit czasu|timeout|abort|tls|handshake|connect|network|socket|eof|: 5\d\d|: 429|dns/i;
   const fail = async (msg: string) => {
+    // Przy 100 audytach dziennie nikt nie będzie klikał „Ponów" po każdym mrugnięciu
+    // sieci — jedno automatyczne powtórzenie etapu robimy sami.
+    if (retry < 1 && TRANSIENT.test(msg)) {
+      console.error("audyt", id, `etap ${stage} błąd przejściowy:`, msg, "— powtarzam etap");
+      await next(stage, retry + 1);
+      return;
+    }
     console.error("audyt", id, `etap ${stage} błąd:`, msg);
     await db.from("audits").update({ status: "error", error: msg }).eq("id", id);
   };
+  // Izolat edge żyje 150 s. Gdy etap się w tym nie zmieści (wolna bramka AI, wolny
+  // serwer klienta), bez tego audyt zostawał na zawsze w stanie „running" i klient
+  // widział wieczny spinner. Teraz dostaje czytelny błąd i przycisk Ponów analizę.
+  const watchdog = setTimeout(() => {
+    void fail(`Etap ${stage} przekroczył limit czasu — kliknij Ponów analizę`);
+  }, 110_000);
   const saveStage = async (st: StageState) => {
     const payload = { site_meta: deepClean({ ...(audit.site_meta ?? {}), _stage: st }) };
     const { error } = await db.from("audits").update(payload).eq("id", id);
     if (error) throw new Error(`Zapis stanu etapu nie powiódł się: ${error.message}`);
   };
-  const next = async (n: number) => {
+  const next = async (n: number, rt = 0) => {
     const r = await fetch(`${supaUrl}/functions/v1/audit-run`, {
       method: "POST",
       headers: { "content-type": "application/json", apikey: anon, Authorization: `Bearer ${anon}`, "x-audit-key": INTERNAL_KEY },
-      body: JSON.stringify({ id, stage: n }),
+      body: JSON.stringify({ id, stage: n, retry: rt }),
     });
     console.log("audyt", id, `→ etap ${n}:`, r.status);
     if (!r.ok) await fail(`Nie udało się uruchomić etapu ${n}: ${r.status}`);
@@ -1187,7 +1273,14 @@ Deno.serve(async (req) => {
       let url = String(audit.site_url).trim();
       if (!/^https?:\/\//i.test(url)) url = "https://" + url;
       const psiPromise = fetchPSI(url).catch(() => null);
-      const meta = await fetchSite(url);
+      // Twardy limit na pobieranie: bez tego zawieszony fetch zjadał cały izolat,
+      // a audyt zostawał na zawsze w stanie „running" (klient widzi wieczny spinner).
+      const meta = await Promise.race([
+        fetchSite(url),
+        new Promise<never>((_, rej) =>
+          setTimeout(() => rej(new Error("Pobieranie strony klienta przekroczyło 100 s — kliknij Ponów analizę")), 100_000)
+        ),
+      ]);
       console.log("audyt", id, lap(), "strona pobrana:", meta.host, "podstron:", meta.subpages.length, "logo:", meta.logo || "(brak)");
       const themePromise = extractTheme(meta.html, meta.finalUrl).catch(() => null);
       const brief = siteBrief(meta, audit.client_name, url, true);
@@ -1195,6 +1288,30 @@ Deno.serve(async (req) => {
       const manualRivals = String(audit.competitors || "")
         .split(/[,;\n]+/).map(normDomain).filter(d => d && d.includes(".")).slice(0, 4);
 
+      const [psi, theme] = await Promise.all([psiPromise, themePromise]);
+      const linked = [...new Set([...meta.html.matchAll(/https?:\/\/([a-z0-9.-]+\.[a-z]{2,})/gi)].map(m => normDomain(m[1])).filter(d => d && !sameSite(d, meta.host)))].slice(0, 300);
+      const st: StageState = {
+        url, finalUrl: meta.finalUrl, host: meta.host, title: meta.title, desc: meta.desc, h1n: meta.h1.length,
+        brief, briefShort, perf: meta.perf, signals: meta.signals, scanInfo: meta.scanInfo,
+        logo: meta.logo, light: meta.light, small: meta.small, favicon: meta.favicon, subpages: meta.subpages.map(p => p.url),
+        linked, brandText: stripTags(meta.body).toLowerCase().slice(0, 30_000), phones: meta.signals.phones,
+        psi, theme, manualRivals, startedAt: new Date().toISOString(),
+      };
+      await saveStage(st);
+      console.log("audyt", id, lap(), "etap 1 zapisany (strona + PSI + paleta)");
+      await next(2);
+      return;
+    }
+
+    const st = (audit.site_meta?._stage ?? null) as StageState | null;
+    if (!st) throw new Error(`Brak zapisanego stanu etapu 1 (etap ${stage}) — kliknij „Ponów analizę"`);
+
+    // ======================= ETAP 2: para wywołań modelu =======================
+    // Wydzielony z etapu 1: pobranie strony + PSI + paleta potrafiły zająć pół izolatu,
+    // a dwa wywołania modelu drugie pół — przy wolniejszym kliencie albo bramce
+    // etap nie mieścił się w 150 s i audyt kończył się błędem. Teraz każdy etap ma
+    // własny, pełny budżet czasu — to warunek pracy przy ~100 audytach dziennie.
+    if (stage === 2) {
       const p1 = `Przeanalizuj stronę klienta pod kątem SEO i widoczności w AI (GEO). Zwróć JSON o DOKŁADNIE tej strukturze:
 {
  "firma": "krótka nazwa firmy",
@@ -1210,12 +1327,12 @@ Deno.serve(async (req) => {
  "plus": [ "co już działa — konkret ze strony" ],   // dokładnie 4
  "minus": [ "co kosztuje widoczność lub sprzedaż — konkret" ],   // dokładnie 4
  "scores": { "google": 0, "ai": 0, "technika": 0, "tresc": 0 },  // 0-100, uczciwie
- "search_queries": [ "zapytanie do wyszukiwarki" ]  // dokładnie 4 KRÓTKIE zapytania PO POLSKU (2-5 słów), jakimi klient końcowy szuka TAKIEJ firmy jak ta w Google (usługa/produkt + ewentualnie miasto/region dla firm lokalnych; dla B2B: producent/hurtownia/dostawca + produkt). Bez nazwy klienta. Wyniki posłużą do znalezienia BEZPOŚREDNICH konkurentów${manualRivals.length ? "" : `,
+ "search_queries": [ "zapytanie do wyszukiwarki" ]  // dokładnie 4 KRÓTKIE zapytania PO POLSKU (2-5 słów), jakimi klient końcowy szuka TAKIEJ firmy jak ta w Google (usługa/produkt + ewentualnie miasto/region dla firm lokalnych; dla B2B: producent/hurtownia/dostawca + produkt). Bez nazwy klienta. Wyniki posłużą do znalezienia BEZPOŚREDNICH konkurentów${st.manualRivals.length ? "" : `,
  "competitor_domains": [ "domena.pl" ]  // do 5 domen realnych bezpośrednich konkurentów, tylko jeśli jesteś ich pewien (inaczej pusta lista); bez mediów, katalogów, marek klienta`}
 }
 Pisz zwięźle. Opieraj się TYLKO na danych ze strony. Nie wymyślaj liczb ruchu.
 
-${brief}`;
+${st.brief}`;
       const p2 = `Dla tej samej strony przygotuj część ofertową audytu. Zwróć JSON o DOKŁADNIE tej strukturze:
 {
  "keywords": [ { "phrase": "fraza po polsku", "intent": "informacyjna|zakupowa|lokalna|porównawcza", "potential": "wysoki|średni|niski" } ],  // dokładnie 8 fraz, którymi realni klienci szukają takich usług (konkretnie pod ofertę i lokalizację klienta)
@@ -1226,31 +1343,25 @@ ${brief}`;
 }
 Pisz zwięźle. Frazy i prompty mają pasować do branży i oferty klienta (wg strony). Bez wymyślonych liczb.
 
-${briefShort.slice(0, 3600)}`;
+${st.briefShort.slice(0, 3600)}`;
 
       const [r1, r2] = await Promise.all([askJson(SYS, p1, 1600), askJson(SYS, p2, 1700)]);
       console.log("audyt", id, lap(), "para 1 gotowa; branża:", r1.branza, "| zasięg:", r1.zasieg, "| lokalizacja:", r1.lokalizacja);
-      const [psi, theme] = await Promise.all([psiPromise, themePromise]);
-      const linked = [...new Set([...meta.html.matchAll(/https?:\/\/([a-z0-9.-]+\.[a-z]{2,})/gi)].map(m => normDomain(m[1])).filter(d => d && !sameSite(d, meta.host)))].slice(0, 300);
-      const st: StageState = {
-        url, finalUrl: meta.finalUrl, host: meta.host, title: meta.title, desc: meta.desc, h1n: meta.h1.length,
-        brief, briefShort, perf: meta.perf, signals: meta.signals, scanInfo: meta.scanInfo,
-        logo: meta.logo, light: meta.light, small: meta.small, favicon: meta.favicon, subpages: meta.subpages.map(p => p.url),
-        linked, brandText: stripTags(meta.body).toLowerCase().slice(0, 30_000), phones: meta.signals.phones,
-        psi, theme, r1, r2, manualRivals, startedAt: new Date().toISOString(),
-      };
-      await saveStage(st);
-      console.log("audyt", id, lap(), "etap 1 zapisany");
-      await next(2);
+
+      await saveStage({ ...st, r1, r2 });
+      console.log("audyt", id, lap(), "etap 2 zapisany (diagnoza + oferta)");
+      await next(3);
       return;
     }
 
-    const st = (audit.site_meta?._stage ?? null) as StageState | null;
-    if (!st) throw new Error(`Brak zapisanego stanu etapu 1 (etap ${stage}) — kliknij „Ponów analizę"`);
-    const r1 = st.r1;
+    const r1 = st.r1 ?? {}; // etap 2 zapisuje r1/r2; tu są już na pewno
 
     // ======================= ETAP 2: konkurenci =======================
-    if (stage === 2) {
+    if (stage === 3) {
+      // Konkurencja to WZBOGACENIE audytu, nie jego rdzeń: wyszukiwarka albo strona
+      // konkurenta potrafi się zawiesić i przy 100 audytach dziennie nie może to
+      // wywalać całego raportu. Cokolwiek się tu wywali — lecimy dalej bez konkurentów.
+      try {
       const clientHost = st.host;
       const GENERIC_WORDS = new Set(["group", "grupa", "polska", "poland", "company", "agency", "agencja", "studio", "academy", "akademia", "racing", "sport", "sports", "team", "biuro", "office", "serwis", "service", "online", "sklep", "store", "centrum", "center", "klinika", "clinic", "salon", "hotel", "restauracja", "firma"]);
       const clientBrandTokens = [clientHost.split(".")[0], ...String(audit.client_name || "").toLowerCase().split(/[^a-z0-9ąćęłńóśźż]+/)]
@@ -1369,8 +1480,15 @@ ${st.briefShort.slice(0, 2600)}`;
       st.r4 = r4;
       st.searchInfo = searchInfo;
       await saveStage(st);
-      console.log("audyt", id, lap(), "etap 2 zapisany");
-      await next(3);
+      console.log("audyt", id, lap(), "etap 3 zapisany (konkurencja)");
+      } catch (e) {
+        console.error("audyt", id, "etap 3 (konkurencja) nieudany — audyt leci dalej bez niej:", String(e).slice(0, 200));
+        st.rivals = [];
+        st.compCards = [];
+        st.searchInfo = null;
+        await saveStage(st);
+      }
+      await next(4);
       return;
     }
 
@@ -1491,12 +1609,43 @@ ${st.brief.slice(0, 3600)}`;
       scores[k] = Number.isFinite(v) && v > 0 ? Math.min(100, v) : heur[k];
     }
 
+    // Model bywa oszczędny albo ucina odpowiedź i sekcja „Punkt wyjścia" znikała
+    // całkowicie (tak stało się z audytem fastline-infinitiq). Przy setce audytów
+    // dziennie nie może to zależeć od humoru modelu — brakujące metryki budujemy
+    // z sygnałów, które i tak zmierzyliśmy sami.
+    const sgn = st.signals;
+    const aiMetrics = (Array.isArray(r1.metrics) ? r1.metrics as Array<Record<string, unknown>> : [])
+      .filter(m => String(m?.label ?? "").trim() && String(m?.value ?? "").trim());
+    const FALLBACK_METRICS: Array<[string, boolean]> = [
+      ["dane strukturalne Schema.org", sgn.hasSchema],
+      ["opis strony (meta description)", !!st.desc],
+      ["Open Graph (podgląd linku)", sgn.hasOg],
+      ["FAQ w kodzie (Schema FAQ)", sgn.faqSchema],
+      ["blog / aktualności", sgn.blog],
+      ["rezerwacja online", sgn.booking],
+      ["czat lub agent na stronie", !!sgn.chatWidget],
+      ["mapa Google", sgn.maps],
+      ["ceny widoczne na stronie", sgn.pricesOnSite],
+      ["formularz kontaktowy", (sgn.forms ?? 0) > 0],
+    ];
+    const metrics = aiMetrics.length >= 4
+      ? aiMetrics
+      : [
+        ...aiMetrics,
+        ...FALLBACK_METRICS
+          .filter(([label]) => !aiMetrics.some(m => String(m.label ?? "").toLowerCase().includes(label.split(" ")[0].toLowerCase())))
+          .slice(0, 6 - aiMetrics.length)
+          .map(([label, ok]) => ({ value: ok ? "JEST" : "BRAK", label })),
+      ];
+    if (aiMetrics.length < 4) console.log("audyt", id, "metryki uzupełnione z sygnałów:", metrics.length);
+
     const rivals = st.rivals ?? [];
     const measuredRivals = rivals.filter(r => r.measured);
     const unmeasuredRivals = rivals.filter(r => !r.measured);
     const content = {
-      ...r1, ...st.r2, ...(st.r4 ?? {}),
+      ...r1, ...(st.r2 ?? {}), ...(st.r4 ?? {}),
       scores,
+      metrics,
       products, packages,
       speed: { psi: st.psi, local: st.perf },
       competitors: st.compCards ?? [],
@@ -1535,6 +1684,8 @@ ${st.brief.slice(0, 3600)}`;
     console.log("audyt", id, lap(), "gotowy (start etapu 1:", st.startedAt, ")");
   } catch (e) {
     await fail(e instanceof Error ? e.message : String(e));
+  } finally {
+    clearTimeout(watchdog); // etap się zakończył (sukcesem albo błędem) — pies nie szczeka
   }
   })();
 

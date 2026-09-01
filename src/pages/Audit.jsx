@@ -82,14 +82,20 @@ const METRIC_EXPLAIN = [
   [/h1|nagłów|tytuł|title|meta ?opis|description/i, 'Tytuł, opis i nagłówki to pierwsze zdanie, jakie strona mówi o sobie wyszukiwarce. Puste albo powielone — kasują szansę na trafne dopasowanie do zapytania.'],
   [/sklep|koszyk|e-?commerce/i, 'Funkcje sklepowe pozwalają domknąć sprzedaż bez rozmowy — a wyszukiwarce pokazać produkty wraz z cenami i dostępnością.'],
   [/analit|pixel|tag manager/i, 'Bez analityki nie da się powiedzieć, które działanie przyniosło klienta — a więc ani powtórzyć tego, co działa, ani odciąć tego, co przepala budżet.'],
+  [/wideo|video|film/i, 'Materiały wideo trzymają odwiedzającego na stronie dłużej — a czas na stronie jest jednym z sygnałów jakości. Dodatkowo film z transkrypcją to treść, którą wyszukiwarka i modele AI mogą zacytować.'],
+  [/social|facebook|instagram|media społecz/i, 'Aktywne profile spięte ze stroną potwierdzają, że firma działa — to jeden z sygnałów wiarygodności, które sprawdzają zarówno klienci, jak i algorytmy.'],
+  [/cookie|rodo|zgod/i, 'Baner zgód to wymóg prawny przy analityce i reklamie; jego brak albo zła konfiguracja potrafią zablokować zbieranie danych o klientach.'],
 ];
+// Etykiety metryk pisze model, więc słownik nigdy nie pokryje wszystkiego —
+// zamiast zostawiać pustkę, tłumaczymy przynajmniej, co znaczy sam pomiar.
+const GENERIC_EXPLAIN = 'Sprawdzamy to bezpośrednio w kodzie Waszej strony. „BRAK" znaczy, że elementu nie widzi ani wyszukiwarka, ani model AI — a to one decydują, czy klient trafi do Was, zanim w ogóle Was pozna.';
 // polska odmiana rzeczownika po liczbie (1 adres / 2-4 adresy / 5+ adresów)
 const plForm = (n, one, few, many) => {
   const a = Math.abs(+n || 0), d = a % 10, h = a % 100;
   if (a === 1) return one;
   return (d >= 2 && d <= 4 && !(h >= 12 && h <= 14)) ? few : many;
 };
-const explainMetric = (label) => (METRIC_EXPLAIN.find(([re]) => re.test(String(label || '')))?.[1]) || null;
+const explainMetric = (label) => METRIC_EXPLAIN.find(([re]) => re.test(String(label || '')))?.[1] || GENERIC_EXPLAIN;
 
 // Definicje pomiarów szybkości (podpowiedź pod każdym słupkiem).
 const CWV_HINT = {
@@ -422,7 +428,9 @@ export default function Audit() {
                     {plForm(scan?.pages?.length || 1 + subpages.length, 'strony', 'stron', 'stron')} — przy elementach
                     znalezionych poza stroną główną piszemy, na której podstronie są.
                     {scan?.jsHeavy
-                      ? ` „Nie znaleziono" znaczy dokładnie tyle: tego elementu nie ma w kodzie, który serwer wysyła przed uruchomieniem JavaScriptu. Wasza strona (${scan.builder || 'kreator stron'}) dorysowuje sporą część treści skryptem — w kodzie widać tylko ${scan.visibleChars} znaków tekstu. Google zwykle taki JavaScript wykona, ale roboty modeli AI (ChatGPT, Perplexity) najczęściej nie — i dla nich ta część strony po prostu nie istnieje. To nie jest błąd audytu, tylko realny problem widoczności w AI.`
+                      ? ` „Nie znaleziono" znaczy dokładnie tyle: tego elementu nie ma w kodzie, który serwer wysyła przed uruchomieniem JavaScriptu. ${
+                          scan.builder ? `Wasza strona (${scan.builder}) dorysowuje` : 'Wasza strona buduje'
+                        } treść skryptem — w surowym kodzie strony głównej widać tylko ${scan.visibleChars} znaków tekstu. Google zwykle taki JavaScript wykona, ale roboty modeli AI (ChatGPT, Perplexity, Claude) najczęściej nie — i dla nich ta część strony po prostu nie istnieje. To nie jest błąd audytu, tylko jedna z najważniejszych rzeczy do naprawienia: bez treści w kodzie nie ma czego cytować w odpowiedziach AI.`
                       : ' „Nie znaleziono" znaczy, że elementu nie ma w kodzie żadnej z tych stron — a więc nie widzi go ani wyszukiwarka, ani model AI. Jeśli element jest na stronie, ale dorysowuje go skrypt, dla botów AI zwykle nie istnieje.'}
                   </div>
                 </>
