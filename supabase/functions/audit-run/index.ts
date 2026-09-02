@@ -13,7 +13,7 @@
 //  5. pakiety Start / Wzrost / Skala liczone w kodzie z cen katalogowych (nie przez AI)
 // Ograniczenia: max 2 równoległe wywołania AI (wspólny gateway), model z env AUDIT_MODEL.
 // Izolat edge żyje ~150 s → audyt jedzie w 3 etapach (funkcja woła samą siebie), panel polluje status.
-import { createClient } from "jsr:@supabase/supabase-js@2";
+import { createClient, type SupabaseClient } from "jsr:@supabase/supabase-js@2";
 
 const CORS = {
   "Access-Control-Allow-Origin": "*",
@@ -21,9 +21,30 @@ const CORS = {
   "Access-Control-Allow-Methods": "POST, OPTIONS",
 };
 
-const AI_URL = (Deno.env.get("BARABASH_AI_URL") ?? "https://barabash-ai.tailcd3444.ts.net/v1").replace(/\/+$/, "");
-const AI_KEY = Deno.env.get("BARABASH_AI_KEY") ?? "";
-const AI_MODEL = Deno.env.get("AUDIT_MODEL") ?? "qwen3.5:9b";
+// Dostawca modelu: ta sama konfiguracja co panel Brain (brain_settings.ai_provider),
+// więc przełączenie na DeepSeek w panelu obejmuje TAKŻE audyty. Gdy wiersza nie ma,
+// zostają sekrety środowiska (Barabash AI) — czyli zachowanie jak dotąd.
+let AI_URL = (Deno.env.get("BARABASH_AI_URL") ?? "https://barabash-ai.tailcd3444.ts.net/v1").replace(/\/+$/, "");
+let AI_KEY = Deno.env.get("BARABASH_AI_KEY") ?? "";
+let AI_MODEL = Deno.env.get("AUDIT_MODEL") ?? "qwen3.5:9b";
+async function loadProvider(db: SupabaseClient): Promise<void> {
+  try {
+    const { data } = await db.from("brain_settings").select("value").eq("key", "ai_provider").maybeSingle();
+    const ai = (data?.value ?? {}) as { base_url?: string; model?: string; key_secret?: string };
+    const base = (ai.base_url || "").trim().replace(/\/+$/, "");
+    if (base) {
+      AI_URL = base.endsWith("/v1") ? base : `${base}/v1`;
+      const secretName = (ai.key_secret || "BRAIN_AI_KEY").trim();
+      const key = Deno.env.get(secretName) || "";
+      if (key) AI_KEY = key;
+      else console.error("dostawca AI: brak sekretu", secretName, "— zostaję przy Barabash AI");
+      if (ai.model) AI_MODEL = ai.model.trim();
+      console.log("dostawca AI z panelu:", AI_URL, AI_MODEL);
+    }
+  } catch (e) {
+    console.error("dostawca AI: nie udało się wczytać ustawień —", String(e).slice(0, 150));
+  }
+}
 // klucz do wywołań wewnętrznych (etapy 2/3 + debug) — secret AUDIT_INTERNAL_KEY
 const INTERNAL_KEY = Deno.env.get("AUDIT_INTERNAL_KEY") ?? "";
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126 Safari/537.36";
@@ -37,99 +58,141 @@ type Product = {
   id: number; name: string; group: string; sense: "Brain" | "Mind" | "Hand" | "Heart" | "Eyes";
   tagline: string; does: string[]; problem: string; effect: string; impl: number; sub: number;
 };
-const CATALOG: Product[] = [
-  { id: 1, name: "AI Agents Suite", group: "Agenci i obsługa klienta", sense: "Brain",
-    tagline: "Trzej agenci AI na czacie, w social, na WhatsAppie i na telefonie.",
-    does: ["Agent Sprzedawca: łapie zapytanie w sekundę i prowadzi rozmowę do zamknięcia albo umówionego spotkania", "Agent Doradca: dobiera wariant oferty do potrzeb, rozbraja wątpliwości, prowadzi przez zakup", "Agent Asystent: wewnętrzna baza wiedzy dla zespołu"],
-    problem: "leady giną wieczorem i w weekend, klient czeka na odpowiedź i pisze do konkurencji, a każdy człowiek na pierwszej linii to rekrutacja, koszt i rotacja",
-    effect: "sprzedaż i obsługa działają non-stop, w każdym kanale, bez powiększania zespołu", impl: 6000, sub: 3000 },
-  { id: 2, name: "AI Reception", group: "Agenci i obsługa klienta", sense: "Heart",
-    tagline: "Głosowy agent, który odbiera telefon 24/7 i prowadzi kalendarz wizyt.",
-    does: ["Odbiera i umawia na telefonie naturalnym głosem o każdej porze (rezerwacje, przełożenia, odwołania)", "Synchronizuje się z grafikiem zespołu — bez podwójnych rezerwacji", "Wysyła SMS-przypomnienia przed wizytą — tnie nieobecności"],
-    problem: "telefon dzwoni, gdy nikt nie może odebrać (wieczór, weekend, zabieg), klient idzie do konkurencji; recepcja tonie w telefonach; no-showy zżerają grafik",
-    effect: "żaden telefon nie zostaje bez odpowiedzi, kalendarz zapełnia się sam, przypomnienia tną nieobecności", impl: 3000, sub: 1500 },
-  { id: 3, name: "Quality Relationship Intelligence", group: "Sprzedaż", sense: "Eyes",
-    tagline: "Więcej niż CRM: strategia relacji z każdym klientem plus kontrola jakości 100% rozmów.",
-    does: ["Indywidualna strategia prowadzenia każdego klienta: gdzie jesteśmy, dokąd zmierzamy, następny cel", "Gotowa komunikacja, cele i argumentacja dla handlowca pod konkretnego człowieka", "Kolejka priorytetów: kogo ruszyć i kiedy", "Kontrola jakości 100% rozmów, czatów i maili — wskazuje, gdzie zespół traci sprzedaż", "Pętla ucząca: najlepsze rozmowy stają się wzorcem"],
-    problem: "CRM przechowuje historię, ale handlowiec sam wymyśla, co z nią zrobić; nikt nie sprawdza, jak poszła rozmowa, więc te same błędy powtarzają się miesiącami",
-    effect: "każdy klient prowadzony jak przez najlepszego stratega w firmie; sprzedaż przestaje zależeć od tego, kto ma dobry dzień", impl: 8000, sub: 3500 },
-  { id: 4, name: "AI Instant Offer Engine", group: "Sprzedaż", sense: "Hand",
-    tagline: "Oferta z briefu w kilka minut, z trackingiem otwarć i automatycznym follow-upem.",
-    does: ["Składa wycenioną ofertę z briefu w minuty — dobór produktów, kalkulacja, skład w identyfikacji marki", "Śledzi, kto otworzył ofertę, ile czytał i gdzie się zatrzymał", "Sam pilnuje follow-upu, gdy klient milczy"],
-    problem: "oferta powstaje ręcznie dzień lub trzy po rozmowie, klient stygnie, a po wysyłce wpada do czarnej dziury",
-    effect: "oferta wychodzi tego samego dnia, wygląda profesjonalnie i sama się pilnuje; handlowiec dzwoni, kiedy klient realnie czyta", impl: 3000, sub: 1500 },
-  { id: 5, name: "Loyalty OS", group: "Sprzedaż", sense: "Heart",
-    tagline: "Własna aplikacja lojalnościowa w Twoim brandingu, instalowana z linku/QR, z gamifikacją i AI push.",
-    does: ["Aplikacja pod marką klienta instalowana z linku lub QR — bez App Store i Google Play, bez prowizji", "Panel: punkty, nagrody, kupony, segmenty; AI układa kampanie push do właściwych klientów we właściwym momencie", "Gamifikacja: punkty, wyzwania, poziomy", "Mechanika dopasowana do branży (klinika, gastro, retail, usługi)"],
-    problem: "klient kupuje raz i przepada, a jedyny kanał powrotu to płatne social media, gdzie za dotarcie do własnych klientów płaci się co miesiąc",
-    effect: "klient wraca częściej, jego wartość w czasie rośnie, firma ma własny bezpłatny kanał kontaktu niezależny od Meta i Google", impl: 5000, sub: 2200 },
-  { id: 6, name: "Command Center", group: "Operacje i zarządzanie", sense: "Brain",
-    tagline: "Rozmawiaj z danymi swojej firmy: pytasz zwykłym językiem, dostajesz odpowiedź, wykres albo akcję.",
-    does: ["AI podpięte do CRM, baz danych i stanów magazynowych — odpowiedź i wykres na żądanie", "Widzi do przodu: zauważa, co się kończy, i domyka (np. zamawia z wyprzedzeniem)", "Jedno źródło prawdy dla całej firmy"],
-    problem: "dane siedzą w kilku systemach i arkuszach; decyzje zapadają na przeczucie albo za późno, po raporcie w piątek",
-    effect: "zarząd dostaje odpowiedź w minutę, firma pracuje na jednym źródle prawdy, rutyna dzieje się sama", impl: 6000, sub: 2500 },
-  { id: 7, name: "AI CFO", group: "Operacje i zarządzanie", sense: "Brain",
-    tagline: "Dyrektor finansowy na zawołanie, z data hubem i kontekstem z rynku.",
-    does: ["Odpowiada na każde pytanie o pieniądze natychmiast: rentowność, marża, koszty, płynność, scenariusze co-jeśli", "Data hub spina dane firmy + sygnały z rynku (sezon, trendy, pogoda)", "Prognozuje lukę w kasie, pilnuje marży, sam wysyła monity za przeterminowane faktury"],
-    problem: "właściciel podejmuje decyzje finansowe na czuja albo czeka na zamknięcie miesiąca; na etat dyrektora finansowego mała firma nie idzie",
-    effect: "dyrektor finansowy 24/7 na danych firmy i kontekście rynku; decyzje o pieniądzach przestają być zgadywaniem", impl: 5000, sub: 2500 },
-  { id: 8, name: "Warehouse Autopilot", group: "Operacje i zarządzanie", sense: "Hand",
-    tagline: "AI przejmuje zakupy i stany: prognoza rotacji, dostawcy, automatyczne zamówienia.",
-    does: ["Prognozuje rotację i sezon — zakupy pod realny popyt", "Znajduje i porównuje dostawców, pokazuje, gdzie kupić taniej lub szybciej", "Zamawia automatycznie z wyprzedzeniem dopasowanym do czasu dostawy"],
-    problem: "albo brakuje towaru i tracisz sprzedaż, albo magazyn jest zapchany, a gotówka zamrożona; jedno i drugie liczone ręcznie w Excelu",
-    effect: "mniej braków na półce i mniej kapitału zamrożonego w towarze; zakupy prowadzą się same", impl: 5000, sub: 2200 },
-  { id: 9, name: "WorkPilot", group: "Operacje i zarządzanie", sense: "Hand",
-    tagline: "Twój project manager AI: zna zadania i terminy, przypomina zawczasu, sam rozdziela pracę.",
-    does: ["Przypomina zawczasu, nie po fakcie, i dopytuje, czy zrobione", "Codzienny raport dla zarządu: zrobione kontra zaległe", "Rozdziela zadania automatycznie do właściwych osób"],
-    problem: "terminy wiszą na pamięci ludzi; szef nie wie, co zrobione, dopóki nie zapyta; ktoś ręcznie przypomina i spina — i to jest wąskie gardło",
-    effect: "projekty płyną, zespół dostaje zadania i przypomnienia sam, zarząd ma obraz na bieżąco", impl: 3000, sub: 1500 },
-  { id: 10, name: "AI Dynamic Pricing", group: "Operacje i zarządzanie", sense: "Eyes",
-    tagline: "Ceny nadążają za rynkiem: monitoring konkurencji i popytu, symulacja marży, auto-zmiana w Twoich regułach.",
-    does: ["Śledzi ceny konkurencji i popyt na żywo", "Rekomenduje cenę i marżę, symuluje skutek zmiany, zanim ją wdrożysz", "Zmienia ceny automatycznie w ustalonych regułach i granicach"],
-    problem: "cenę ustawia się raz i zostaje na lata; firma traci marżę na hitach i sprzedaż na produktach za drogich; konkurencja zmienia ceny co tydzień",
-    effect: "cena nadąża za rynkiem bez ręcznej pracy, marża pilnowana na bieżąco", impl: 4000, sub: 2200 },
-  { id: 11, name: "AI Content Factory", group: "Marketing i treści", sense: "Mind",
-    tagline: "Copy i grafiki sprzedażowe w tonie Twojej marki, z planem publikacji na miesiąc.",
-    does: ["Pisze teksty pod posty, promocje i kampanie w tonie marki (kontekst z Brand Voice Core)", "Robi grafiki sprzedażowe w identyfikacji marki — bez stocków i czekania na grafika", "Układa plan publikacji na miesiąc do przodu"],
-    problem: "treści trzeba produkować stale, a nie ma tego kto robić — profil zamiera; generyczne AI brzmi jak wszyscy",
-    effect: "stała produkcja treści i grafik w tonie marki, z planem, bez zespołu i wąskiego gardła", impl: 3000, sub: 1800 },
-  { id: 12, name: "SEO & GEO Autopilot", group: "Marketing i treści", sense: "Mind",
-    tagline: "Auto-blog pod Google i widoczność w odpowiedziach AI (GEO), instalacja w jednym kliknięciu.",
-    does: ["Audyt i mapa słów kluczowych na start", "Pisze i publikuje bloga w harmonogramie, w tonie marki", "Optymalizuje pod pozycje w Google i cytowania w ChatGPT, Perplexity, Google AI Overviews (GEO)"],
-    problem: "content trzeba produkować stale, a blog stoi; drugi front: klient pyta AI, a jeśli model o firmie nie wie — firma nie istnieje w tej rozmowie",
-    effect: "stały dopływ darmowego ruchu organicznego plus obecność w odpowiedziach AI, na autopilocie", impl: 3000, sub: 1800 },
-  { id: 13, name: "AI Reputation Management", group: "Marketing i treści", sense: "Eyes",
-    tagline: "Monitoring i obsługa opinii w Google, social i portalach branżowych, głosem marki.",
-    does: ["Odpowiada na każdą opinię w kilka minut, w tonie marki", "Alarmuje przy negatywie i sygnale kryzysu", "Sam prosi zadowolonych klientów o opinię — ocena rośnie"],
-    problem: "opinie decydują o zakupie, ale nikt ich nie pilnuje; negatyw wisi tygodniami; zadowoleni milczą, bo nikt ich nie poprosił",
-    effect: "ocena marki rośnie, każda opinia ma odpowiedź, negatyw gaszony wcześnie", impl: 2000, sub: 1200 },
-  { id: 14, name: "AI Creative Director", group: "Marketing i treści", sense: "Mind",
-    tagline: "Asystent, który dobiera najlepsze narzędzia AI i robi foto oraz wideo spójne z marką.",
-    does: ["Dobiera narzędzie AI do zadania (gadająca głowa, foto produktowe, cięcia)", "Produkuje od konceptu do gotowca: awatary, UGC, foto produktowe, wersje pod Reels/TikTok/Meta/YouTube", "Pilnuje spójności marki; dubbing i napisy na rynki zagraniczne"],
-    problem: "narzędzi AI do foto i wideo są dziesiątki, każde robi coś innego — wideo w ogóle nie powstaje, bo nikt nie ma czasu tego poskładać",
-    effect: "foto i wideo powstają na zawołanie, spójne z marką, w każdym formacie i języku", impl: 3000, sub: 2200 },
+const CATALOG_FALLBACK: Product[] = [
+  { id: 1, name: "AI Agents Suite", group: "Agenci i obsługa", sense: "Brain",
+    tagline: "Trzej agenci AI na czacie, w social, na WhatsAppie i na telefonie. Trzej agenci. Jeden system. Zero drugiej zmiany. Trzej agenci AI z wyraźną rolą, pracujący tam, gdzie Twój klient już jest: czat na stronie, Messenger, Instagram, WhatsApp i telefon. Znają Twoją ofertę, ceny i ton marki. Grają jak zg",
+    does: ["Łapie zapytanie w sekundę i prowadzi rozmowę aż do zamknięcia albo umówionego spotkania. Konkurencja jeszcze nie oddzwoniła, on już domyka. Agent Doradca. Tłumaczy ofertę na język decyzji.", "Dobiera wariant do realnych potrzeb, rozbraja wątpliwości i przeprowadza klienta przez zakup, krok po kroku. Agent Asystent. Pamięć operacyjna firmy.", "Odpowiada Twojemu zespołowi z wewnętrznej bazy wiedzy, żeby nikt nie szukał po omacku ani nie tłumaczył tego samego dziesiąty raz."],
+    problem: "leady giną wieczorem i w weekend, klient czeka na odpowiedź i w tym czasie pisze do konkurencji, a każdy nowy człowiek na pierwszej linii to rekrutacja, koszt i rotacja.",
+    effect: "sprzedaż i obsługa działają non-stop, w każdym kanale, bez powiększania zespołu. Płacisz za wynik, nie za etaty.", impl: 6000, sub: 3000 },
+  { id: 2, name: "AI Reception", group: "Agenci i obsługa", sense: "Heart",
+    tagline: "Głosowy agent, który odbiera telefon 24/7 i prowadzi kalendarz wizyt (persona: Agent Recepcja). Żaden telefon nie dzwoni w próżnię. Odbiera, umawia i przypomina, także wieczorem, w weekend i w środku zabiegu. Głosowy agent AI, który odbiera telefon 24/7 i prowadzi kalendarz wizyt. Rezerwuje, przekła",
+    does: ["Rezerwacje, przełożenia i odwołania prowadzi sam, naturalnym głosem, o każdej porze.", "Klient załatwia sprawę od razu, zamiast dzwonić do następnego. Trzyma kalendarz w ryzach.", "Synchronizuje się z grafikiem zespołu, więc nie ma podwójnych rezerwacji ani okienek, o których nikt nie pamiętał. Ścina nieobecności.", "Wysyła SMS przypomnienia przed wizytą, żeby grafik nie świecił dziurami po no-showach."],
+    problem: "telefon dzwoni, gdy nikt nie może odebrać (wieczór, weekend, zabieg), więc klient idzie do konkurencji. A gdy recepcja odbiera, tonie w telefonach zamiast obsługiwać gości na miejscu. Do tego nieobecności zżerają grafik i przychód.",
+    effect: "żaden telefon nie zostaje bez odpowiedzi, kalendarz zapełnia się sam, a przypomnienia tną nieobecności. Recepcja pracuje na okrągło i nigdy nie choruje.", impl: 3000, sub: 1500 },
+  { id: 3, name: "LeadEngine", group: "Sprzedaż", sense: "Hand",
+    tagline: "Autonomiczne pozyskiwanie leadów: szuka, kwalifikuje i sam nawiązuje pierwszy kontakt. Lejek nie zaczyna się od czekania. System sam znajduje klientów i przyprowadza rozmowy, które już się zaczęły. Agent, który non-stop szuka Twoich klientów tam, gdzie realnie są: w rejestrach firm, na LinkedInie, w",
+    does: ["LinkedIn, rejestry firm, Mapy Google, portale i grupy branżowe, zapytania ofertowe i przetargi.", "Jeden system zamiast pięciu subskrypcji i ręcznego przeklikiwania. Kwalifikuje pod Twój profil klienta.", "Ocenia dopasowanie po branży, wielkości, lokalizacji i sygnałach zakupowych, więc zespół nie dzwoni na oślep i nie traci dnia na przypadkowych. Uzupełnia dane i weryfikuje kontakt.", "Dociąga osobę decyzyjną, adres i telefon oraz sprawdza poprawność e-maila, żeby wiadomości docierały, a domena nie ucierpiała. Sam nawiązuje pierwszy kontakt.", "Pisze wiadomość pod konkretną firmę i prowadzi sekwencję follow-upów.", "Odpowiedź trafia do CustomerHub, gdzie zaczyna się prowadzona rozmowa."],
+    problem: "nowi klienci biorą się z poleceń i płatnych reklam, a gdy jedno albo drugie siada, lejek pustoszeje. Ręczne szukanie leadów zjada handlowcowi pół dnia, więc robi to nieregularnie albo wcale. Kupione bazy są nieaktualne i zimne.",
+    effect: "stały, przewidywalny dopływ leadów, niezależny od poleceń i budżetu reklamowego. Handlowiec dostaje kontakty, które pasują i już odpowiedziały, zamiast szukać ich sam.", impl: 4000, sub: 2500 },
+  { id: 4, name: "CustomerHub", group: "Sprzedaż", sense: "Eyes",
+    tagline: "Więcej niż CRM: strategia relacji z każdym klientem plus kontrola jakości 100 procent rozmów. To nie jest CRM, który przechowuje kontakty. To silnik, który dla każdego klienta wie, co powiedzieć, kiedy i po co, a potem sprawdza, jak poszło, i uczy się na tym. Magazyn wiedzy o kliencie masz w każdym ",
+    does: ["Nie ogólny scoring, tylko indywidualny model prowadzenia kontaktu: gdzie jesteśmy z tym klientem, dokąd zmierzamy i jaki jest następny cel. Gotowa komunikacja, cele i argumentacja.", "Handlowiec nie dostaje kolejnej bazy do wypełniania, tylko konkretną wiadomość i argumenty pod tego jednego człowieka, jego etap i jego potrzeby. Kolejka: co robić i kiedy.", "System układa priorytety i moment działania, żeby dzień zaczynał się od właściwych osób we właściwej chwili, a nie od zgadywania. Kontrola jakości na 100 procentach rozmów.", "Słucha i czyta wszystkie rozmowy, czaty i maile, ocenia jakość każdego kontaktu i wskazuje momenty, w których zespół realnie traci sprzedaż. Nie losowa próbka, tylko całość. Pętla, która się uczy.", "Najlepsze rozmowy stają się wzorcem i materiałem szkoleniowym, a wnioski z tego, co zadziałało, wracają do strategii kolejnych rozmów. Im dłużej działa, tym celniej podpowiada."],
+    problem: "CRM przechowuje historię, ale to handlowiec sam wymyśla, co z nią zrobić, co napisać i kogo ruszyć pierwszego. Nikt nie sprawdza, jak naprawdę poszła rozmowa, więc te same błędy powtarzają się miesiącami, a wiedza najlepszych zostaje w ich głowach.",
+    effect: "każdy klient prowadzony jak przez najlepszego stratega w firmie, spójnie i celowo, niezależnie od tego, który handlowiec go obsługuje. Firma nie traci sprzedaży na słabych rozmowach, bo widzi je wszystkie i uczy się na nich.", impl: 8000, sub: 3500 },
+  { id: 5, name: "AI Instant Offer Engine", group: "Sprzedaż", sense: "Hand",
+    tagline: "Oferta z briefu w kilka minut, z trackingiem otwarć i automatycznym follow-upem. Oferta wychodzi tego samego dnia, w którym była rozmowa. Nie za trzy dni, gdy klient już ostygł. Silnik, który z briefu składa gotową, wycenioną ofertę w kilka minut. Dobiera produkty, liczy cenę, składa wszystko w iden",
+    does: ["Dobór produktów, automatyczna kalkulacja i skład w wizerunku marki. Handlowiec nie klei tego ręcznie w Wordzie po godzinach. Śledzi, co się dzieje z ofertą.", "Widzisz, kto otworzył, ile czasu spędził i na której pozycji się zatrzymał. Wiesz, czy klient jest gorący, zanim zadzwonisz. Sam przypomina o sobie.", "Gdy klient nie otwiera albo milczy, system pilnuje follow-upu, żeby oferta nie utknęła w skrzynce i nie umarła śmiercią naturalną."],
+    problem: "oferta powstaje ręcznie, wieczorem, dzień lub trzy po rozmowie, a im dłużej klient czeka, tym bardziej stygnie. Po wysłaniu wpada do czarnej dziury, bo nie wiesz, czy w ogóle ją otworzył, więc dzwonisz na oślep albo wcale.",
+    effect: "oferta wychodzi tego samego dnia, wygląda profesjonalnie i sama się pilnuje. Handlowiec dzwoni wtedy, kiedy klient realnie czyta, a nie w ciemno.", impl: 3000, sub: 1500 },
+  { id: 6, name: "Loyalty OS", group: "Sprzedaż", sense: "Heart",
+    tagline: "Własna aplikacja lojalnościowa w Twoim brandingu, instalowana bezpośrednio, z gamifikacją i AI push. Twoi klienci wracają, bo mają powód. A Ty masz do nich własny kanał, którego nie wyłączy żaden algorytm ani sklep z aplikacjami. Własna aplikacja lojalnościowa w Twoim brandingu, którą klient instalu",
+    does: ["Panel dowodzenia. Punkty, nagrody, kupony i segmenty w jednym miejscu.", "AI układa kampanie push do właściwych klientów we właściwym momencie, zamiast wysyłać wszystko do wszystkich. Aplikacja pod Twoją marką, instalowana wprost. Klient dodaje ją z linku lub kodu QR w kilka sekund.", "Bez sklepu, bez prowizji, bez czekania na akceptację Apple i Google. Gamifikacja, która angażuje.", "Punkty, wyzwania i poziomy sprawiają, że klient wraca częściej i chętniej, a nie tylko zbiera pieczątki. Gotowa na Twoją branżę. Klinika, gastro, retail, usługi.", "Mechanika dopasowana do tego, jak realnie wraca do Ciebie klient."],
+    problem: "klient kupuje raz i przepada, a jedyny kanał, żeby do niego wrócić, to płatne social media, gdzie za dotarcie do własnych klientów płacisz co miesiąc. Tymczasem utrzymanie klienta jest wielokrotnie tańsze niż zdobycie nowego, tylko trzeba mieć jak.",
+    effect: "klient wraca częściej, jego wartość w czasie rośnie, a Ty masz własny, bezpłatny kanał kontaktu, niezależny od Meta, Google i sklepów z aplikacjami. Program pracuje sam.", impl: 5000, sub: 2200 },
+  { id: 7, name: "Command Center", group: "Operacje i zarządzanie", sense: "Brain",
+    tagline: "Rozmawiaj z danymi swojej firmy. Pytasz zwykłym językiem, dostajesz odpowiedź, wykres albo akcję. Zadaj pytanie o swoją firmę. Dostań odpowiedź w minutę, nie raport w piątek. Panel z AI podpiętym do Twojego CRM, baz danych i stanów magazynowych. Pytasz zwykłym językiem, a w odpowiedzi dostajesz konk",
+    does: ["Ilu klientów nie wróciło w tym kwartale? Który produkt schodzi najlepiej? Odpowiedź i wykres od razu, bez proszenia kogokolwiek. Widzi do przodu i działa.", "Zauważa, co się kończy na magazynie, i zamawia z wyprzedzeniem, zanim zabraknie. Nie tylko pokazuje problem, domyka go. Jedno źródło prawdy.", "Cała firma patrzy na te same liczby, a nie na trzy różne wersje w trzech działach."],
+    problem: "dane siedzą w kilku systemach i w arkuszach, więc żeby cokolwiek wiedzieć, czekasz na kogoś albo na koniec tygodnia. Decyzje zapadają na przeczucie albo za późno.",
+    effect: "zarząd dostaje odpowiedź w minutę, cała firma pracuje na jednym źródle prawdy, a rzeczy, które da się zautomatyzować, dzieją się same.", impl: 6000, sub: 2500 },
+  { id: 8, name: "AI CFO", group: "Operacje i zarządzanie", sense: "Brain",
+    tagline: "Dyrektor finansowy na zawołanie, z data hubem i kontekstem z rynku. Masz dyrektora finansowego na zawołanie. Pytasz o pieniądze, dostajesz odpowiedź w sekundę, a nie w piątek od księgowej. Finansowy mózg firmy, który zna każdą liczbę i odpowiada właścicielowi zwykłym językiem. Ma dostęp do wszystkic",
+    does: ["Odpowiada na każde pytanie o pieniądze, natychmiast. Rentowność, marża, koszty, płynność, scenariusze co jeśli. Bez czekania na księgową i bez grzebania w Excelu. Ma jedno źródło prawdy plus kontekst z rynku.", "Data hub spina dane z całej firmy i dokłada sygnały z sieci (pogoda, sezon, trendy, nastroje), więc prognoza uwzględnia też to, co dzieje się na zewnątrz. Prognozuje, pilnuje marży i ściąga należności.", "Przewiduje lukę w kasie, zanim nastąpi, pokazuje, gdzie zarabiasz, a gdzie dopłacasz, i sam wysyła monity za przeterminowane faktury."],
+    problem: "właściciel podejmuje decyzje finansowe na czuja albo czeka na zamknięcie miesiąca, gdy jest już za późno. Dyrektor finansowy to koszt, na który mała firma nie idzie, więc nie ma z kim skonsultować czy mnie na to stać, a dane, które są, leżą rozsypane i historyczne.",
+    effect: "właściciel dostaje dyrektora finansowego dostępnego 24/7, który odpowiada w sekundę, na danych firmy i kontekście rynku, i pilnuje kasy. Decyzje o pieniądzach przestają być zgadywaniem.", impl: 5000, sub: 2500 },
+  { id: 9, name: "Warehouse Autopilot", group: "Operacje i zarządzanie", sense: "Hand",
+    tagline: "AI przejmuje zakupy i stany: prognoza rotacji, dostawcy, automatyczne zamówienia. Nigdy nie zabraknie tego, co się sprzedaje. I nigdy nie zamrozisz gotówki w tym, co leży. AI, które przejmuje stronę zakupową firmy. Prognozuje, co i kiedy się sprzeda, znajduje i porównuje dostawców, i zamawia samo, z",
+    does: ["Prognozuje rotację i sezon. Wie, co schodzi, co zwalnia i co wróci w sezonie, więc kupujesz pod realny popyt, a nie pod przeczucie. Znajduje i porównuje dostawców. Nie tylko uzupełnia u obecnych, ale szuka lepszych warunków i pokazuje, gdzie kupisz taniej lub szybciej. Zamawia automatycznie i pilnuje stanów. Widzi, co się kończy, i składa zamówienie z wyprzedzeniem, dopasowane do czasu dostawy."],
+    problem: "albo brakuje towaru i tracisz sprzedaż w najgorszym momencie, albo magazyn jest zapchany, a gotówka zamrożona w tym, co leży miesiącami. Jedno i drugie liczysz ręcznie, w Excelu, na czuja.",
+    effect: "mniej braków na półce i mniej kapitału zamrożonego w towarze. Zakupy prowadzą się same.", impl: 5000, sub: 2200 },
+  { id: 10, name: "WorkPilot", group: "Operacje i zarządzanie", sense: "Hand",
+    tagline: "Twój projekt manager AI. Koniec z trzymaniem wszystkich terminów w głowie. AI, które zna każde zadanie, przypomina, zanim jest za późno, i samo dopina zespół. Cyfrowy project manager, który zna zadania, grafik i wszystkie terminy. Przypomina z wyprzedzeniem, dopytuje, czy zrobione, sam rozdziela pra",
+    does: ["Trzeba wysłać klientowi do 12:00? Pisze o 10:00 i dopilnuje, żeby wyszło. Nic nie prześlizguje się przez sito. Raportuje zarządowi codziennie. Zrobione kontra zaległe, w jednym miejscu. Szef wie, jak stoją sprawy, bez obdzwaniania i zebrań. Rozdziela zadania sam.", "Czat dla szefów, w którym praca przydziela się automatycznie do właściwych osób, zamiast wisieć na jednej głowie."],
+    problem: "terminy wiszą na pamięci ludzi, więc coś zawsze ucieknie. Szef nie wie, co zrobione, a co stoi, dopóki nie zapyta. Ktoś musi ręcznie przypominać, rozdzielać i spinać, i to zwykle jest wąskie gardło.",
+    effect: "terminy przestają wisieć na pamięci ludzi. Projekty płyną, zespół dostaje zadania i przypomnienia sam, a zarząd ma obraz na bieżąco.", impl: 3000, sub: 1500 },
+  { id: 11, name: "Market Intelligence", group: "Operacje i zarządzanie", sense: "Eyes",
+    tagline: "Wywiad rynkowy non-stop: konkurencja, oferta, popyt i trendy. W dodatku warstwa cenowa. Wiesz, co robi konkurencja, w dniu, w którym to robi. A nie pół roku później, po spadku sprzedaży. Agent, który obserwuje Twój rynek non-stop: kto z konkurencji zmienił ofertę, co promuje, jak mówi do klientów, g",
+    does: ["Oferta, promocje, nowe produkty, komunikacja i kanały, w których się reklamują.", "Wiesz, co się zmieniło, tego samego dnia, a nie przypadkiem, pół roku później. Czyta rynek i popyt.", "Trendy wyszukiwań, sezonowość, sygnały z sieci i opinie o całej kategorii. Widzisz, dokąd idzie rynek, zanim odczujesz to w wynikach. Alarmuje i podsuwa ruch.", "Gdy konkurent tnie cenę, wchodzi z nową usługą albo przejmuje Twoje frazy, dostajesz sygnał i konkretną rekomendację, co z tym zrobić. Warstwa cenowa w pakiecie.", "Rekomenduje Twoją cenę i marżę, symuluje skutek zmiany, a w ramach Twoich reguł i granic zmienia cennik automatycznie. Ty ustalasz strategię, on wykonuje robotę."],
+    problem: "konkurencję sprawdza się raz na kwartał i przypadkiem, gdy ktoś coś zobaczy na Facebooku. Zmiany w ich ofercie, cenach i komunikacji odkrywasz po fakcie, zwykle po spadku sprzedaży. Nikt w małej firmie nie ma etatu na wywiad rynkowy, a cennik z tego samego powodu stoi latami.",
+    effect: "masz stały obraz rynku i konkurencji zamiast domysłów, reagujesz w dniu zmiany, a cena nadąża za rynkiem bez ręcznej pracy zespołu. Decyzje przestają być odgadywaniem, co tam się dzieje na zewnątrz.", impl: 4000, sub: 2200 },
+  { id: 12, name: "AI Content Factory", group: "Marketing i treści", sense: "Mind",
+    tagline: "Copy i grafiki sprzedażowe w tonie Twojej marki, z planem publikacji na miesiąc. Treści, które nie kończą się nigdy i brzmią jak Twoja marka, a nie jak ChatGPT. Copywriter i grafik AI, który zna Twoją firmę od środka: ofertę, ceny, ton głosu i historię kampanii. Produkuje teksty i grafiki sprzedażow",
+    does: ["Pisze teksty pod posty, promocje i kampanie.", "W tonie Twojej marki, nie generycznie, bo pracuje na rdzeniu języka marki ustawionym na wdrożeniu, a nie na pustym prompcie. Brzmi jak Ty, nie jak każdy inny. Robi grafiki sprzedażowe w Twojej identyfikacji. Kolory, logo, styl, wszystko spójne. Bez stocków i bez czekania na grafika przy każdym poście. Układa plan publikacji z góry.", "Gotowy harmonogram na miesiąc do przodu, żeby content leciał regularnie, a nie zrywami raz na jakiś czas."],
+    problem: "treści trzeba produkować stale, a w firmie nie ma tego kto robić, więc profil zamiera. Generyczne AI pisze bez kontekstu marki, więc brzmi jak wszyscy. Grafik i copywriter to koszt i wąskie gardło, przez które kampanie stają.",
+    effect: "stała produkcja treści i grafik w tonie marki, z planem z góry, bez zespołu i bez wąskiego gardła. Marka mówi jednym głosem, regularnie.", impl: 3000, sub: 1800 },
+  { id: 13, name: "SEO & GEO Autopilot", group: "Marketing i treści", sense: "Mind",
+    tagline: "Auto-blog pod Google i widoczność w odpowiedziach AI (GEO), instalacja w jednym kliknięciu. Twoi klienci już nie tylko googlują. Coraz częściej pytają AI. Bądź odpowiedzią w obu miejscach, na autopilocie. Instalujesz w jednym kliknięciu, a dalej dzieje się samo. Agent audytuje stronę, układa mapę sł",
+    does: ["Na start wie, gdzie jesteś, o co realnie warto walczyć i czego szuka Twój klient. Pisze i publikuje sam.", "Prowadzi bloga w harmonogramie, regularnie, w tonie Twojej marki. Content produkuje się bez Ciebie. Widoczność w Google i w AI (GEO).", "Optymalizuje treść tak, żeby wygrywać nie tylko pozycje w Google, ale i cytowania w odpowiedziach ChatGPT, Perplexity i Google AI Overviews."],
+    problem: "content trzeba produkować stale, a w firmie nie ma tego kto robić, więc blog stoi. A do tego doszedł drugi front: klient pyta AI, a jeśli model o Tobie nie wie, po prostu nie istniejesz w tej rozmowie, nawet jeśli w Google radzisz sobie nieźle.",
+    effect: "stały dopływ darmowego ruchu organicznego plus obecność w odpowiedziach modeli AI. Bez zespołu, bez retainera, na autopilocie.", impl: 3000, sub: 1800 },
+  { id: 14, name: "AI Reputation Management", group: "Marketing i treści", sense: "Eyes",
+    tagline: "Monitoring i obsługa opinii w Google, social i portalach branżowych, głosem marki. Każda opinia odpowiedziana w kilka minut, każdy negatyw wyłapany, zanim urośnie. A zadowoleni klienci sami zostawiają piątki. AI, które pilnuje Twojej reputacji na okrągło. Monitoruje opinie o Tobie w Google, social i",
+    does: ["Każda recenzja dostaje odpowiedź w kilka minut, spójną z Twoim głosem, a nie kopiuj-wklej. Nawet trudną opinię obraca w dowód, że słuchasz. Alarmuje przy negatywie i kryzysie.", "Wyłapuje nietypowe skoki negatywnego sentymentu i daje znać zawczasu, żebyś gasił iskrę, zanim zrobi się pożar. Pozyskuje opinie od zadowolonych.", "Sam prosi o ocenę tych klientów, którzy są zadowoleni, więc piątek przybywa, zamiast czekać, aż odezwą się tylko niezadowoleni."],
+    problem: "opinie decydują o zakupie, ale nikt nie ma czasu ich pilnować ani na nie odpowiadać. Negatyw wisi tygodniami i odstrasza kolejnych klientów. Zadowoleni milczą, bo nikt ich nie poprosił, a niezadowoleni piszą sami, więc średnia leci w dół bez powodu.",
+    effect: "ocena marki rośnie, każda opinia ma odpowiedź, negatyw jest gaszony wcześnie, a kryzys nie zaczyna się od zaskoczenia. Reputacja pracuje na sprzedaż, nie przeciw niej.", impl: 2000, sub: 1200 },
   { id: 15, name: "AI Channel Director", group: "Marketing i treści", sense: "Mind",
-    tagline: "Dyrygent komunikacji: strategia, dobór kanałów i publikacja, w 100% automatycznie.",
-    does: ["Układa strategię i dobiera kanały pod cel", "Bierze gotowe treści z Content Factory i Creative Director", "Publikuje sam, w optymalnym momencie i formacie każdej platformy"],
-    problem: "firma wie, że trzeba być w kanałach, ale nie ma strategii — posty lecą chaotycznie albo wcale; ktoś musi ręcznie wrzucać na pięć platform",
-    effect: "komunikacja spójna, regularna i na właściwych kanałach, bez zespołu i ręcznej publikacji", impl: 3000, sub: 2200 },
-  { id: 16, name: "Brand Voice Core", group: "Marketing i treści", sense: "Brain",
-    tagline: "Rdzeń języka marki, który zasila wszystkie produkty treściowe.",
-    does: ["Jeden ton głosu we wszystkich kanałach: post, mail, czat, odpowiedź na recenzję", "Słownik i lista zakazów — bez wpadek i obietnic, których marka nie składa", "Wersjonowanie i kontrola jakości każdej wypowiedzi"],
-    problem: "każdy pisze inaczej (handlowiec, marketing, bot, agencja) — marka brzmi jak kilka różnych firm",
-    effect: "marka brzmi jednym, rozpoznawalnym głosem wszędzie; fundament dla wszystkich produktów AI", impl: 2500, sub: 500 },
-  { id: 17, name: "AI Recruiter", group: "Zespół i fundament", sense: "Heart",
-    tagline: "Od CV do pierwszego dnia: screening, ranking, głosowa rozmowa wstępna, przekazanie do onboardingu.",
-    does: ["Przesiewa i rankinguje CV według kryteriów roli", "Sam prowadzi głosową rozmowę wstępną o każdej porze i ocenia odpowiedzi", "Przekazuje wybranego kandydata do onboardingu (spięte z AI Academy)"],
-    problem: "rekrutacja zżera tygodnie na przesiewanie CV i rozmowy, które nic nie wnoszą; między akceptacją oferty a pierwszym dniem panuje cisza",
-    effect: "krótsza rekrutacja, do rozmowy trafiają tylko dopasowani, nowy płynnie wchodzi w onboarding", impl: 4000, sub: 2000 },
-  { id: 18, name: "AI Academy", group: "Zespół i fundament", sense: "Brain",
-    tagline: "Onboarding od pierwszego dnia plus kursy, testy i certyfikaty z wiedzy Twojej firmy.",
-    does: ["Onboarding: dokumenty, dostępy, plan pierwszego tygodnia i baza wiedzy gotowe przed startem", "Ścieżka szkoleniowa pod każde stanowisko", "Testy i certyfikaty; mikroszkolenia dokładnie tam, gdzie luka"],
-    problem: "wiedza firmy tkwi w głowach kilku osób i wychodzi z nimi; onboarding zżera czas seniorów; nowy wchodzi w rolę tygodniami",
-    effect: "wiedza zostaje w firmie, nowy jest produktywny od pierwszego dnia, luki domykają się same", impl: 5000, sub: 2000 },
+    tagline: "Dyrygent komunikacji: strategia, dobór kanałów i publikacja, w 100 procentach automatycznie. Twoja komunikacja prowadzi się sama. Od strategii, przez wybór kanałów, po opublikowany post. Bez Twojego udziału. Dyrektor komunikacji AI, który układa strategię, dobiera kanały i narzędzia publikacji, a tr",
+    does: ["Decyduje, gdzie warto mówić, jak często i w jakim tonie pod konkretny cel, zamiast wrzucać wszystko wszędzie po omacku. Bierze gotowe treści z ekosystemu. Nie tworzy w próżni.", "Zleca copy i grafiki do Content Factory i składa z tego spójną komunikację pod każdy kanał. Publikuje sam, we właściwym czasie.", "Wrzuca materiały na każdy kanał, w optymalnym momencie i w formacie danej platformy, bez ręcznego klikania na pięciu portalach."],
+    problem: "firma wie, że trzeba być w kanałach, ale nie ma strategii, więc posty lecą chaotycznie albo wcale. Wybór kanałów to zgadywanie. A nawet gdy treść już jest, ktoś musi ją ręcznie wrzucać na pięć platform, w różnych formatach i o różnych porach.",
+    effect: "komunikacja jest spójna, regularna i na właściwych kanałach, bez zespołu i bez ręcznej publikacji. Marketing wykonuje się sam, od strategii po opublikowany post.", impl: 3000, sub: 2200 },
+  { id: 16, name: "AI Recruiter", group: "Zespół i fundament", sense: "Heart",
+    tagline: "Od CV do pierwszego dnia: screening, ranking, głosowa rozmowa wstępna, przekazanie do onboardingu. Od setek CV do gotowego pracownika. Bez tygodni przesiewania i bez rozmów wstępnych, które nic nie wnoszą. Agent AI, który prowadzi rekrutację od aplikacji do pierwszego dnia pracy. Przesiewa i ranking",
+    does: ["Przesiewa setki CV według Twoich kryteriów i podaje krótką listę najlepszych, zamiast zostawiać Ci stos aplikacji do ręcznego przeglądania. Prowadzi głosową rozmowę wstępną.", "Pierwszy wywiad robi sam, o każdej porze, i ocenia odpowiedzi.", "Do Ciebie trafiają tylko dopasowani, a nie każdy, kto wysłał CV. Przekazuje do onboardingu.", "Wybranego kandydata pcha dalej w proces wprowadzenia (papiery, dostępy, pierwszy dzień), spięty z AI Academy, więc nowy startuje od razu."],
+    problem: "rekrutacja zżera tygodnie na przesiewanie CV i rozmowy wstępne, z których większość donikąd nie prowadzi. Manager traci czas na kandydatów, którzy nie pasują. A między akceptacją oferty a pierwszym dniem panuje cisza, w której najlepsi się rozmyślają.",
+    effect: "krótsza rekrutacja, do rozmowy trafiają tylko dopasowani, a nowy pracownik płynnie wchodzi w onboarding. Zatrudnianie przestaje być wąskim gardłem wzrostu.", impl: 4000, sub: 2000 },
+  { id: 17, name: "AI Academy", group: "Zespół i fundament", sense: "Brain",
+    tagline: "Onboarding od pierwszego dnia plus kursy, testy i certyfikaty z wiedzy Twojej firmy. Od pierwszego dnia do pełnej samodzielności. Wiedza Twojej firmy przestaje siedzieć w głowach kilku osób. System, który z wiedzy Twojej firmy buduje onboarding, kursy, testy i certyfikaty. Wprowadza nowego pracownik",
+    does: ["Nowy pracownik dostaje komplet: dokumenty, dostępy, plan pierwszego tygodnia i bazę wiedzy, gotowe zanim wejdzie do biura. Senior nie tłumaczy podstaw, bo robi to system. Buduje ścieżkę pod każde stanowisko.", "Po onboardingu płynnie prowadzi dalej: nowy wie, czego i w jakiej kolejności się uczyć, zamiast łapać wiedzę przypadkiem. Sprawdza wiedzę i domyka luki.", "Testy i certyfikaty pokazują czarno na białym, kto co umie, a system dosyła krótkie mikroszkolenie dokładnie tam, gdzie brak."],
+    problem: "wiedza firmy tkwi w głowach kilku osób, a gdy odchodzą, wychodzi z nimi. Onboarding zżera czas seniorów, którzy tłumaczą to samo w kółko, nowy wchodzi w rolę tygodniami, a między akceptacją oferty a pierwszym dniem panuje cisza, w której najlepsi kandydaci się rozmyślają.",
+    effect: "wiedza zostaje w firmie, nowy pracownik jest wprowadzony i produktywny od pierwszego dnia, a luki kompetencyjne domykają się bez odrywania najlepszych ludzi. Firma przestaje być zakładnikiem kilku głów.", impl: 5000, sub: 2000 },
 ];
-const CONTENT_IDS = new Set([11, 12, 13, 14, 15]); // produkty treściowe → wymagają Brand Voice Core (16)
+// ======================= KOLEJKA AUDYTÓW =======================
+// Bramka AI przyjmuje maks. 2 równoległe wywołania (dzieli ją Teos i CatMon), a jeden
+// audyt to 6 wywołań. Przy planowanych ~100 audytach dziennie odpalanie ich pachtami
+// kończyłoby się serią 429, dlatego nadmiar ląduje w kolejce i rusza sam, gdy zwolni
+// się miejsce (pg_cron „audit-queue-drain" co minutę).
+const MAX_RUNNING = 1; // jeden audyt naraz: etap 2 sam robi 2 równoległe wywołania,
+// czyli zajmuje CAŁY limit bramki (2 równoległe). Przy dwóch audytach naraz mieliśmy
+// 4 wywołania w kolejce bramki i timeouty. Jeden audyt ≈ 3,5 min → ~17/h, ~400/dobę.
+const STALE_RUN_MS = 15 * 60_000; // audyt „running" starszy niż to = zawieszony, nie blokuje kolejki
+async function runningCount(db: SupabaseClient): Promise<number> {
+  const since = new Date(Date.now() - STALE_RUN_MS).toISOString();
+  const { count } = await db.from("audits").select("id", { count: "exact", head: true })
+    .eq("status", "running").gte("updated_at", since);
+  return count ?? 0;
+}
+
+// Katalog żyje w bazie (`audit_catalog`) i jest edytowalny z panelu — stała wyżej
+// zostaje wyłącznie jako awaryjny fallback, gdyby zapytanie do bazy padło.
+let CATALOG: Product[] = CATALOG_FALLBACK;
+async function loadCatalog(db: SupabaseClient): Promise<void> {
+  try {
+    const { data, error } = await db.from("audit_catalog").select("*").eq("hidden", false).order("sort", { ascending: true });
+    if (error) throw error;
+    if (!data?.length) { console.error("katalog: baza pusta — używam wbudowanego"); return; }
+    CATALOG = data.map((r: Record<string, unknown>) => ({
+      id: Number(r.id),
+      name: String(r.name ?? ""),
+      group: String(r.group_name ?? ""),
+      sense: (["Brain", "Mind", "Hand", "Heart", "Eyes"].includes(String(r.sense)) ? String(r.sense) : "Brain") as Product["sense"],
+      tagline: String(r.tagline ?? ""),
+      does: Array.isArray(r.does) ? (r.does as unknown[]).map(String) : [],
+      problem: String(r.problem ?? ""),
+      effect: String(r.effect ?? ""),
+      impl: Number(r.impl_from ?? 0),
+      sub: Number(r.sub_from ?? 0),
+    }));
+    console.log("katalog z bazy:", CATALOG.length, "produktów");
+  } catch (e) {
+    console.error("katalog: nie udało się wczytać z bazy —", String(e).slice(0, 200), "; używam wbudowanego");
+  }
+}
+// Reguły trzymamy na nazwach/grupach, nie na numerach: katalog jest edytowalny
+// z panelu, a przy renumeracji („#12 SEO" → „#13 SEO") twarde id cicho psuły dobór.
+const seoProduct = () => CATALOG.find(p => /seo|geo/i.test(p.name)) ?? null;
+const isContentProduct = (id: number) => {
+  const p = CATALOG.find(x => x.id === id);
+  return !!p && /marketing|treś/i.test(p.group);
+};
 const fmtPln = (n: number) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, " ") + " zł";
 function catalogBrief(): string {
   return CATALOG.map(p =>
@@ -1006,7 +1069,7 @@ async function askAI(system: string, user: string, maxTokens: number): Promise<s
   // trzyminutowy pipeline audytu i zostawia klientowi stronę w stanie „błąd".
   const call = async (): Promise<string> => {
     const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 50000); // 2 próby × 50 s mieszczą się w 150-sekundowym izolacie
+    const t = setTimeout(() => ctrl.abort(), 60000); // 2 próby × 60 s mieszczą się w 150-sekundowym izolacie etapu
     let res: Response;
     try {
       res = await fetch(`${AI_URL}/chat/completions`, {
@@ -1015,7 +1078,7 @@ async function askAI(system: string, user: string, maxTokens: number): Promise<s
         body: JSON.stringify({
           model: AI_MODEL,
           messages: [{ role: "system", content: system }, { role: "user", content: user }],
-          stream: false, temperature: 0.35, max_tokens: maxTokens, think: false,
+          stream: false, temperature: 0.35, max_tokens: maxTokens,
         }),
       });
     } finally { clearTimeout(t); }
@@ -1023,7 +1086,9 @@ async function askAI(system: string, user: string, maxTokens: number): Promise<s
     const data = await res.json();
     return data?.choices?.[0]?.message?.content ?? "";
   };
-  const NET = /tls|handshake|connect|econn|socket|network|eof|dns|unexpected end/i;
+  // „The signal has been aborted" = nasz własny timeout — to najczęstszy objaw zajętej
+  // bramki i MUSI być ponawiany, inaczej jedno wolne wywołanie wywala cały audyt.
+  const NET = /tls|handshake|connect|econn|socket|network|eof|dns|unexpected end|abort|signal|timed? ?out/i;
   for (let attempt = 1; ; attempt++) {
     try {
       return await call();
@@ -1191,7 +1256,10 @@ Deno.serve(async (req) => {
 
   // wywołania wewnętrzne (etapy 2/3, debug) — klucz service role w nagłówku
   const internal = !!INTERNAL_KEY && req.headers.get("x-audit-key") === INTERNAL_KEY;
-  if (!internal) {
+  // pg_cron nie ma sesji użytkownika — kolejkę obsługujemy własnym sekretem
+  const cronSecret = Deno.env.get("AUDIT_CRON_KEY") ?? "";
+  const isCron = body.action === "drain" && !!cronSecret && body.cron_key === cronSecret;
+  if (!internal && !isCron) {
     const authHeader = req.headers.get("Authorization") ?? "";
     const userClient = createClient(supaUrl, anon, { global: { headers: { Authorization: authHeader } } });
     const { data: { user } } = await userClient.auth.getUser();
@@ -1218,6 +1286,28 @@ Deno.serve(async (req) => {
   }
 
   const db = createClient(supaUrl, service);
+
+  // pg_cron: uruchom tyle audytów z kolejki, ile mieści się w limicie równoległości
+  if (body.action === "drain") {
+    if (!isCron) return json({ error: "forbidden" }, 403);
+    const free = MAX_RUNNING - await runningCount(db);
+    if (free <= 0) return json({ ok: true, started: 0, reason: "brak wolnych miejsc" });
+    const { data: queued } = await db.from("audits").select("id, slug").eq("status", "queued")
+      .order("updated_at", { ascending: true }).limit(free);
+    const started: string[] = [];
+    for (const a of queued ?? []) {
+      await db.from("audits").update({ status: "running", error: null, updated_at: new Date().toISOString() }).eq("id", a.id);
+      const r = await fetch(`${supaUrl}/functions/v1/audit-run`, {
+        method: "POST",
+        headers: { "content-type": "application/json", apikey: anon, Authorization: `Bearer ${anon}`, "x-audit-key": INTERNAL_KEY },
+        body: JSON.stringify({ id: a.id, stage: 1 }),
+      });
+      console.log("kolejka → start", a.slug, r.status);
+      started.push(String(a.slug));
+    }
+    return json({ ok: true, started: started.length, slugs: started });
+  }
+
   const id = String(body.id ?? "");
   const stage = Math.max(1, Math.min(4, +(body.stage ?? 1) || 1));
   const retry = Math.max(0, +(body.retry ?? 0) || 0);
@@ -1229,18 +1319,43 @@ Deno.serve(async (req) => {
     await db.from("audits").update({ status: "error", error: "Brak klucza BARABASH_AI_KEY" }).eq("id", id);
     return json({ error: "Brak klucza BARABASH_AI_KEY" }, 500);
   }
+  if (stage === 1 && !internal) {
+    // ręczny start z panelu: gdy nie ma wolnego miejsca, audyt czeka w kolejce
+    const busy = await runningCount(db);
+    if (busy >= MAX_RUNNING) {
+      const { error: qErr } = await db.from("audits").update({ status: "queued", error: null, updated_at: new Date().toISOString() }).eq("id", id);
+      if (qErr) { console.error("kolejka: nie udało się zapisać statusu:", qErr.message); return json({ error: `Kolejka: ${qErr.message}` }, 500); }
+      const { count: ahead } = await db.from("audits").select("id", { count: "exact", head: true }).eq("status", "queued");
+      console.log("audyt", id, "→ kolejka; pracuje teraz:", busy, "w kolejce:", ahead ?? 1);
+      return json({ ok: true, id, status: "queued", position: ahead ?? 1 });
+    }
+  }
   if (stage === 1) await db.from("audits").update({ status: "running", error: null }).eq("id", id);
 
   const TRANSIENT = /limit czasu|timeout|abort|tls|handshake|connect|network|socket|eof|: 5\d\d|: 429|dns/i;
   const fail = async (msg: string) => {
     // Przy 100 audytach dziennie nikt nie będzie klikał „Ponów" po każdym mrugnięciu
     // sieci — jedno automatyczne powtórzenie etapu robimy sami.
-    if (retry < 1 && TRANSIENT.test(msg)) {
+    if (retry < 2 && TRANSIENT.test(msg)) {
       console.error("audyt", id, `etap ${stage} błąd przejściowy:`, msg, "— powtarzam etap");
       await next(stage, retry + 1);
       return;
     }
     console.error("audyt", id, `etap ${stage} błąd:`, msg);
+    // Bramka AI bywa chwilowo zajęta (dzieli ją Teos i CatMon). Klient nie ma prawa
+    // zobaczyć czerwonego „BŁĄD" z powodu cudzego ruchu: audyt wraca do kolejki
+    // i rusza sam, gdy bramka odpowie. Dopiero po 3 nawrotach zgłaszamy błąd.
+    const requeues = Number(audit.retries ?? 0);
+    if (TRANSIENT.test(msg) && requeues < 3) {
+      await db.from("audits").update({
+        status: "queued",
+        retries: requeues + 1,
+        error: null,
+        updated_at: new Date().toISOString(),
+      }).eq("id", id);
+      console.error("audyt", id, "→ z powrotem do kolejki (próba", requeues + 1, "z 3)");
+      return;
+    }
     await db.from("audits").update({ status: "error", error: msg }).eq("id", id);
   };
   // Izolat edge żyje 150 s. Gdy etap się w tym nie zmieści (wolna bramka AI, wolny
@@ -1265,6 +1380,7 @@ Deno.serve(async (req) => {
   };
 
   const work = (async () => {
+  await loadProvider(db); // dostawca może być przełączony z panelu (Brain → Dostawca AI)
   const t0 = Date.now();
   const lap = () => `${Math.round((Date.now() - t0) / 1000)}s`;
   try {
@@ -1345,7 +1461,23 @@ Pisz zwięźle. Frazy i prompty mają pasować do branży i oferty klienta (wg s
 
 ${st.briefShort.slice(0, 3600)}`;
 
-      const [r1, r2] = await Promise.all([askJson(SYS, p1, 1600), askJson(SYS, p2, 1700)]);
+      // Model bywa niedostępny (zajęta bramka, timeout). Zamiast wywalać cały audyt
+      // bierzemy tyle, ile się udało: brakujące pola i tak mają fallbacki (metryki,
+      // oceny) — klient dostaje raport, a nie czerwone „BŁĄD".
+      const [s1, s2] = await Promise.allSettled([askJson(SYS, p1, 1600), askJson(SYS, p2, 1700)]);
+      let r1 = s1.status === "fulfilled" ? s1.value : {};
+      let r2 = s2.status === "fulfilled" ? s2.value : {};
+      if (s1.status === "rejected") {
+        console.error("etap 2: p1 nieudane —", String(s1.reason).slice(0, 160), "; próbuję jeszcze raz solo");
+        try { r1 = await askJson(SYS, p1, 1600); } catch (e) { console.error("etap 2: p1 ostatecznie nieudane —", String(e).slice(0, 160)); }
+      }
+      if (s2.status === "rejected") {
+        console.error("etap 2: p2 nieudane —", String(s2.reason).slice(0, 160), "; próbuję jeszcze raz solo");
+        try { r2 = await askJson(SYS, p2, 1700); } catch (e) { console.error("etap 2: p2 ostatecznie nieudane —", String(e).slice(0, 160)); }
+      }
+      if (!Object.keys(r1).length && !Object.keys(r2).length) {
+        throw new Error("Model niedostępny (bramka AI) — kliknij Ponów analizę");
+      }
       console.log("audyt", id, lap(), "para 1 gotowa; branża:", r1.branza, "| zasięg:", r1.zasieg, "| lokalizacja:", r1.lokalizacja);
 
       await saveStage({ ...st, r1, r2 });
@@ -1356,7 +1488,7 @@ ${st.briefShort.slice(0, 3600)}`;
 
     const r1 = st.r1 ?? {}; // etap 2 zapisuje r1/r2; tu są już na pewno
 
-    // ======================= ETAP 2: konkurenci =======================
+    // ======================= ETAP 3: konkurenci =======================
     if (stage === 3) {
       // Konkurencja to WZBOGACENIE audytu, nie jego rdzeń: wyszukiwarka albo strona
       // konkurenta potrafi się zawiesić i przy 100 audytach dziennie nie może to
@@ -1492,13 +1624,16 @@ ${st.briefShort.slice(0, 2600)}`;
       return;
     }
 
-    // ======================= ETAP 3: produkty z katalogu + pakiety + zapis =======================
+    // ======================= ETAP 4: produkty z katalogu + pakiety + zapis =======================
+    // Katalog produktów pobieramy z bazy (edytowalny z panelu). Gdy zapytanie padnie,
+    // zostaje wersja wbudowana — audyt nigdy nie zostaje bez katalogu.
+    await loadCatalog(db);
     // Dwa krótkie wywołania zamiast jednego długiego (qwen ucinał JSON przy 6 rozbudowanych produktach):
     //  A — wybór 6 produktów + tier + why/effect + cele pakietów; B — scope/example/kpi dla wybranych.
     const diagText = (Array.isArray(r1.diagnosis) ? r1.diagnosis as Array<Record<string, string>> : []).map(d => `${d.title}: ${d.text}`).join("\n");
     const minusText = (Array.isArray(r1.minus) ? r1.minus as string[] : []).join("; ");
     const clientCtx = `Klient "${audit.client_name}" (branża: ${r1.branza ?? "wg strony"}; model: ${r1.model ?? "?"}; zasięg: ${r1.zasieg ?? "?"}; klient docelowy: ${r1.klient_docelowy ?? "?"}; oferta: ${(Array.isArray(r1.oferta) ? r1.oferta as string[] : []).join(", ")})`;
-    const p3a = `Fastline InfinitiQ sprzedaje 18 gotowych produktów AI (katalog niżej). Dla klienta wybierz DOKŁADNIE 6 produktów, które rozwiążą jego realne problemy, i uzasadnij każdy KONKRETNIE faktami z jego strony/branży. Zwróć JSON o DOKŁADNIE tej strukturze:
+    const p3a = `Fastline InfinitiQ sprzedaje ${CATALOG.length} gotowych produktów AI (katalog niżej). Dla klienta wybierz MINIMUM 6, a maksymalnie 9 produktów — TYLKO takie, które rozwiązują jego realne problemy i które da się uzasadnić faktami z jego strony albo branży. Nie dobieraj produktów „na siłę" do liczby: jeśli sensownych jest dokładnie 6, podaj 6; jeśli firma jest większa i realnie pasuje 8, podaj 8. Każdy wybór uzasadnij KONKRETNIE. Zwróć JSON o DOKŁADNIE tej strukturze:
 {
  "products": [
   { "id": 12, "tier": 1, "why": "2 zdania: jaki KONKRETNY fakt ze strony/branży klienta (brak chatu, brak rezerwacji online, sezonowość, telefon jako główny kanał, sklep online, B2B z ofertowaniem, wiele marek, rekrutacja…) wskazuje na ten produkt i co dziś klient przez to traci", "effect": "1-2 zdania: co się zmieni w firmie klienta (bez wymyślonych liczb)" }
@@ -1506,10 +1641,10 @@ ${st.briefShort.slice(0, 2600)}`;
  "packages": {
   "start": "1 zdanie: jaki problem klienta zamyka pakiet Start (2 produkty tier 1) — bez numerów produktów",
   "growth": "1 zdanie: co dokłada pakiet Wzrost (produkty tier 1+2) — bez numerów produktów",
-  "scale": "1 zdanie: co daje pakiet Skala (wszystkie 6) — bez numerów produktów"
+  "scale": "1 zdanie: co daje pakiet Skala (wszystkie wybrane produkty) — bez numerów produktów"
  }
 }
-Zasady: id = numer z katalogu (liczba); tier: 1 = Start (2 najpilniejsze), 2 = Wzrost (kolejne 2), 3 = Skala (ostatnie 2) — dokładnie 2 produkty na tier. SEO & GEO Autopilot (#12) MUSI być wśród 6 (to audyt widoczności), zwykle tier 1. Jeśli wybierasz produkt treściowy (#11, #13, #14, #15), Brand Voice Core (#16) też ma być w tym samym lub niższym tierze. Nie wybieraj produktów bez uzasadnienia w faktach (Warehouse Autopilot tylko dla firm z towarem/magazynem; AI Reception tylko gdy telefon/wizyty są kanałem sprzedaży; Loyalty OS gdy klienci wracają: gastro/beauty/retail/usługi cykliczne; Dynamic Pricing gdy są ceny na stronie/sklep/konkurencja cenowa; AI Recruiter/Academy gdy firma rekrutuje lub ma rotację; QRI/Instant Offer gdy jest sprzedaż B2B z ofertowaniem). Pisz po polsku, zwięźle.
+Zasady: id = numer z katalogu (liczba); tier: 1 = Start (najpilniejsze), 2 = Wzrost, 3 = Skala — rozłóż wybrane produkty na trzy tiery tak, żeby każdy miał co najmniej 2 (im pilniejszy problem, tym niższy tier). Produkt od widoczności w Google i AI (SEO & GEO Autopilot) MUSI być wśród 6 — to audyt widoczności, zwykle tier 1. Nie wybieraj produktów bez uzasadnienia w faktach ze strony klienta: Warehouse Autopilot tylko dla firm z towarem/magazynem; AI Reception tylko gdy telefon albo wizyty są kanałem sprzedaży; Loyalty OS gdy klienci wracają (gastro, beauty, retail, usługi cykliczne); AI Instant Offer Engine i LeadEngine gdy jest sprzedaż z ofertowaniem i pozyskiwaniem leadów; CustomerHub gdy jest zespół handlowy i powtarzalne rozmowy; Market Intelligence gdy klient działa na konkurencyjnym rynku z ruchami cen; AI Recruiter i AI Academy gdy firma rekrutuje albo ma rotację; AI CFO i Command Center gdy skala firmy uzasadnia kontrolę liczb i procesów. Pisz po polsku, zwięźle.
 
 ${clientCtx}
 DIAGNOZA: ${diagText}
@@ -1520,11 +1655,19 @@ ${catalogBrief()}
 
 Kontekst o kliencie:
 ${st.brief.slice(0, 4200)}`;
-    const r3 = await askJson(SYS, p3a, 1500);
+    // Gdy model nie odpowie, nie wywalamy audytu: niżej i tak działa dobór do minimum
+    // 6 produktów z katalogu — raport wychodzi kompletny, tylko bez autorskiego „why".
+    let r3: Record<string, unknown> = {};
+    try {
+      r3 = await askJson(SYS, p3a, 1500);
+    } catch (e) {
+      console.error("audyt", id, "p3a nieudane — dobieram produkty z katalogu:", String(e).slice(0, 160));
+    }
     console.log("audyt", id, lap(), "p3a gotowe");
     const chosenIds = (Array.isArray(r3.products) ? r3.products as Array<Record<string, unknown>> : [])
       .map(p => +String(p.id ?? 0).replace(/\D/g, "") || 0).filter(n => CATALOG.some(c => c.id === n));
-    const detailCatalog = CATALOG.filter(c => chosenIds.includes(c.id) || c.id === 12).map(c => `#${c.id} ${c.name} — ${c.tagline} Co robi: ${c.does.join("; ")}.`).join("\n");
+    const seoId = seoProduct()?.id ?? -1;
+    const detailCatalog = CATALOG.filter(c => chosenIds.includes(c.id) || c.id === seoId).map(c => `#${c.id} ${c.name} — ${c.tagline} Co robi: ${c.does.join("; ")}.`).join("\n");
     const p3b = `Dla klienta rozpisz szczegółowo wdrożenie wybranych produktów AI Fastline InfinitiQ. Zwróć JSON o DOKŁADNIE tej strukturze:
 {
  "details": [
@@ -1567,20 +1710,29 @@ ${st.brief.slice(0, 3600)}`;
         kpi: (Array.isArray(d.kpi) ? d.kpi : []).map(s => String(s).trim()).filter(Boolean).slice(0, 4),
       };
     }).filter((p, i, a) => CATALOG.some(c => c.id === p.id) && a.findIndex(x => x.id === p.id) === i);
-    if (!picked.some(p => p.id === 12)) {
-      const c = CATALOG.find(x => x.id === 12)!;
-      picked.unshift({ id: 12, tier: 1, why: "Audyt dotyczy widoczności w Google i w odpowiedziach AI — to produkt, który tę widoczność buduje na autopilocie.", scope: c.does, effect: c.effect, example: "", kpi: ["pozycje na frazach z audytu", "liczba cytowań w odpowiedziach AI", "ruch organiczny"] });
+    // Produkt od widoczności (SEO & GEO) zawsze w zestawie — audyt jest właśnie o tym.
+    // Szukamy po nazwie, bo numery w katalogu zmieniają się przy każdej edycji z panelu.
+    const seo = seoProduct();
+    if (seo && !picked.some(p => p.id === seo.id)) {
+      picked.unshift({ id: seo.id, tier: 1, why: "Audyt dotyczy widoczności w Google i w odpowiedziach AI — to produkt, który tę widoczność buduje na autopilocie.", scope: seo.does, effect: seo.effect, example: "", kpi: ["pozycje na frazach z audytu", "liczba cytowań w odpowiedziach AI", "ruch organiczny"] });
     }
-    const contentTier = Math.min(...picked.filter(p => CONTENT_IDS.has(p.id)).map(p => p.tier), 9);
-    if (contentTier < 9 && !picked.some(p => p.id === 16)) {
-      const c = CATALOG.find(x => x.id === 16)!;
-      picked.push({ id: 16, tier: contentTier, why: "Wybrane produkty treściowe (blog, posty, odpowiedzi) muszą mówić jednym głosem marki — Brand Voice Core jest ich fundamentem.", scope: c.does, effect: c.effect, example: "", kpi: ["spójność tonu w kanałach", "liczba wpadek językowych", "czas akceptacji treści"] });
-    } else if (contentTier < 9) {
-      const bvc = picked.find(p => p.id === 16)!;
-      if (bvc.tier > contentTier) bvc.tier = contentTier;
-    }
-    picked = picked.slice(0, 7);
+    // produkty treściowe trzymamy w jednym (najniższym) tierze — żeby komunikacja ruszała razem
+    const contentTier = Math.min(...picked.filter(p => isContentProduct(p.id)).map(p => p.tier), 9);
+    if (contentTier < 9) picked.filter(p => isContentProduct(p.id)).forEach(p => { p.tier = Math.min(p.tier, contentTier + 1); });
+    picked = picked.slice(0, 9); // dolna granica to 6 (dobierana niżej), górna 9 — cena pakietów rośnie wraz z liczbą
     if (!picked.some(p => p.tier === 1)) picked[0].tier = 1;
+    // Minimum 6 produktów: jeśli model dał mniej, dobieramy najbliższe sensem —
+    // najpierw z tych samych grup, co już wybrane (spójny ekosystem), potem po kolei.
+    if (picked.length < 6) {
+      const haveGroups = new Set(picked.map(p => CATALOG.find(c => c.id === p.id)?.group).filter(Boolean));
+      const rest = CATALOG.filter(c => !picked.some(p => p.id === c.id))
+        .sort((x, y) => (haveGroups.has(y.group) ? 1 : 0) - (haveGroups.has(x.group) ? 1 : 0) || x.id - y.id);
+      for (const c of rest) {
+        if (picked.length >= 6) break;
+        picked.push({ id: c.id, tier: 3, why: `Uzupełnienie ekosystemu: ${c.tagline}`, scope: c.does, effect: c.effect, example: "", kpi: [] });
+      }
+      console.log("audyt", id, "dobrano produkty do minimum 6; łącznie:", picked.length);
+    }
     picked.sort((a, b) => a.tier - b.tier || a.id - b.id);
     // pakiety muszą rosnąć: gdy któryś tier pusty, rozkładamy produkty równo (2/2/2) zachowując kolejność
     if (picked.length >= 3 && (!picked.some(p => p.tier === 2) || !picked.some(p => p.tier === 3))) {
@@ -1665,6 +1817,7 @@ ${st.brief.slice(0, 3600)}`;
     delete (content as Record<string, unknown>).search_queries;
     const { error: finErr } = await db.from("audits").update({
       status: "ready",
+      retries: 0,
       content: deepClean(content),
       logo_url: st.logo || null,
       site_meta: deepClean({

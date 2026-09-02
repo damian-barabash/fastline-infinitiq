@@ -123,3 +123,9 @@ body.fiq-edit .ap-wrap a { pointer-events: auto; }
   .fiq-tabs { margin-left: 0; }
 }
 .ap-prices-auto { font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; line-height: 1.7; letter-spacing: 0.04em; color: rgba(245,245,240,0.5); margin: -6px 0 12px; }
+
+/* przycisk do edytora katalogu + status kolejki (02.09.2026) */
+.ap-head-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+.ap-btn.cat { text-decoration: none; display: inline-block; border-color: rgba(184,255,0,0.55); color: #B8FF00; white-space: nowrap; }
+.ap-btn.cat:hover { background: rgba(184,255,0,0.12); }
+.ap-status.queued, .ap-badge.queued { color: #ffb020; border-color: rgba(255,176,32,0.5); }

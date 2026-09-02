@@ -19,7 +19,7 @@ const DEFAULT_PACKAGES = [
   { name: 'Premium', price: '' },
 ];
 
-const STATUS_LABEL = { new: 'Nowy', running: 'Analiza…', ready: 'Gotowy', error: 'Błąd' };
+const STATUS_LABEL = { new: 'Nowy', queued: 'W kolejce', running: 'Analiza…', ready: 'Gotowy', error: 'Błąd' };
 
 function fmtDate(iso) {
   if (!iso) return '';
@@ -50,7 +50,7 @@ export default function AudytPanel() {
 
   // пока есть running — опрашиваем каждые 3 с и тикаем секундомер
   useEffect(() => {
-    if (!audits || !audits.some(a => a.status === 'running')) return;
+    if (!audits || !audits.some(a => a.status === 'running' || a.status === 'queued')) return;
     const poll = setInterval(load, 3000);
     const tick = setInterval(() => {
       setElapsed(prev => {
@@ -147,7 +147,10 @@ export default function AudytPanel() {
             <div className="ap-eyebrow">★ Audyty SEO · GEO</div>
             <h2 className="ap-title">Audyt dla klienta</h2>
           </div>
-          <div className="ap-hint">analiza AI 3–5 min · produkty i pakiety z katalogu FIQ dobierają się same, ceny możesz nadpisać</div>
+          <div className="ap-head-right">
+            <a className="ap-btn cat" href="/katalog" target="_blank" rel="noopener">Katalog produktów →</a>
+            <div className="ap-hint">analiza AI 3–5 min · produkty i pakiety liczą się z katalogu (edytowalny), ceny możesz nadpisać · przy zajętej bramce audyt czeka w kolejce</div>
+          </div>
         </div>
 
         {/* nowy audyt */}

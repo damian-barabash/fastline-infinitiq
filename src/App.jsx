@@ -8,6 +8,7 @@ import Kontakt from './pages/Kontakt.jsx';
 const Login = lazy(() => import('./pages/Login.jsx'));
 const Editor = lazy(() => import('./pages/Editor.jsx'));
 const Audit = lazy(() => import('./pages/Audit.jsx'));
+const Katalog = lazy(() => import('./pages/Katalog.jsx'));
 
 // #wipe живёт в App (переживает смену роутов). CSS шторки есть в стилях каждой
 // страницы (байт-в-байт из исходников), плюс минимальный fallback в index.html.
@@ -55,6 +56,7 @@ export default function App() {
         <Route path="/login" element={<Login />} />
         <Route path="/editor" element={<Editor />} />
         <Route path="/audyt/:slug" element={<Audit />} />
+        <Route path="/katalog" element={<Katalog />} />
         {/* legacy-адреса старой статики */}
         <Route path="/index.html" element={<Navigate to="/" replace />} />
         <Route path="/kontakt.html" element={<Navigate to="/kontakt" replace />} />
