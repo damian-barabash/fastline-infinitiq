@@ -566,7 +566,11 @@ export default function Audit() {
                   ))}
                 </div>
               )}
-              <div className="au-note">Pomiar: Google PageSpeed Insights (mobile){perf ? ' + pomiary własne serwera' : ''}. Zielony = w normie Google, żółty = do poprawy, czerwony = krytycznie.</div>
+              <div className="au-note">
+                {psi
+                  ? <>Pomiar: Google PageSpeed Insights (mobile){perf ? ' + pomiary własne serwera' : ''}. Zielony = w normie Google, żółty = do poprawy, czerwony = krytycznie.</>
+                  : <>Google PageSpeed nie zwrócił wyniku dla tej strony — zdarza się przy bardzo ciężkich stronach, a samo w sobie jest sygnałem: narzędzie Google nie domierzyło jej w limicie czasu. Poniższe liczby to nasze własne pomiary serwera i wagi kodu. Zielony = w normie Google, żółty = do poprawy, czerwony = krytycznie.</>}
+              </div>
             </section>
           )}
 

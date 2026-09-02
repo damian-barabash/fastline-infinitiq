@@ -1069,7 +1069,7 @@ async function askAI(system: string, user: string, maxTokens: number): Promise<s
   // trzyminutowy pipeline audytu i zostawia klientowi stronę w stanie „błąd".
   const call = async (): Promise<string> => {
     const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort(), 60000); // 2 próby × 60 s mieszczą się w 150-sekundowym izolacie etapu
+    const t = setTimeout(() => ctrl.abort(), 100000); // jedno wywołanie na etap: 100 s < 130 s watchdog < 150 s izolat
     let res: Response;
     try {
       res = await fetch(`${AI_URL}/chat/completions`, {
@@ -1096,9 +1096,11 @@ async function askAI(system: string, user: string, maxTokens: number): Promise<s
       const msg = String(e instanceof Error ? e.message : e);
       // 429 z bramki i zerwane połączenie ponawiamy; błędy treści (400/401) nie mają sensu
       const retryable = NET.test(msg) || /: 5\d\d |: 429 /.test(msg);
-      if (attempt >= 2 || !retryable) throw e;
+      if (attempt >= 1 || !retryable) throw e; // powtórkę robi cały etap (auto-retry), nie pętla tutaj
       console.log("askAI: próba", attempt, "nieudana —", msg.slice(0, 120), "; ponawiam");
-      await new Promise((r) => setTimeout(r, 1500));
+      // pauza przed powtórką: po timeoucie bramka może wciąż liczyć poprzednie żądanie,
+      // a natychmiastowy retry tylko dokłada do kolejki na serwerze modelu
+      await new Promise((r) => setTimeout(r, 5000));
     }
   }
 }
@@ -1309,7 +1311,7 @@ Deno.serve(async (req) => {
   }
 
   const id = String(body.id ?? "");
-  const stage = Math.max(1, Math.min(4, +(body.stage ?? 1) || 1));
+  const stage = Math.max(1, Math.min(5, +(body.stage ?? 1) || 1));
   const retry = Math.max(0, +(body.retry ?? 0) || 0);
   if (!id) return json({ error: "Brak id audytu" }, 400);
 
@@ -1336,7 +1338,7 @@ Deno.serve(async (req) => {
   const fail = async (msg: string) => {
     // Przy 100 audytach dziennie nikt nie będzie klikał „Ponów" po każdym mrugnięciu
     // sieci — jedno automatyczne powtórzenie etapu robimy sami.
-    if (retry < 2 && TRANSIENT.test(msg)) {
+    if (retry < 1 && TRANSIENT.test(msg)) { // jedno powtórzenie etapu — każde kolejne to nowe zapytania do modelu
       console.error("audyt", id, `etap ${stage} błąd przejściowy:`, msg, "— powtarzam etap");
       await next(stage, retry + 1);
       return;
@@ -1346,14 +1348,14 @@ Deno.serve(async (req) => {
     // zobaczyć czerwonego „BŁĄD" z powodu cudzego ruchu: audyt wraca do kolejki
     // i rusza sam, gdy bramka odpowie. Dopiero po 3 nawrotach zgłaszamy błąd.
     const requeues = Number(audit.retries ?? 0);
-    if (TRANSIENT.test(msg) && requeues < 3) {
+    if (TRANSIENT.test(msg) && requeues < 2) {
       await db.from("audits").update({
         status: "queued",
         retries: requeues + 1,
         error: null,
         updated_at: new Date().toISOString(),
       }).eq("id", id);
-      console.error("audyt", id, "→ z powrotem do kolejki (próba", requeues + 1, "z 3)");
+      console.error("audyt", id, "→ z powrotem do kolejki (próba", requeues + 1, "z 2)");
       return;
     }
     await db.from("audits").update({ status: "error", error: msg }).eq("id", id);
@@ -1363,7 +1365,7 @@ Deno.serve(async (req) => {
   // widział wieczny spinner. Teraz dostaje czytelny błąd i przycisk Ponów analizę.
   const watchdog = setTimeout(() => {
     void fail(`Etap ${stage} przekroczył limit czasu — kliknij Ponów analizę`);
-  }, 110_000);
+  }, 130_000);
   const saveStage = async (st: StageState) => {
     const payload = { site_meta: deepClean({ ...(audit.site_meta ?? {}), _stage: st }) };
     const { error } = await db.from("audits").update(payload).eq("id", id);
@@ -1388,7 +1390,11 @@ Deno.serve(async (req) => {
     if (stage === 1) {
       let url = String(audit.site_url).trim();
       if (!/^https?:\/\//i.test(url)) url = "https://" + url;
-      const psiPromise = fetchPSI(url).catch(() => null);
+      // PageSpeed lubi odmówić przy ciężkich stronach (flavourtec: 1,87 MB) — jedna
+      // ponowna próba z dłuższym limitem; to API Google, nie obciąża naszej bramki AI.
+      const psiPromise = fetchPSI(url)
+        .catch(() => null)
+        .then(async (r) => r ?? await fetchPSI(url).catch(() => null));
       // Twardy limit na pobieranie: bez tego zawieszony fetch zjadał cały izolat,
       // a audyt zostawał na zawsze w stanie „running" (klient widzi wieczny spinner).
       const meta = await Promise.race([
@@ -1449,6 +1455,22 @@ Deno.serve(async (req) => {
 Pisz zwięźle. Opieraj się TYLKO na danych ze strony. Nie wymyślaj liczb ruchu.
 
 ${st.brief}`;
+
+      // Model bywa niedostępny (zajęta bramka, timeout). Zamiast wywalać cały audyt
+      // bierzemy tyle, ile się udało: brakujące pola i tak mają fallbacki (metryki,
+      // oceny) — klient dostaje raport, a nie czerwone „BŁĄD".
+      // JEDNO wywołanie modelu na etap. Wcześniej p1 i p2 szły równolegle i jeden audyt
+      // zajmował cały limit bramki (2 równoległe), przez co kolejka na serwerze rosła
+      // i czas odpowiedzi szedł ze 100 s do 270 s. Teraz model dostaje po jednym zadaniu.
+      const r1 = await askJson(SYS, p1, 1600);
+      console.log("audyt", id, lap(), "etap 2: diagnoza gotowa; branża:", r1.branza, "| zasięg:", r1.zasieg);
+      await saveStage({ ...st, r1 });
+      await next(3);
+      return;
+    }
+
+    // ======================= ETAP 3: część ofertowa (frazy, prompty, plan, FAQ) =======================
+    if (stage === 3) {
       const p2 = `Dla tej samej strony przygotuj część ofertową audytu. Zwróć JSON o DOKŁADNIE tej strukturze:
 {
  "keywords": [ { "phrase": "fraza po polsku", "intent": "informacyjna|zakupowa|lokalna|porównawcza", "potential": "wysoki|średni|niski" } ],  // dokładnie 8 fraz, którymi realni klienci szukają takich usług (konkretnie pod ofertę i lokalizację klienta)
@@ -1460,36 +1482,17 @@ ${st.brief}`;
 Pisz zwięźle. Frazy i prompty mają pasować do branży i oferty klienta (wg strony). Bez wymyślonych liczb.
 
 ${st.briefShort.slice(0, 3600)}`;
-
-      // Model bywa niedostępny (zajęta bramka, timeout). Zamiast wywalać cały audyt
-      // bierzemy tyle, ile się udało: brakujące pola i tak mają fallbacki (metryki,
-      // oceny) — klient dostaje raport, a nie czerwone „BŁĄD".
-      const [s1, s2] = await Promise.allSettled([askJson(SYS, p1, 1600), askJson(SYS, p2, 1700)]);
-      let r1 = s1.status === "fulfilled" ? s1.value : {};
-      let r2 = s2.status === "fulfilled" ? s2.value : {};
-      if (s1.status === "rejected") {
-        console.error("etap 2: p1 nieudane —", String(s1.reason).slice(0, 160), "; próbuję jeszcze raz solo");
-        try { r1 = await askJson(SYS, p1, 1600); } catch (e) { console.error("etap 2: p1 ostatecznie nieudane —", String(e).slice(0, 160)); }
-      }
-      if (s2.status === "rejected") {
-        console.error("etap 2: p2 nieudane —", String(s2.reason).slice(0, 160), "; próbuję jeszcze raz solo");
-        try { r2 = await askJson(SYS, p2, 1700); } catch (e) { console.error("etap 2: p2 ostatecznie nieudane —", String(e).slice(0, 160)); }
-      }
-      if (!Object.keys(r1).length && !Object.keys(r2).length) {
-        throw new Error("Model niedostępny (bramka AI) — kliknij Ponów analizę");
-      }
-      console.log("audyt", id, lap(), "para 1 gotowa; branża:", r1.branza, "| zasięg:", r1.zasieg, "| lokalizacja:", r1.lokalizacja);
-
-      await saveStage({ ...st, r1, r2 });
-      console.log("audyt", id, lap(), "etap 2 zapisany (diagnoza + oferta)");
-      await next(3);
+      const r2 = await askJson(SYS, p2, 1700);
+      console.log("audyt", id, lap(), "etap 3: część ofertowa gotowa");
+      await saveStage({ ...st, r2 });
+      await next(4);
       return;
     }
 
     const r1 = st.r1 ?? {}; // etap 2 zapisuje r1/r2; tu są już na pewno
 
     // ======================= ETAP 3: konkurenci =======================
-    if (stage === 3) {
+    if (stage === 4) {
       // Konkurencja to WZBOGACENIE audytu, nie jego rdzeń: wyszukiwarka albo strona
       // konkurenta potrafi się zawiesić i przy 100 audytach dziennie nie może to
       // wywalać całego raportu. Cokolwiek się tu wywali — lecimy dalej bez konkurentów.
@@ -1620,11 +1623,11 @@ ${st.briefShort.slice(0, 2600)}`;
         st.searchInfo = null;
         await saveStage(st);
       }
-      await next(4);
+      await next(5);
       return;
     }
 
-    // ======================= ETAP 4: produkty z katalogu + pakiety + zapis =======================
+    // ======================= ETAP 5: produkty z katalogu + pakiety + zapis =======================
     // Katalog produktów pobieramy z bazy (edytowalny z panelu). Gdy zapytanie padnie,
     // zostaje wersja wbudowana — audyt nigdy nie zostaje bez katalogu.
     await loadCatalog(db);
@@ -1719,7 +1722,13 @@ ${st.brief.slice(0, 3600)}`;
     // produkty treściowe trzymamy w jednym (najniższym) tierze — żeby komunikacja ruszała razem
     const contentTier = Math.min(...picked.filter(p => isContentProduct(p.id)).map(p => p.tier), 9);
     if (contentTier < 9) picked.filter(p => isContentProduct(p.id)).forEach(p => { p.tier = Math.min(p.tier, contentTier + 1); });
-    picked = picked.slice(0, 9); // dolna granica to 6 (dobierana niżej), górna 9 — cena pakietów rośnie wraz z liczbą
+    // Górna granica zależy od skali firmy: lokalnej jednoosobowej działalności nie
+    // sprzedajemy dziewięciu systemów. Model sam z siebie wypełnia limit do maksimum,
+    // więc pilnujemy tego w kodzie: lokalny → 6, regionalny → 7, ogólnopolski+ → 9.
+    const zas = String(r1.zasieg ?? "").toLowerCase();
+    const cap = /lokaln/.test(zas) ? 6 : /regionaln/.test(zas) ? 7 : 9;
+    if (picked.length > cap) console.log("audyt", id, `zasięg "${zas || "?"}" → ograniczam do ${cap} produktów (model wybrał ${picked.length})`);
+    picked = picked.slice(0, cap); // dolna granica to 6 (dobierana niżej) — cena pakietów rośnie wraz z liczbą
     if (!picked.some(p => p.tier === 1)) picked[0].tier = 1;
     // Minimum 6 produktów: jeśli model dał mniej, dobieramy najbliższe sensem —
     // najpierw z tych samych grup, co już wybrane (spójny ekosystem), potem po kolei.
