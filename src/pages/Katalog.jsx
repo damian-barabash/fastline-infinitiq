@@ -174,7 +174,7 @@ function Form({ draft, set, save, busy, onCancel }) {
     <div className="kt-form">
       <div className="kt-grid">
         <label className="kt-f"><span>Numer w katalogu</span><input type="number" value={draft.id ?? ''} onChange={set('id')} /></label>
-        <label className="kt-f wide"><span>Nazwa produktu</span><input value={draft.name || ''} onChange={set('name')} placeholder="np. LeadEngine" /></label>
+        <label className="kt-f wide"><span>Nazwa produktu</span><input value={draft.name || ''} onChange={set('name')} placeholder="np. Lead Engine" /></label>
         <label className="kt-f"><span>Kolejność</span><input type="number" value={draft.sort ?? ''} onChange={set('sort')} /></label>
       </div>
       <div className="kt-grid">

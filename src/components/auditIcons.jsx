@@ -65,10 +65,30 @@ export function serviceIcon(name) {
   return 'chip';
 }
 
-// иконка + «zmysł» продукта из каталога FIQ (по id продукта)
-const PRODUCT_ICON = { 1: 'robot', 2: 'phone', 3: 'target', 4: 'doc', 5: 'heart', 6: 'chart', 7: 'coins', 8: 'box', 9: 'clock', 10: 'tag', 11: 'pen', 12: 'search', 13: 'star', 14: 'play', 15: 'layers', 16: 'spark', 17: 'users', 18: 'book' };
+// иконка продукта из каталога FIQ: сначала по названию (каталог редактируется из панели,
+// номера меняются при каждой ревизии PDF), потом по id из каталога final 09.2026 (15 продуктов)
+const PRODUCT_ICON = { 1: 'robot', 2: 'phone', 3: 'target', 4: 'users', 5: 'doc', 6: 'heart', 7: 'chart', 8: 'box', 9: 'clock', 10: 'globe', 11: 'pen', 12: 'search', 13: 'star', 14: 'users', 15: 'book' };
 const SENSE_ICON = { Brain: 'brain', Mind: 'spark', Hand: 'hand', Heart: 'heart', Eyes: 'eye' };
-export function productIcon(id, name) { return PRODUCT_ICON[+id] || serviceIcon(name); }
+export function productIconByName(name) {
+  const n = String(name || '').toLowerCase();
+  if (/agenci|agents|agent/.test(n)) return 'robot';
+  if (/recepc|reception/.test(n)) return 'phone';
+  if (/lead ?engine/.test(n)) return 'target';
+  if (/customer ?hub|crm/.test(n)) return 'users';
+  if (/offer/.test(n)) return 'doc';
+  if (/loyalty|lojaln/.test(n)) return 'heart';
+  if (/data ?hub|command|cfo|finans/.test(n)) return 'chart';
+  if (/warehouse|magazyn/.test(n)) return 'box';
+  if (/project ?manager|workpilot/.test(n)) return 'clock';
+  if (/market|radar|intelligence|pricing/.test(n)) return 'globe';
+  if (/content|treś/.test(n)) return 'pen';
+  if (/seo|geo/.test(n)) return 'search';
+  if (/reputation|reputac|opini/.test(n)) return 'star';
+  if (/recruit|rekrut/.test(n)) return 'users';
+  if (/academy|akademi|onboarding/.test(n)) return 'book';
+  return null;
+}
+export function productIcon(id, name) { return productIconByName(name) || PRODUCT_ICON[+id] || serviceIcon(name); }
 export function senseIcon(sense) { return SENSE_ICON[sense] || 'chip'; }
 
 // иконка метрики по подписи
