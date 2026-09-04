@@ -129,3 +129,8 @@ body.fiq-edit .ap-wrap a { pointer-events: auto; }
 .ap-btn.cat { text-decoration: none; display: inline-block; border-color: rgba(184,255,0,0.55); color: #B8FF00; white-space: nowrap; }
 .ap-btn.cat:hover { background: rgba(184,255,0,0.12); }
 .ap-status.queued, .ap-badge.queued { color: #ffb020; border-color: rgba(255,176,32,0.5); }
+
+/* заявка, пришедшая из формы «darmowy audyt» на лендинге */
+.ap-lead { color: var(--green); }
+.ap-lead a { color: inherit; text-decoration: none; border-bottom: 1px solid rgba(184,255,0,0.35); }
+.ap-lead a:hover { border-color: var(--green); }

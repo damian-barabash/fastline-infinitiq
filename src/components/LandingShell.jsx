@@ -1,4 +1,5 @@
 import React from 'react';
+import AuditForm from './AuditForm.jsx';
 
 // Разметка главной 1:1 из index.html (те же классы/ids/data-атрибуты).
 // Используется главной (с 3D-движком) и редактором (mode-flat).
@@ -384,14 +385,15 @@ export default function LandingShell() {
           <section className="slide" id="kontakt" data-hideable="sec:kontakt">
             <div className="slide-inner cta-slide-inner">
               <div className="cta-bg" data-edit="cta_bg">IQ</div>
-              <div className="section-label rv rv1" data-edit="cta_label">06 — Zacznij</div>
-              <h2 className="rv rv2" data-edit="cta_h2" data-edit-type="html">Gotowi<br />na <em>AI-native?</em></h2>
+              <div className="section-label rv rv1" data-edit="cta_label">06 — Darmowy audyt</div>
+              <h2 className="rv rv2" data-edit="cta_h2" data-edit-type="html">Zacznijmy od <em>diagnozy</em>,<br />nie od faktury.</h2>
               <p className="rv rv3" data-edit="cta_p">
-                Pierwsze spotkanie to briefing strategiczny — bez umów, bez zobowiązań.
-                Sprawdzamy, czy do siebie pasujemy.
+                Zostaw e-mail i adres strony — AI przeanalizuje Waszą widoczność w Google i w modelach AI,
+                technikę, treści i konkurencję. Gotowy raport dostaniesz mailem. Za darmo i bez zobowiązań.
               </p>
-              <a href="/kontakt" data-wipe className="btn-primary rv rv4" data-edit="cta_btn">Umów briefing strategiczny</a>
-              <div className="cta-note rv rv5" data-edit="cta_note">Odpowiadamy w 24h roboczych</div>
+              <div className="rv rv4"><AuditForm /></div>
+              <a href="/kontakt" data-wipe className="cta-alt rv rv5" data-edit="cta_alt">Wolisz najpierw porozmawiać? Umów briefing →</a>
+              <div className="cta-note rv rv5" data-edit="cta_note">Audyt gotowy w kilka minut · odzywamy się w 24h roboczych</div>
             </div>
             <div className="footer-bar">
               <p data-edit="footer_left" data-edit-type="html">© 2026 Fastline InfinitiQ — <a href="https://greywolfgroup.pl/" target="_blank" rel="noopener">Greywolf Group</a></p>

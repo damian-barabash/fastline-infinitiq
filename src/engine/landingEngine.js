@@ -449,7 +449,7 @@ export function initLanding({ onNavigate }) {
   function frostCollect() {
     frost.items = [];
     frost.lastY = -1; // строки могли перестроиться — рект-кэш невалиден
-    document.querySelectorAll('.what-board .diff-item, .svc-list .svc-row, .who-grid .who-item').forEach(el => {
+    document.querySelectorAll('.what-board .diff-item, .svc-list .svc-row, .who-grid .who-item, .af').forEach(el => {
       let c = el.querySelector(':scope > .frost-c');
       if (!c) {
         c = document.createElement('canvas');

@@ -201,6 +201,15 @@ export default function AudytPanel() {
                   <span className="ap-link" onClick={() => copyLink(a.slug)} title="Kopiuj link">/audyt/{a.slug}</span>
                   <span className="ap-dot">·</span>
                   <span>{fmtDate(a.created_at)}</span>
+                  {a.source === 'landing' && (
+                    <>
+                      <span className="ap-dot">·</span>
+                      {/* заявка из формы на лендинге: видно, кому уже ушёл раport */}
+                      <span className="ap-lead" title="Zamówiony przez formularz na stronie">
+                        z lendingu: <a href={`mailto:${a.lead_email}`}>{a.lead_email}</a>
+                      </span>
+                    </>
+                  )}
                 </div>
                 {a.status === 'error' && <div className="ap-err">⚠ {a.error}</div>}
                 <div className="ap-comp">
