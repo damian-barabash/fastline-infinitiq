@@ -60,7 +60,7 @@ export default function LandingShell() {
                 Projektujemy strategie, treści i systemy komunikacji, które bez AI nie byłyby możliwe.
               </p>
               <div className="hero-actions rv rv4">
-                <a href="/kontakt" data-wipe className="btn-primary" data-edit="hero_btn_primary">Zacznij współpracę</a>
+                <a href="#kontakt" className="btn-primary" data-goto-id="kontakt" data-edit="hero_btn_primary">Darmowy audyt AI</a>
                 <a href="#czym-jestesmy" className="btn-ghost" data-goto="1" data-edit="hero_btn_ghost">Dowiedz się więcej</a>
               </div>
             </div>

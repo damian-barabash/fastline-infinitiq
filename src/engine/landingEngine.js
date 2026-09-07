@@ -116,8 +116,15 @@ export function initLanding({ onNavigate }) {
   }
   railItems.forEach(b => b.addEventListener('click', () => goTo(+b.dataset.i), { signal }));
   document.getElementById('navHome').addEventListener('click', e => { e.preventDefault(); goTo(0); }, { signal });
-  document.querySelectorAll('[data-goto]').forEach(a => {
-    a.addEventListener('click', e => { e.preventDefault(); goTo(+a.dataset.goto); }, { signal });
+  // data-goto = numer grani, data-goto-id = jej id (bezpieczniejsze: sekcje można
+  // ukrywać w CMS, więc numery się przesuwają, a id zostaje).
+  document.querySelectorAll('[data-goto], [data-goto-id]').forEach(a => {
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const byId = a.dataset.gotoId;
+      const idx = byId ? slides.findIndex(s2 => s2.id === byId) : +a.dataset.goto;
+      if (idx >= 0) goTo(idx);
+    }, { signal });
   });
 
   function setActive(idx) {
