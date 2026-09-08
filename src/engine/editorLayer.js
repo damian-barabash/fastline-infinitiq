@@ -1,6 +1,8 @@
 // Слой визуального редактора: contenteditable, тулбары, палитра блоков,
 // сбор контента и сохранение (published/draft). Перенос 1:1 из editor.html.
 // Адаптация: sb-клиент и редиректы приходят из React, cleanup для SPA.
+import { renderHeroProducts } from './heroProducts.js';
+
 export function initEditorLayer({ sb, onRequireLogin }) {
 
   const ac = new AbortController();
@@ -307,6 +309,26 @@ export function initEditorLayer({ sb, onRequireLogin }) {
     return out;
   }
 
+  /* ===== Hero: produkty pochodzą z katalogu, nie z CMS =====
+     Karty w kuli to ta sama lista, z której liczy się audyt (`audit_catalog`),
+     więc edytuje się je w /katalog, a nie tutaj — inaczej byłyby dwa źródła nazw
+     i cen. Podgląd pokazujemy aktualny, żeby redaktor widział prawdę. */
+  async function showHeroProducts() {
+    const stage = document.getElementById('plStage');
+    if (!stage) return;
+    if (!stage.querySelector('.pl-cmshint')) {
+      const hint = document.createElement('div');
+      hint.className = 'pl-cmshint';
+      hint.innerHTML = 'Produkty w kuli edytujesz w <a href="/katalog" target="_blank" rel="noreferrer">Katalogu produktów</a>'
+        + ' — nazwy, opisy, kolejność i ukrywanie. Ta sama lista zasila audyty.';
+      stage.appendChild(hint);
+    }
+    try {
+      const { data } = await sb.from('landing_products').select('id,name,descr,grp,group_name,ord').order('ord');
+      if (!destroyed) renderHeroProducts(data);
+    } catch (_) { /* brak sieci — zostaje snapshot z markupu */ }
+  }
+
   (async () => {
     const { data: { session: s } } = await sb.auth.getSession();
     if (destroyed) return;
@@ -330,6 +352,7 @@ export function initEditorLayer({ sb, onRequireLogin }) {
     // 2-й проход: перестраиваем списки/блоки уже в структурную форму
     FIQ.applyContent(content, { editor: true });
     enableEditing();
+    await showHeroProducts();
     baseline = serialize(collect());
     setStatus(loadedFrom === 'draft' ? 'draft' : 'saved');
     gate.classList.add('hidden');

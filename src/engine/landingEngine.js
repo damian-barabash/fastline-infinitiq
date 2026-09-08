@@ -44,12 +44,16 @@ export function initLanding({ onNavigate }) {
   const dot = document.getElementById('cursorDot');
   const ring = document.getElementById('cursorRing');
   let rx = vw / 2, ry = vh / 2;
+  // Nad klikalnym elementem chowamy własny kursor (kółko + kropkę) — pokazuje się
+  // wtedy kwasowa „łapka" ustawiona CSS-em (cursor: url(...)), inaczej dwa kursory
+  // biją się na tym samym pikselu.
+  const CLICKABLE = 'a, button, .pl-node, [data-goto], .rail-item, input, textarea, select, [contenteditable="true"]';
   if (!COARSE) {
     document.addEventListener('mouseover', e => {
-      if (e.target.closest('a, button')) ring.classList.add('link');
+      if (e.target.closest(CLICKABLE)) { ring.classList.add('link'); dot.classList.add('link'); }
     }, { signal });
     document.addEventListener('mouseout', e => {
-      if (e.target.closest('a, button')) ring.classList.remove('link');
+      if (e.target.closest(CLICKABLE)) { ring.classList.remove('link'); dot.classList.remove('link'); }
     }, { signal });
   }
 
@@ -116,15 +120,8 @@ export function initLanding({ onNavigate }) {
   }
   railItems.forEach(b => b.addEventListener('click', () => goTo(+b.dataset.i), { signal }));
   document.getElementById('navHome').addEventListener('click', e => { e.preventDefault(); goTo(0); }, { signal });
-  // data-goto = numer grani, data-goto-id = jej id (bezpieczniejsze: sekcje można
-  // ukrywać w CMS, więc numery się przesuwają, a id zostaje).
-  document.querySelectorAll('[data-goto], [data-goto-id]').forEach(a => {
-    a.addEventListener('click', e => {
-      e.preventDefault();
-      const byId = a.dataset.gotoId;
-      const idx = byId ? slides.findIndex(s2 => s2.id === byId) : +a.dataset.goto;
-      if (idx >= 0) goTo(idx);
-    }, { signal });
+  document.querySelectorAll('[data-goto]').forEach(a => {
+    a.addEventListener('click', e => { e.preventDefault(); goTo(+a.dataset.goto); }, { signal });
   });
 
   function setActive(idx) {
@@ -292,7 +289,8 @@ export function initLanding({ onNavigate }) {
      FX по id секции (не по индексу): секции можно скрывать через CMS,
      порядок/количество граней меняется — эффекты остаются свои. */
   const FX_BY_ID = {
-    'start':         { cx: 0.70, r: 1.00, tint: 0, dim: 0,    ex: 1.0 }, // hero
+    'start':         { cx: 0.50, r: 0.40, tint: 0, dim: 0.58, ex: 1.0 }, // hero: узкий приглушённый столп — «вырастает» из планеты
+    'audyt':         { cx: 0.74, r: 1.06, tint: 0, dim: 0.30, ex: 1.8 }, // разогнан, но приглушён под формой
     'czym-jestesmy': { cx: 0.78, r: 0.80, tint: 0, dim: 0,    ex: 1.0 }, // узкий, у правого края
     'oferta':        { cx: 0.72, r: 1.18, tint: 0, dim: 0,    ex: 1.6 }, // широкая сеть, живее
     'zespol':        { cx: 0.50, r: 1.45, tint: 0, dim: 0.62, ex: 1.3 }, // разведён по краям, приглушён под силуэтами

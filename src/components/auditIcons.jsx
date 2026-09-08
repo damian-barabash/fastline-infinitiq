@@ -71,19 +71,23 @@ const PRODUCT_ICON = { 1: 'robot', 2: 'phone', 3: 'target', 4: 'users', 5: 'doc'
 const SENSE_ICON = { Brain: 'brain', Mind: 'spark', Hand: 'hand', Heart: 'heart', Eyes: 'eye' };
 export function productIconByName(name) {
   const n = String(name || '').toLowerCase();
+  // katalog 09.2026 (17 produktów) — dopasowanie po nazwie, nigdy po numerze
+  if (/sprzedawc/.test(n)) return 'message';
+  if (/doradc/.test(n)) return 'brain';
+  if (/asystent|assistant/.test(n)) return 'robot';
   if (/agenci|agents|agent/.test(n)) return 'robot';
   if (/recepc|reception/.test(n)) return 'phone';
-  if (/lead ?engine/.test(n)) return 'target';
+  if (/łowca|lowca|lead/.test(n)) return 'target';
   if (/customer ?hub|crm/.test(n)) return 'users';
-  if (/offer/.test(n)) return 'doc';
+  if (/ofert|offer/.test(n)) return 'doc';
   if (/loyalty|lojaln/.test(n)) return 'heart';
   if (/data ?hub|command|cfo|finans/.test(n)) return 'chart';
   if (/warehouse|magazyn/.test(n)) return 'box';
   if (/project ?manager|workpilot/.test(n)) return 'clock';
   if (/market|radar|intelligence|pricing/.test(n)) return 'globe';
-  if (/content|treś/.test(n)) return 'pen';
+  if (/kontent|content|treś|fabryka/.test(n)) return 'pen';
   if (/seo|geo/.test(n)) return 'search';
-  if (/reputation|reputac|opini/.test(n)) return 'star';
+  if (/reputation|reputac|opini|guard/.test(n)) return 'star';
   if (/recruit|rekrut/.test(n)) return 'users';
   if (/academy|akademi|onboarding/.test(n)) return 'book';
   return null;

@@ -1,5 +1,6 @@
 import React from 'react';
 import AuditForm from './AuditForm.jsx';
+import ProductIcon from './productIcons.jsx';
 
 // Разметка главной 1:1 из index.html (те же классы/ids/data-атрибуты).
 // Используется главной (с 3D-движком) и редактором (mode-flat).
@@ -16,22 +17,23 @@ export default function LandingShell() {
         <a className="nav-logo" href="#" id="navHome" aria-label="Fastline InfinitiQ">
           <img src="/assets/logo/LOGO.png" alt="Fastline InfinitiQ" data-edit="nav_logo" data-edit-type="image" />
         </a>
-        <a href="/kontakt" data-wipe className="nav-cta"><span className="cta-full" data-edit="nav_cta_full">Umów briefing</span><span className="cta-short" data-edit="nav_cta_short">Briefing</span></a>
+        <a href="#audyt" data-goto="1" className="nav-cta"><span className="cta-full" data-edit="nav_cta_full">Darmowy audyt AI</span><span className="cta-short" data-edit="nav_cta_short">Audyt</span></a>
       </nav>
 
       {/* PROGRESS RAIL */}
       <div className="rail" id="rail" role="navigation" aria-label="Sekcje">
         <button className="rail-item" data-i="0"><span className="rail-name">Start</span><span className="rail-tick"></span></button>
-        <button className="rail-item" data-i="1"><span className="rail-name">Czym jesteśmy</span><span className="rail-tick"></span></button>
-        <button className="rail-item" data-i="2"><span className="rail-name">Oferta</span><span className="rail-tick"></span></button>
-        <button className="rail-item" data-i="3"><span className="rail-name">Produkt</span><span className="rail-tick"></span></button>
-        <button className="rail-item" data-i="4"><span className="rail-name">Model</span><span className="rail-tick"></span></button>
-        <button className="rail-item" data-i="5"><span className="rail-name">Co robimy</span><span className="rail-tick"></span></button>
-        <button className="rail-item" data-i="6"><span className="rail-name">Grupa</span><span className="rail-tick"></span></button>
-        <button className="rail-item" data-i="7"><span className="rail-name">Kontakt</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="1"><span className="rail-name">Darmowy audyt</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="2"><span className="rail-name">Czym jesteśmy</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="3"><span className="rail-name">Oferta</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="4"><span className="rail-name">Produkt</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="5"><span className="rail-name">Model</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="6"><span className="rail-name">Co robimy</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="7"><span className="rail-name">Grupa</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="8"><span className="rail-name">Kontakt</span><span className="rail-tick"></span></button>
       </div>
 
-      <div className="counter" id="counter"><span className="cur">01</span><span>/ 08</span></div>
+      <div className="counter" id="counter"><span className="cur">01</span><span>/ 09</span></div>
       <div className="scroll-hint" id="scrollHint">Scroll</div>
 
       {/* Scroll driver (3d mode) */}
@@ -41,58 +43,194 @@ export default function LandingShell() {
       <div id="stage">
         <div id="drum">
 
-          {/* 0 / HERO */}
+          {/* 0 / HERO — oferta produktów: planeta z pierścieniem, na którym siedzą produkty
+              aktywnej grupy. Grupy przełącza się same co 5 s (planeta się obraca) albo ręcznie;
+              ręczne kliknięcie zatrzymuje automat. */}
           <section className="slide" id="start">
             <div className="hero-bg-text" data-edit="hero_bgtext">INFINITI</div>
             <div className="slide-inner hero-content">
-              <div className="hero-claim rv rv1" id="heroClaim">
-                <span className="hc-word" data-edit="hero_claim_1">Data driven.</span>
-                <span className="hc-sep" aria-hidden="true"></span>
-                <span className="hc-word" data-edit="hero_claim_2">Mind created.</span>
-                <span className="hc-sep" aria-hidden="true"></span>
-                <span className="hc-word" data-edit="hero_claim_3">Unique executed.</span>
-              </div>
-              <div className="hero-eyebrow rv rv1" data-edit="hero_eyebrow">★ AI-Native Agency — Retainer Only</div>
-              <h1 className="hero-h1 rv rv2" data-edit="hero_h1" data-edit-type="html">Nie używamy AI.<br />Myślimy <em>przez AI.</em></h1>
-              <p className="hero-sub rv rv3" data-edit="hero_sub" data-edit-type="html">
-                Fastline InfinitiQ to agencja zbudowana od zera wokół sztucznej inteligencji.{' '}
-                <strong>Nie wdrażamy AI do starych procesów.</strong>{' '}
-                Projektujemy strategie, treści i systemy komunikacji, które bez AI nie byłyby możliwe.
+             <div className="hero-grid">
+              <div className="hero-col">
+              <h1 className="hero-h1 rv rv1" data-edit="hero_h1" data-edit-type="html">Gotowe wdrożenia AI dla czterech obszarów Twojej firmy.</h1>
+              <p className="hero-sub rv rv2" data-edit="hero_sub" data-edit-type="html">
+                Marketing, sprzedaż, obsługa klienta, operacje. Wybierz obszar, w którym tracisz
+                najwięcej czasu i pieniędzy — pokażemy, co przejmie AI.
               </p>
-              <div className="hero-actions rv rv4">
-                <a href="#kontakt" className="btn-primary" data-goto-id="kontakt" data-edit="hero_btn_primary">Darmowy audyt AI</a>
-                <a href="#czym-jestesmy" className="btn-ghost" data-goto="1" data-edit="hero_btn_ghost">Dowiedz się więcej</a>
+
+
               </div>
+
+              <div className="pl-stage rv rv4" id="plStage">
+                <canvas className="pl-canvas" id="plCanvas" aria-hidden="true"></canvas>
+                {/* podpisy wycinków — widoczne zawsze, aktywny się rozświetla */}
+                <div className="pl-glabels" id="plLabels">
+                  <div className="pl-gname" data-g="a">Marketing i treści</div>
+                  <div className="pl-gname" data-g="b">Sprzedaż</div>
+                  <div className="pl-gname" data-g="c">Agenci i obsługa klienta</div>
+                  <div className="pl-gname" data-g="d">Operacje i zarządzanie</div>
+                </div>
+                <div className="pl-nodes" id="plNodes">
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="a" data-i="0">
+                    <div className="pl-top"><ProductIcon id={1} /><span className="pl-num">01</span></div>
+                    <b className="pl-name">Fabryka Kontentu</b>
+                    <i className="pl-desc">Copy i grafiki w tonie marki, z planem na miesiąc.</i>
+                  </div>
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="a" data-i="1">
+                    <div className="pl-top"><ProductIcon id={2} /><span className="pl-num">02</span></div>
+                    <b className="pl-name">SEO &amp; GEO Autopilot</b>
+                    <i className="pl-desc">Auto-blog pod Google i widoczność w odpowiedziach AI.</i>
+                  </div>
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="a" data-i="2">
+                    <div className="pl-top"><ProductIcon id={3} /><span className="pl-num">03</span></div>
+                    <b className="pl-name">AI Reputation Guard</b>
+                    <i className="pl-desc">Monitoring i obsługa opinii głosem marki.</i>
+                  </div>
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="b" data-i="3">
+                    <div className="pl-top"><ProductIcon id={4} /><span className="pl-num">04</span></div>
+                    <b className="pl-name">AI Łowca Leadów</b>
+                    <i className="pl-desc">Autonomiczne pozyskiwanie leadów w wielu kanałach.</i>
+                  </div>
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="b" data-i="4">
+                    <div className="pl-top"><ProductIcon id={5} /><span className="pl-num">05</span></div>
+                    <b className="pl-name">AI CRM</b>
+                    <i className="pl-desc">Więcej niż CRM: strategia relacji i kontrola 100% rozmów.</i>
+                  </div>
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="b" data-i="5">
+                    <div className="pl-top"><ProductIcon id={6} /><span className="pl-num">06</span></div>
+                    <b className="pl-name">AI Generator Ofert</b>
+                    <i className="pl-desc">Oferta z briefu w minuty, z trackingiem i follow-upem.</i>
+                  </div>
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="b" data-i="6">
+                    <div className="pl-top"><ProductIcon id={7} /><span className="pl-num">07</span></div>
+                    <b className="pl-name">Loyalty Engine</b>
+                    <i className="pl-desc">Własna aplikacja lojalnościowa z gamifikacją i AI push.</i>
+                  </div>
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="c" data-i="7">
+                    <div className="pl-top"><ProductIcon id={8} /><span className="pl-num">08</span></div>
+                    <b className="pl-name">AI Sprzedawca</b>
+                    <i className="pl-desc">Pierwsza linia: łapie zapytanie w sekundę i domyka.</i>
+                  </div>
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="c" data-i="8">
+                    <div className="pl-top"><ProductIcon id={9} /><span className="pl-num">09</span></div>
+                    <b className="pl-name">AI Doradca</b>
+                    <i className="pl-desc">Dobiera wariant, rozbraja wątpliwości, prowadzi do zakupu.</i>
+                  </div>
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="c" data-i="9">
+                    <div className="pl-top"><ProductIcon id={10} /><span className="pl-num">10</span></div>
+                    <b className="pl-name">AI Recepcja 24/7</b>
+                    <i className="pl-desc">Odbiera telefon o każdej porze, umawia i pilnuje kalendarza.</i>
+                  </div>
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="d" data-i="10">
+                    <div className="pl-top"><ProductIcon id={11} /><span className="pl-num">11</span></div>
+                    <b className="pl-name">AI Data Hub</b>
+                    <i className="pl-desc">Rozmawiaj z danymi firmy: odpowiedź, wykres albo akcja.</i>
+                  </div>
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="d" data-i="11">
+                    <div className="pl-top"><ProductIcon id={12} /><span className="pl-num">12</span></div>
+                    <b className="pl-name">Inteligentny Magazyn</b>
+                    <i className="pl-desc">AI przejmuje zakupy i stany magazynowe.</i>
+                  </div>
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="d" data-i="12">
+                    <div className="pl-top"><ProductIcon id={13} /><span className="pl-num">13</span></div>
+                    <b className="pl-name">Market Radar</b>
+                    <i className="pl-desc">Wywiad rynkowy: konkurencja, popyt i warstwa cenowa.</i>
+                  </div>
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="d" data-i="13">
+                    <div className="pl-top"><ProductIcon id={14} /><span className="pl-num">14</span></div>
+                    <b className="pl-name">AI Project Manager</b>
+                    <i className="pl-desc">Twój projekt manager AI.</i>
+                  </div>
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="d" data-i="14">
+                    <div className="pl-top"><ProductIcon id={15} /><span className="pl-num">15</span></div>
+                    <b className="pl-name">AI Asystent</b>
+                    <i className="pl-desc">Baza wiedzy firmy: zespół pyta, asystent odpowiada.</i>
+                  </div>
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="d" data-i="15">
+                    <div className="pl-top"><ProductIcon id={16} /><span className="pl-num">16</span></div>
+                    <b className="pl-name">Rekruter AI</b>
+                    <i className="pl-desc">Od CV do pierwszego dnia: screening, ranking, rozmowa.</i>
+                  </div>
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="d" data-i="16">
+                    <div className="pl-top"><ProductIcon id={17} /><span className="pl-num">17</span></div>
+                    <b className="pl-name">AI Academy</b>
+                    <i className="pl-desc">Onboarding, kursy, testy i certyfikaty z wiedzy firmy.</i>
+                  </div>
+                </div>
+              </div>
+
+              <div className="hero-actions rv rv5">
+                <div className="hero-cta-note" data-edit="hero_cta_note">Bezpłatna diagnoza · 3 minuty · konkretne rozwiązania i widełki cenowe</div>
+                <a href="#audyt" className="btn-primary" data-goto="1" data-edit="hero_btn_primary">Darmowy audyt AI</a>
+              </div>
+             </div>
             </div>
-            <div className="ticker">
-              <div className="ticker-inner">
-                <span className="ticker-item"><span>★</span> AI Strategy</span>
-                <span className="ticker-item"><span>★</span> Generative Content</span>
-                <span className="ticker-item"><span>★</span> Brand Voice AI</span>
-                <span className="ticker-item"><span>★</span> LLM Integration</span>
-                <span className="ticker-item"><span>★</span> Marketing Automation AI</span>
-                <span className="ticker-item"><span>★</span> CRM &amp; Sales AI</span>
-                <span className="ticker-item"><span>★</span> Performance Marketing AI</span>
-                <span className="ticker-item"><span>★</span> AI Video &amp; Visual Production</span>
-                <span className="ticker-item"><span>★</span> AI Strategy</span>
-                <span className="ticker-item"><span>★</span> Generative Content</span>
-                <span className="ticker-item"><span>★</span> Brand Voice AI</span>
-                <span className="ticker-item"><span>★</span> LLM Integration</span>
-                <span className="ticker-item"><span>★</span> Marketing Automation AI</span>
-                <span className="ticker-item"><span>★</span> CRM &amp; Sales AI</span>
-                <span className="ticker-item"><span>★</span> Performance Marketing AI</span>
-                <span className="ticker-item"><span>★</span> AI Video &amp; Visual Production</span>
+          </section>
+
+          {/* 1 / AUDYT — darmowy audyt AI zaraz po hero:
+              lewa kolumna tłumaczy, czym to jest i co klient dostaje, prawa to formularz. */}
+          <section className="slide" id="audyt" data-hideable="sec:audyt">
+            <div className="slide-inner">
+              <div className="aud-grid">
+                <div className="aud-left">
+                  <div className="section-label rv rv1" data-edit="aud_label">01 — Darmowy audyt AI</div>
+                  <h2 className="aud-h2 rv rv2" data-edit="aud_h2" data-edit-type="html">Zacznijmy od <em>diagnozy</em>,<br />nie od faktury.</h2>
+                  <p className="aud-lead rv rv3" data-edit="aud_p">
+                    Darmowy audyt AI to raport o tym, jak Waszą firmę widzi dziś internet: wyszukiwarka Google,
+                    modele AI w rodzaju ChatGPT i Perplexity oraz Wasza konkurencja. Zostawiacie e-mail i adres strony,
+                    resztę robi nasz system — raport przychodzi mailem, zwykle w kilka minut.
+                  </p>
+                </div>
+
+                <div className="aud-listw">
+                  <div className="aud-list rv rv4">
+                    <div className="aud-b">
+                      <span className="aud-b-n">01</span>
+                      <div className="aud-b-t">
+                        <h3 data-edit="aud_b1_h">Widoczność w Google i w AI</h3>
+                        <p data-edit="aud_b1_p">Czy wyszukiwarka i modele językowe w ogóle rozumieją, czym się zajmujecie — i co im to utrudnia.</p>
+                      </div>
+                    </div>
+                    <div className="aud-b">
+                      <span className="aud-b-n">02</span>
+                      <div className="aud-b-t">
+                        <h3 data-edit="aud_b2_h">Technika i szybkość strony</h3>
+                        <p data-edit="aud_b2_p">Realny pomiar PageSpeed i Core Web Vitals plus lista rzeczy, które zniechęcają klienta i robota.</p>
+                      </div>
+                    </div>
+                    <div className="aud-b">
+                      <span className="aud-b-n">03</span>
+                      <div className="aud-b-t">
+                        <h3 data-edit="aud_b3_h">Konkurencja bez ściemy</h3>
+                        <p data-edit="aud_b3_p">Wyszukujemy Waszych realnych konkurentów w sieci i porównujemy sygnał po sygnale — nie z pamięci modelu.</p>
+                      </div>
+                    </div>
+                    <div className="aud-b">
+                      <span className="aud-b-n">04</span>
+                      <div className="aud-b-t">
+                        <h3 data-edit="aud_b4_h">Plan i konkretna wycena</h3>
+                        <p data-edit="aud_b4_p">Kroki na najbliższe tygodnie i produkty AI dobrane do Waszej sytuacji — z cenami wdrożenia i abonamentu.</p>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="aud-meta rv rv5" data-edit="aud_meta">Za darmo · bez zobowiązań · bez newslettera</div>
+                </div>
+
+                <div className="aud-right rv rv4">
+                  <AuditForm />
+                  <a href="/kontakt" data-wipe className="cta-alt aud-alt" data-edit="aud_alt">Wolisz najpierw porozmawiać? Umów briefing →</a>
+                  <div className="aud-note" data-edit="aud_note">Raport gotowy w kilka minut · odzywamy się w ciągu 24 h roboczych</div>
+                </div>
               </div>
             </div>
           </section>
 
-          {/* 1 / WHAT */}
+          {/* 2 / WHAT */}
           <section className="slide" id="czym-jestesmy" data-hideable="sec:czym-jestesmy">
             <div className="slide-inner">
               <div className="what-grid">
                 <div className="what-head">
                   <div className="what-left">
-                    <div className="section-label rv rv1" data-edit="what_label">01 — Czym jesteśmy</div>
+                    <div className="section-label rv rv1" data-edit="what_label">02 — Czym jesteśmy</div>
                     <h2 className="rv rv2" data-edit="what_h2" data-edit-type="html">Agencja<br />AI-native.<br />Tylko.</h2>
                   </div>
                   <div className="what-lead rv rv3">
@@ -170,7 +308,7 @@ export default function LandingShell() {
             <div className="slide-inner">
               <div className="services-head">
                 <div>
-                  <div className="section-label rv rv1" data-edit="svc_label">02 — jak pracujemy</div>
+                  <div className="section-label rv rv1" data-edit="svc_label">03 — jak pracujemy</div>
                   <h2 className="rv rv2" data-edit="svc_h2">Mapa procesu.</h2>
                 </div>
                 <div className="svc-hint rv rv3" data-edit="svc_hint">Każde działanie ma przełożyć się na liczbę, którą widzi Twój zarząd.</div>
@@ -219,7 +357,7 @@ export default function LandingShell() {
             <div className="slide-inner">
               <div className="team-head">
                 <div>
-                  <div className="section-label rv rv1" data-edit="team_label">03 — Produkt #1</div>
+                  <div className="section-label rv rv1" data-edit="team_label">Produkt #1</div>
                   <h2 className="rv rv2" data-edit="team_h2" data-edit-type="html">Cyfrowi pracownicy.<br />Produkt, nie eksperyment.</h2>
                 </div>
                 <div className="team-hint rv rv3" data-edit="team_hint">{'// najedź lub dotknij — poznaj zespół'}</div>
@@ -381,19 +519,19 @@ export default function LandingShell() {
             </div>
           </section>
 
-          {/* 7 / CTA */}
+          {/* 8 / CTA — finał: rozmowa (formularz audytu żyje w sekcji 01) */}
           <section className="slide" id="kontakt" data-hideable="sec:kontakt">
             <div className="slide-inner cta-slide-inner">
               <div className="cta-bg" data-edit="cta_bg">IQ</div>
-              <div className="section-label rv rv1" data-edit="cta_label">06 — Darmowy audyt</div>
-              <h2 className="rv rv2" data-edit="cta_h2" data-edit-type="html">Zacznijmy od <em>diagnozy</em>,<br />nie od faktury.</h2>
-              <p className="rv rv3" data-edit="cta_p">
-                Zostaw e-mail i adres strony — AI przeanalizuje Waszą widoczność w Google i w modelach AI,
-                technikę, treści i konkurencję. Gotowy raport dostaniesz mailem. Za darmo i bez zobowiązań.
+              <div className="section-label rv rv1" data-edit="fin_label">06 — Kontakt</div>
+              <h2 className="rv rv2" data-edit="fin_h2" data-edit-type="html">Porozmawiajmy o <em>konkretach</em>.</h2>
+              <p className="rv rv3" data-edit="fin_p">
+                Trzydzieści minut briefingu: pokazujemy, co da się u Was zautomatyzować w pierwszej kolejności,
+                ile to kosztuje i co dokładnie zrobimy w pierwszym miesiącu. Bez prezentacji o transformacji cyfrowej.
               </p>
-              <div className="rv rv4"><AuditForm /></div>
-              <a href="/kontakt" data-wipe className="cta-alt rv rv5" data-edit="cta_alt">Wolisz najpierw porozmawiać? Umów briefing →</a>
-              <div className="cta-note rv rv5" data-edit="cta_note">Audyt gotowy w kilka minut · odzywamy się w 24h roboczych</div>
+              <a href="/kontakt" data-wipe className="btn-primary rv rv4" data-edit="fin_btn">Umów briefing</a>
+              <a href="#audyt" className="cta-alt rv rv5" data-goto="1" data-edit="fin_alt">Wolisz najpierw twarde dane? Odbierz darmowy audyt →</a>
+              <div className="cta-note rv rv5" data-edit="fin_note">Odpowiadamy w ciągu 24 h roboczych</div>
             </div>
             <div className="footer-bar">
               <p data-edit="footer_left" data-edit-type="html">© 2026 Fastline InfinitiQ — <a href="https://greywolfgroup.pl/" target="_blank" rel="noopener">Greywolf Group</a></p>
