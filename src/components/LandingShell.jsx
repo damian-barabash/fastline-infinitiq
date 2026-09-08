@@ -160,7 +160,7 @@ export default function LandingShell() {
 
               <div className="hero-actions rv rv5">
                 <a href="#audyt" className="btn-primary" data-goto="1" data-edit="hero_btn_primary">Darmowy audyt AI</a>
-                <div className="hero-cta-note" data-edit="hero_cta_note">Bezpłatna diagnoza · 3 minuty · konkretne rozwiązania i widełki cenowe</div>
+                <div className="hero-cta-note" data-edit="hero_cta_note" data-edit-type="html">Bezpłatna diagnoza · 3 minuty · konkretne rozwiązania i widełki cenowe</div>
               </div>
              </div>
             </div>

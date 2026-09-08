@@ -99,7 +99,13 @@ export function initEditorLayer({ sb, onRequireLogin }) {
     el.addEventListener('input', checkDirty);
     if (el.tagName === 'A') el.addEventListener('click', e => e.preventDefault());
     el.addEventListener('keydown', e => {
-      if (e.key === 'Enter' && el.getAttribute('data-edit-type') !== 'html') { e.preventDefault(); el.blur(); }
+      if (e.key !== 'Enter') return;
+      // pola jednoliniowe: Enter kończy edycję
+      if (el.getAttribute('data-edit-type') !== 'html') { e.preventDefault(); el.blur(); return; }
+      // pola wieloliniowe: łamiemy wiersz przez <br>. Domyślnie przeglądarka
+      // wstawia tu <div>, co rozjeżdża odstępy i trafia do CMS jako śmieć.
+      e.preventDefault();
+      if (!document.execCommand('insertLineBreak')) document.execCommand('insertHTML', false, '<br>');
     });
     el.addEventListener('paste', e => {
       e.preventDefault();
