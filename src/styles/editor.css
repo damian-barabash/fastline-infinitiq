@@ -2519,7 +2519,8 @@ body.fiq-edit [data-f] { pointer-events: auto; }
   margin-top: 30px;
   display: flex; flex-direction: column; align-items: center; gap: 12px;
 }
-/* linia nad przyciskiem: co klient dostaje i ile to trwa */
+/* linia POD przyciskiem: co klient dostaje i ile to trwa.
+   Nigdy jej nie chowamy — to obietnica, dla której klient klika. */
 .hero-cta-note {
   font-family: 'IBM Plex Mono', monospace;
   font-size: 11px;
@@ -2738,7 +2739,7 @@ html.coarse [contenteditable="true"] { cursor: auto; }
   #start .hero-content { padding-top: 88px; padding-bottom: 16px; }
   #start .hero-h1 { font-size: clamp(24px, 2.8vw, 40px); max-width: 900px; }
   #start .hero-sub { font-size: 13px; margin-top: 8px; }
-  .hero-cta-note { display: none; }
+  .hero-cta-note { font-size: 9.5px; letter-spacing: 0.08em; line-height: 1.45; max-width: 520px; }
 }
 
 /* nano — awaryjna gęstość na bardzo niskich ekranach (nadal z opisem) */

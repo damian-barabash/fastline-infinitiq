@@ -28,11 +28,14 @@ export const ICON_PATHS = {
   15: [{ d: 'M5 4.5A1.5 1.5 0 016.5 3H18v15H6.5A1.5 1.5 0 005 19.5z' }, { d: 'M5 19.5A1.5 1.5 0 016.5 18H18v3H6.5A1.5 1.5 0 015 19.5z' }, { d: 'M11.5 7.5v4M9.5 9.5h4' }],
   16: [{ d: 'M10 4.8a3.2 3.2 0 100 6.4 3.2 3.2 0 000-6.4z' }, { d: 'M4 19.5c.7-3.2 3-5 6-5 1.1 0 2.1.2 3 .7' }, { d: 'M17.5 14a3.5 3.5 0 100 7 3.5 3.5 0 000-7z' }, { d: 'M16 17.6l1.1 1.1 2-2.2' }],
   17: [{ d: 'M12 4l9 4.2-9 4.2-9-4.2z' }, { d: 'M7 10.4V16c0 1.7 2.4 3 5 3s5-1.3 5-3v-5.6' }, { d: 'M20.4 8.6V14' }],
+  // kampanie reklamowe — megafon (klucz nazwany, bo produkt bywa przenumerowany)
+  ads: [{ d: 'M4 10v4h3l7 4V6l-7 4z' }, { d: 'M7 14v4.5h2.5V14' }, { d: 'M17.5 9.5a3.5 3.5 0 010 5' }],
 };
 
 // nazwa produktu → klucz ikony. Kolejność ma znaczenie: „AI CRM" i „Customer Hub"
 // to ten sam produkt po zmianie nazwy, a „AI Recepcja" nie może złapać się na „AI".
 const BY_NAME = [
+  [/kampani|reklam/i, 'ads'],
   [/fabryk|kontent|content/i, 1],
   [/seo|geo/i, 2],
   [/reputa/i, 3],
