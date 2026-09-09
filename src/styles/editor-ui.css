@@ -312,3 +312,26 @@
     text-transform: uppercase; color: rgba(245,245,240,0.5); background: none; border: none; cursor: pointer;
   }
   @media (max-width: 620px) { .fiq-pal-grid { grid-template-columns: repeat(2, 1fr); } }
+
+  /* wybór strony do edycji — w stylu przycisków paska (stron będzie przybywać) */
+  #fiqBar .fiq-page-select {
+    appearance: none;
+    -webkit-appearance: none;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 11px;
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    color: var(--black);
+    background: var(--green);
+    border: 1px solid var(--green);
+    border-radius: 8px;
+    padding: 7px 30px 7px 12px;
+    cursor: pointer;
+    background-image: linear-gradient(45deg, transparent 50%, rgba(13,13,13,.7) 50%),
+                      linear-gradient(135deg, rgba(13,13,13,.7) 50%, transparent 50%);
+    background-position: calc(100% - 16px) 52%, calc(100% - 11px) 52%;
+    background-size: 5px 5px, 5px 5px;
+    background-repeat: no-repeat;
+  }
+  #fiqBar .fiq-page-select:focus { outline: 2px solid rgba(184,255,0,.5); outline-offset: 2px; }
+  #fiqBar .fiq-page-select option { background: #141414; color: var(--white); }

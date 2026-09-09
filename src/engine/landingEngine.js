@@ -4,6 +4,7 @@
 import { interceptInternalLinks } from './wipe.js';
 import { initTeam } from './team.js';
 import { watchNavClaim, initClaimScramble } from './navClaim.js';
+import { initMenu } from './menu.js';
 
 export function initLanding({ onNavigate }) {
 
@@ -120,6 +121,7 @@ export function initLanding({ onNavigate }) {
     scrollTo({ top: starts[i], behavior: 'smooth' });
   }
   railItems.forEach(b => b.addEventListener('click', () => goTo(+b.dataset.i), { signal }));
+  const closeMenu = initMenu({ signal, goTo });
   document.getElementById('navHome').addEventListener('click', e => { e.preventDefault(); goTo(0); }, { signal });
   document.querySelectorAll('[data-goto]').forEach(a => {
     a.addEventListener('click', e => { e.preventDefault(); goTo(+a.dataset.goto); }, { signal });
@@ -533,6 +535,19 @@ export function initLanding({ onNavigate }) {
   }, { signal });
   rafId = requestAnimationFrame(frame);
 
+  /* Заход с хэшем (напр. со страницы produktu: /#audyt) — переводим барабан
+     на нужную грань. Скроллом это не сделать «вслепую»: позиция грани зависит
+     от посчитанных высот, поэтому ждём measure и прыгаем сами. */
+  (function gotoHash() {
+    const id = (location.hash || '').replace('#', '');
+    if (!id) return;
+    const idx = slides.findIndex(s2 => s2.id === id);
+    if (idx < 0) return;
+    const jump = () => { if (!destroyed) scrollTo({ top: starts[idx], behavior: 'auto' }); };
+    requestAnimationFrame(() => requestAnimationFrame(jump));
+    setTimeout(jump, 700);          // после шрифтов и подстановки CMS высоты меняются
+  })();
+
   /* ===== Cleanup (SPA) ===== */
   return function destroy() {
     destroyed = true;
@@ -540,6 +555,7 @@ export function initLanding({ onNavigate }) {
     cancelAnimationFrame(rafId);
     ac.abort();
     if (claim) claim.destroy();
+    if (closeMenu) closeMenu();
     unwatchClaim();
     delete window.fiqInitServices;
     delete window.fiqRemeasure;

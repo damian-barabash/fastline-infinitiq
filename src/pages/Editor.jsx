@@ -72,9 +72,18 @@ export default function Editor() {
       <div id="fiqBar" style={{ display: 'none' }}>
         <span className="fiq-brand">InfinitiQ · Edytor</span>
         <span className="fiq-tabs">
-          <button className={'fiq-tab-btn' + (tab === 'strona' ? ' on' : '')} onClick={() => setTab('strona')}>Strona główna</button>
-          <button className={'fiq-tab-btn' + (tab === 'agenci' ? ' on' : '')} onClick={() => setTab('agenci')}>Agenci AI</button>
-          <button className={'fiq-tab-btn' + (tab === 'audyty' ? ' on' : '')} onClick={() => setTab('audyty')}>Audyt</button>
+          {/* stron będzie przybywać — wybór z listy, nie rząd przycisków */}
+          <select
+            className="fiq-page-select"
+            value={tab === 'audyty' ? page : tab}
+            onChange={(e) => setTab(e.target.value)}
+            aria-label="Strona do edycji"
+          >
+            {Object.keys(PAGES).map((key) => (
+              <option key={key} value={key}>{PAGES[key].label}</option>
+            ))}
+          </select>
+          <button className={'fiq-tab-btn' + (tab === 'audyty' ? ' on' : '')} onClick={() => setTab(tab === 'audyty' ? page : 'audyty')}>Audyt</button>
         </span>
         <span id="fiqStatus" className="saved"><span className="dot"></span><span id="fiqStatusText">Zapisano</span></span>
         <span className="fiq-spacer"></span>

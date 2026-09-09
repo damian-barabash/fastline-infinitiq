@@ -12,8 +12,32 @@ export default function LandingShell() {
       <div className="cursor-dot" id="cursorDot"></div>
       <div className="cursor-ring" id="cursorRing"></div>
 
+      {/* Pełnoekranowe menu spod burgera (burger siedzi w nav) */}
+      <div className="menu-overlay" id="fiqMenu" hidden>
+        <div className="menu-inner">
+          <div className="menu-col">
+            <div className="menu-cap">{'// sekcje'}</div>
+            <div className="menu-list" id="menuSections"></div>
+          </div>
+          <div className="menu-col">
+            <div className="menu-cap">{'// strony'}</div>
+            <div className="menu-list">
+              <a className="menu-link" href="/" data-wipe><span className="menu-num">→</span><span>Strona główna</span></a>
+              <a className="menu-link" href="/agenci-ai" data-wipe><span className="menu-num">→</span><span>Agenci AI</span></a>
+              <a className="menu-link" href="/kontakt" data-wipe><span className="menu-num">→</span><span>Kontakt</span></a>
+            </div>
+            <a className="menu-cta" href="/#audyt" data-wipe>Darmowy audyt AI</a>
+          </div>
+        </div>
+      </div>
+
       {/* NAV */}
       <nav>
+        <div className="nav-left">
+        <button className="menu-btn" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false">
+          <i></i><i></i><i></i>
+        </button>
+        </div>
         {/* logo + claim = jeden lokal marki: claim ma dokładnie szerokość logo
             (kegl dobiera silnik w navClaim.js), litery „wywołują się" glifami */}
         <div className="nav-brand">

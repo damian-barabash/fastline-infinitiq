@@ -5,10 +5,11 @@ import {
 } from './agentIcons.jsx';
 
 /* Разметка страницы /agenci-ai — как LandingShell для главной: один и тот же
-   DOM рендерят страница (с движком) и редактор (mode-flat).
-   Все тексты помечены `data-edit` с префиксом `ag_` и живут в строке
-   `site_content` c id='agenci-ai'; многострочные — `data-edit-type="html"`.
-   Тексты 1:1 z makiety FQ_Agenci_LP_zbiorcza.pptx. */
+   DOM рендерят страница (3D-барабан слайдов) и редактор (mode-flat).
+   Тексты — 1:1 z makiety właściciela (FQ_Agenci_LP_zbiorcza.pdf); własne są
+   tylko sceny „w praktyce" (kanały, rozmowa, widget, asystent).
+   Wszystkie teksty mają `data-edit` z prefiksem `ag_` i siedzą w wierszu
+   `site_content` o id `agenci-ai`. */
 
 export default function AgenciShell() {
   return (
@@ -17,7 +18,34 @@ export default function AgenciShell() {
       <div className="cursor-dot" id="cursorDot"></div>
       <div className="cursor-ring" id="cursorRing"></div>
 
+      {/* Pełnoekranowe menu spod burgera (burger siedzi w nav) */}
+      <div className="menu-overlay" id="fiqMenu" hidden>
+        <div className="menu-inner">
+          <div className="menu-col">
+            <div className="menu-cap">{'// sekcje'}</div>
+            <div className="menu-list" id="menuSections"></div>
+          </div>
+          <div className="menu-col">
+            <div className="menu-cap">{'// strony'}</div>
+            <div className="menu-list">
+              <a className="menu-link" href="/" data-wipe><span className="menu-num">→</span><span>Strona główna</span></a>
+              <a className="menu-link" href="/agenci-ai" data-wipe><span className="menu-num">→</span><span>Agenci AI</span></a>
+              <a className="menu-link" href="/kontakt" data-wipe><span className="menu-num">→</span><span>Kontakt</span></a>
+            </div>
+            <a className="menu-cta" href="/#audyt" data-wipe>Darmowy audyt AI</a>
+          </div>
+        </div>
+      </div>
+
+      {/* NAV — как на главной: лого с клеймом по центру, CTA na audyt po prawej,
+          po lewej powrót do wszystkich produktów */}
       <nav>
+        <div className="nav-left">
+        <button className="menu-btn" id="menuBtn" type="button" aria-label="Menu" aria-expanded="false">
+          <i></i><i></i><i></i>
+        </button>
+          <a href="/" data-wipe className="nav-back"><span className="nb-full" data-edit="ag_nav_back">Wszystkie produkty</span><span className="nb-short" data-edit="ag_nav_back_short">Produkty</span></a>
+        </div>
         <div className="nav-brand">
           <a className="nav-logo" href="/" data-wipe aria-label="Fastline InfinitiQ">
             <img src="/assets/logo/LOGO.png" alt="Fastline InfinitiQ" data-edit="ag_nav_logo" data-edit-type="image" />
@@ -30,431 +58,436 @@ export default function AgenciShell() {
             <span className="hc-word" data-edit="ag_claim_3">Unique executed.</span>
           </div>
         </div>
-        <a href="/" data-wipe className="nav-back"><span className="nb-full" data-edit="ag_nav_back">Wszystkie produkty</span><span className="nb-short" data-edit="ag_nav_back_short">Produkty</span></a>
-        <a href="#kontakt" className="nav-cta" data-scroll><span className="cta-full" data-edit="ag_nav_cta">Wypróbuj agenta</span><span className="cta-short" data-edit="ag_nav_cta_short">Wypróbuj</span></a>
+        <a href="/#audyt" data-wipe className="nav-cta"><span className="cta-full" data-edit="ag_nav_cta">Darmowy audyt AI</span><span className="cta-short" data-edit="ag_nav_cta_short">Audyt</span></a>
       </nav>
 
-      <main>
-        {/* ===== HERO ===== */}
-        <section className="ag-hero" id="start">
-          <div className="ag-wrap">
-            <div className="section-label rv rv1" data-edit="ag_label">Agenci AI · online 24/7</div>
-            <h1 className="ag-h1 rv rv1" data-edit="ag_h1" data-edit-type="html">Zespół, który pracuje,<br /><em>kiedy Ty śpisz.</em></h1>
-            <p className="ag-lead rv rv2" data-edit="ag_lead" data-edit-type="html">
-              Stawiamy agentów AI, którzy odbierają telefon, odpisują na zapytania, doradzają klientowi
-              i trzymają wiedzę firmy w jednym miejscu. Wybierz jednego albo zbuduj cały zespół —
-              wytrenowany na Twojej ofercie, procesach i języku marki. Bez rekrutacji, bez drugiej zmiany,
-              bez rotacji.
-            </p>
+      {/* PROGRESS RAIL */}
+      <div className="rail" id="rail" role="navigation" aria-label="Sekcje">
+        <button className="rail-item" data-i="0"><span className="rail-name">Start</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="1"><span className="rail-name">Zespół</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="2"><span className="rail-name">W praktyce</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="3"><span className="rail-name">Co się zmienia</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="4"><span className="rail-name">Jak to działa</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="5"><span className="rail-name">Koszt</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="6"><span className="rail-name">Pytania</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="7"><span className="rail-name">Kontakt</span><span className="rail-tick"></span></button>
+      </div>
 
-            <div className="ag-actions rv rv3">
-              <a href="#kontakt" className="btn-primary" data-scroll data-edit="ag_cta">Wypróbuj agenta sam</a>
-              <span className="ag-cta-note" data-edit="ag_cta_note" data-edit-type="html">Rozmawiasz z AI Doradcą. Bezpłatnie, bez logowania, bez zobowiązań.</span>
-            </div>
+      <div className="counter" id="counter"><span className="cur">01</span><span>/ 08</span></div>
+      <div className="scroll-hint" id="scrollHint">Scroll</div>
 
-            <ul className="ag-checks rv rv3">
-              <li><IcCheck /><span data-edit="ag_chk1">Jeden agent albo cały zespół</span></li>
-              <li><IcCheck /><span data-edit="ag_chk2">Pracują 24/7</span></li>
-              <li><IcCheck /><span data-edit="ag_chk3">Twoja oferta i brand voice</span></li>
-              <li><IcCheck /><span data-edit="ag_chk4">Bez rekrutacji</span></li>
-            </ul>
+      <div id="track"></div>
 
-            {/* cyfrowi pracownicy — sylwetki z punktów, po najechaniu pokazuje się zdjęcie */}
-            <div className="team-head rv rv4">
-              <div className="team-hint" data-edit="ag_team_hint">{'// najedź lub dotknij — poznaj zespół'}</div>
-            </div>
-            <div className="team-grid rv rv4" id="teamGrid" data-hideable="sec:team">
+      <div id="stage">
+        <div id="drum">
 
-              <article className="team-card" tabIndex={0} data-team="1">
-                <div className="tm-visual">
-                  <canvas className="tm-canvas" aria-hidden="true"></canvas>
-                  <img className="tm-photo" src="/assets/team/kacper.webp" alt="Kacper — AI Sprzedawca Fastline InfinitiQ" data-edit="ag_t1_photo" data-edit-type="image" />
-                  <span className="tm-frame" aria-hidden="true"></span>
-                  <span className="tm-badge" data-edit="ag_t1_badge">● pierwsza linia</span>
-                </div>
-                <div className="tm-body">
-                  <div className="tm-role" data-edit="ag_t1_role">AI Sprzedawca</div>
-                  <h3 className="tm-name" data-edit="ag_t1_name">Kacper</h3>
-                  <div className="tm-meta" data-edit="ag_t1_meta">zapytania · oferty · spotkania</div>
-                </div>
-              </article>
-
-              <article className="team-card" tabIndex={0} data-team="2">
-                <div className="tm-visual">
-                  <canvas className="tm-canvas" aria-hidden="true"></canvas>
-                  <img className="tm-photo" src="/assets/team/maja.webp" alt="Maja — AI Doradca Fastline InfinitiQ" data-edit="ag_t2_photo" data-edit-type="image" />
-                  <span className="tm-frame" aria-hidden="true"></span>
-                  <span className="tm-badge" data-edit="ag_t2_badge">● doradztwo</span>
-                </div>
-                <div className="tm-body">
-                  <div className="tm-role" data-edit="ag_t2_role">AI Doradca</div>
-                  <h3 className="tm-name" data-edit="ag_t2_name">Maja</h3>
-                  <div className="tm-meta" data-edit="ag_t2_meta">wybór · rekomendacja · lead</div>
-                </div>
-              </article>
-
-              <article className="team-card" tabIndex={0} data-team="3">
-                <div className="tm-visual">
-                  <canvas className="tm-canvas" aria-hidden="true"></canvas>
-                  <img className="tm-photo" src="/assets/team/adam.webp" alt="Adam — AI Recepcja 24/7 Fastline InfinitiQ" data-edit="ag_t3_photo" data-edit-type="image" />
-                  <span className="tm-frame" aria-hidden="true"></span>
-                  <span className="tm-badge" data-edit="ag_t3_badge">● online 24/7</span>
-                </div>
-                <div className="tm-body">
-                  <div className="tm-role" data-edit="ag_t3_role">AI Recepcja 24/7</div>
-                  <h3 className="tm-name" data-edit="ag_t3_name">Adam</h3>
-                  <div className="tm-meta" data-edit="ag_t3_meta">połączenia · zapisy · kalendarz</div>
-                </div>
-              </article>
-
-              <article className="team-card" tabIndex={0} data-team="4">
-                <div className="tm-visual">
-                  <canvas className="tm-canvas" aria-hidden="true"></canvas>
-                  <img className="tm-photo" src="/assets/team/natalia.webp" alt="Natalia — AI Asystent Fastline InfinitiQ" data-edit="ag_t4_photo" data-edit-type="image" />
-                  <span className="tm-frame" aria-hidden="true"></span>
-                  <span className="tm-badge" data-edit="ag_t4_badge">● wsparcie zespołu</span>
-                </div>
-                <div className="tm-body">
-                  <div className="tm-role" data-edit="ag_t4_role">AI Asystent</div>
-                  <h3 className="tm-name" data-edit="ag_t4_name">Natalia</h3>
-                  <div className="tm-meta" data-edit="ag_t4_meta">wiedza · dokumenty · onboarding</div>
-                </div>
-              </article>
-
-            </div>
-          </div>
-        </section>
-
-        {/* ===== POZNAJ ZESPÓŁ ===== */}
-        <section className="ag-sec" id="zespol" data-hideable="sec:zespol">
-          <div className="ag-wrap">
-            <div className="sec-head rv">
-              <div className="section-label" data-edit="ag_z_label">{'// poznaj zespół'}</div>
-              <h2 data-edit="ag_z_h2" data-edit-type="html">Wybierz agenta AI albo zbuduj cały zespół.</h2>
-              <p className="sec-lead" data-edit="ag_z_lead" data-edit-type="html">
-                Każdy agent odpowiada za inny etap i działa samodzielnie — nie musisz brać wszystkich naraz.
+          {/* ===== 0 / HERO ===== */}
+          <section className="slide" id="start">
+            <div className="slide-inner ag-wrap">
+              <div className="section-label rv rv1" data-edit="ag_label">Agenci AI · online 24/7</div>
+              <h1 className="ag-h1 rv rv1" data-edit="ag_h1" data-edit-type="html">Zespół, który pracuje, kiedy Ty śpisz.</h1>
+              <p className="ag-lead rv rv2" data-edit="ag_lead" data-edit-type="html">
+                Stawiamy agentów AI, którzy odbierają telefon, odpisują na zapytania, doradzają klientowi
+                i trzymają wiedzę firmy w jednym miejscu. Wybierz jednego albo zbuduj cały zespół —
+                wytrenowany na Twojej ofercie, procesach i języku marki. Bez rekrutacji, bez drugiej zmiany,
+                bez rotacji.
               </p>
+
+              <div className="ag-actions rv rv3">
+                <a href="/kontakt" data-wipe className="btn-primary" data-edit="ag_cta">Wypróbuj agenta sam</a>
+                <a href="/kontakt" data-wipe className="btn-ghost" data-edit="ag_cta2" data-edit-type="html">Lub zostaw dane kontaktowe,<br />a my skontaktujemy się z Tobą</a>
+              </div>
+              <div className="ag-cta-note rv rv3" data-edit="ag_cta_note" data-edit-type="html">Rozmawiasz z AI Doradcą. Bezpłatnie, bez logowania, bez zobowiązań.</div>
+
+              <ul className="ag-checks rv rv4">
+                <li><IcCheck /><span data-edit="ag_chk1">Jeden agent albo cały zespół</span></li>
+                <li><IcCheck /><span data-edit="ag_chk2">Pracują 24/7</span></li>
+                <li><IcCheck /><span data-edit="ag_chk3">Twoja oferta i brand voice</span></li>
+                <li><IcCheck /><span data-edit="ag_chk4">Bez rekrutacji</span></li>
+              </ul>
             </div>
+          </section>
 
-            {/* --- 01 AI SPRZEDAWCA --- */}
-            <article className="ag-agent rv" id="sprzedawca" data-hideable="agent:sprzedawca">
-              <div className="ag-agent-text">
-                <span className="ag-tag" data-edit="ag_a1_tag">● pierwsza linia</span>
-                <div className="ag-role" data-edit="ag_a1_role" data-edit-type="html">Agent sprzedaży —<br />zapytania i spotkania</div>
-                <h3 data-edit="ag_a1_name">AI Sprzedawca</h3>
-                <p data-edit="ag_a1_desc" data-edit-type="html">
-                  Na bieżąco kontaktuje sie z leadami. Kwalifikuje, odpowiada z Twojego cennika
-                  i wpisuje spotkanie do kalendarza. Żaden lead nie czeka do rana.
+          {/* ===== 1 / POZNAJ ZESPÓŁ — cztery karty agentów ===== */}
+          <section className="slide" id="zespol" data-hideable="sec:zespol">
+            <div className="slide-inner ag-wrap">
+              <div className="sec-head rv rv1">
+                <div className="section-label" data-edit="ag_z_label">{'// poznaj zespół'}</div>
+                <h2 data-edit="ag_z_h2" data-edit-type="html">Wybierz agenta AI albo zbuduj cały zespół.</h2>
+                <p className="sec-lead" data-edit="ag_z_lead" data-edit-type="html">
+                  Każdy agent odpowiada za inny etap i działa samodzielnie — nie musisz brać wszystkich naraz.
                 </p>
-                <div className="ag-chan" data-edit="ag_a1_chan">mail · whatsapp · kalendarz</div>
               </div>
 
-              {/* wizualizacja: skrzynki kanałów, agent odpisuje i umawia spotkanie */}
-              <div className="ag-demo dm" data-demo="chat">
-                <div className="dm-bar">
-                  <span className="dm-live"><i></i><span data-edit="ag_d1_live">agent odpisuje</span></span>
-                  <span className="dm-tabs">
-                    <b className="dm-tab on" data-ch="fb"><IcMessenger /><span data-edit="ag_d1_tab1">Messenger</span></b>
-                    <b className="dm-tab" data-ch="ig"><IcInstagram /><span data-edit="ag_d1_tab2">Instagram</span></b>
-                    <b className="dm-tab" data-ch="wa"><IcWhatsapp /><span data-edit="ag_d1_tab3">WhatsApp</span></b>
-                  </span>
-                </div>
+              <div className="team-grid rv rv2" id="teamGrid">
 
-                <div className="dm-screen">
-                  <div className="dm-ch on" data-ch="fb">
-                    <div className="msg in" data-s="1"><span data-edit="ag_d1_fb1">Dzień dobry, robicie wycenę dla firmy? Ile to trwa?</span><i data-edit="ag_d1_fb1t">22:41</i></div>
-                    <div className="msg typing" data-s="2"><span className="dots"><i></i><i></i><i></i></span></div>
-                    <div className="msg out" data-s="3"><span data-edit="ag_d1_fb2">Dobry wieczór! Tak — wycena wraca w 24 h. Potrzebuję metrażu i terminu. Mam wolny wtorek 10:30 na krótkie omówienie.</span><i data-edit="ag_d1_fb2t">22:41</i></div>
-                    <div className="msg in" data-s="4"><span data-edit="ag_d1_fb3">Wtorek pasuje.</span><i data-edit="ag_d1_fb3t">22:42</i></div>
-                    <div className="dm-chip" data-s="5"><IcCalendar /><span data-edit="ag_d1_fbchip">Spotkanie wt. 10:30 — dodane do kalendarza</span></div>
+                <article className="team-card" tabIndex={0} data-team="1" data-hideable="agent:sprzedawca">
+                  <div className="tm-visual">
+                    <canvas className="tm-canvas" aria-hidden="true"></canvas>
+                    <img className="tm-photo" src="/assets/team/kacper.webp" alt="AI Sprzedawca — Fastline InfinitiQ" data-edit="ag_a1_photo" data-edit-type="image" />
+                    <span className="tm-frame" aria-hidden="true"></span>
+                    <span className="tm-badge" data-edit="ag_a1_tag">● pierwsza linia</span>
                   </div>
-
-                  <div className="dm-ch" data-ch="ig">
-                    <div className="msg in" data-s="1"><span data-edit="ag_d1_ig1">Hej! Widziałam realizację na profilu — robicie takie u klienta?</span><i data-edit="ag_d1_ig1t">23:12</i></div>
-                    <div className="msg typing" data-s="2"><span className="dots"><i></i><i></i><i></i></span></div>
-                    <div className="msg out" data-s="3"><span data-edit="ag_d1_ig2">Cześć! Tak, to nasz standardowy zakres. Podeślę dwa warianty z cenami — na jaki metraż liczymy?</span><i data-edit="ag_d1_ig2t">23:12</i></div>
-                    <div className="msg in" data-s="4"><span data-edit="ag_d1_ig3">Około 80 m².</span><i data-edit="ag_d1_ig3t">23:13</i></div>
-                    <div className="dm-chip" data-s="5"><IcDoc /><span data-edit="ag_d1_igchip">Oferta wysłana · lead w CRM</span></div>
+                  <div className="tm-body">
+                    <div className="ag-role" data-edit="ag_a1_role" data-edit-type="html">Agent sprzedaży —<br />zapytania i spotkania</div>
+                    <h3 data-edit="ag_a1_name">AI Sprzedawca</h3>
+                    <p data-edit="ag_a1_desc" data-edit-type="html">
+                      Na bieżąco kontaktuje sie z leadami. Kwalifikuje, odpowiada z Twojego cennika
+                      i wpisuje spotkanie do kalendarza. Żaden lead nie czeka do rana.
+                    </p>
+                    <div className="ag-chan" data-edit="ag_a1_chan">mail · whatsapp · kalendarz</div>
                   </div>
+                </article>
 
-                  <div className="dm-ch" data-ch="wa">
-                    <div className="msg in" data-s="1"><span data-edit="ag_d1_wa1">Dzień dobry, jesteście dostępni w sobotę?</span><i data-edit="ag_d1_wa1t">07:04</i></div>
-                    <div className="msg typing" data-s="2"><span className="dots"><i></i><i></i><i></i></span></div>
-                    <div className="msg out" data-s="3"><span data-edit="ag_d1_wa2">Dzień dobry! W soboty pracujemy 9:00–14:00. Zarezerwuję termin — potrzebuję adresu i numeru.</span><i data-edit="ag_d1_wa2t">07:04</i></div>
-                    <div className="msg in" data-s="4"><span data-edit="ag_d1_wa3">Świetnie, wysyłam.</span><i data-edit="ag_d1_wa3t">07:05</i></div>
-                    <div className="dm-chip" data-s="5"><IcCheck /><span data-edit="ag_d1_wachip">Termin sobota 11:00 — potwierdzony</span></div>
+                <article className="team-card" tabIndex={0} data-team="2" data-hideable="agent:doradca">
+                  <div className="tm-visual">
+                    <canvas className="tm-canvas" aria-hidden="true"></canvas>
+                    <img className="tm-photo" src="/assets/team/maja.webp" alt="AI Doradca — Fastline InfinitiQ" data-edit="ag_a2_photo" data-edit-type="image" />
+                    <span className="tm-frame" aria-hidden="true"></span>
+                    <span className="tm-badge" data-edit="ag_a2_tag">● doradztwo</span>
                   </div>
-                </div>
+                  <div className="tm-body">
+                    <div className="ag-role" data-edit="ag_a2_role" data-edit-type="html">Doradca klienta —<br />wybór i oferta</div>
+                    <h3 data-edit="ag_a2_name">AI Doradca</h3>
+                    <p data-edit="ag_a2_desc" data-edit-type="html">
+                      Pracuje na stronie, tam gdzie klient się waha. Identyfikuje faktyczną potrzebę klienta
+                      i wskazuje jedno rozwiązanie z uzasadnieniem. Handlowiec dostaje gotowy kontekst.
+                    </p>
+                    <div className="ag-chan" data-edit="ag_a2_chan">strona · rekomendacja · lead</div>
+                  </div>
+                </article>
 
-                <div className="dm-foot"><IcClock /><span data-edit="ag_d1_foot">odpowiedź w 40 sekund · o 22:41, w niedzielę, w urlopie</span></div>
+                <article className="team-card" tabIndex={0} data-team="3" data-hideable="agent:recepcja">
+                  <div className="tm-visual">
+                    <canvas className="tm-canvas" aria-hidden="true"></canvas>
+                    <img className="tm-photo" src="/assets/team/adam.webp" alt="AI Recepcjonistka — Fastline InfinitiQ" data-edit="ag_a3_photo" data-edit-type="image" />
+                    <span className="tm-frame" aria-hidden="true"></span>
+                    <span className="tm-badge" data-edit="ag_a3_tag">● online 24/7</span>
+                  </div>
+                  <div className="tm-body">
+                    <div className="ag-role" data-edit="ag_a3_role" data-edit-type="html">Recepcja telefoniczna —<br />połączenia i terminy</div>
+                    <h3 data-edit="ag_a3_name">AI Recepcjonistka</h3>
+                    <p data-edit="ag_a3_desc" data-edit-type="html">
+                      Odbiera telefon zawsze, nawet wtedy kiedy byś nie mógł. Informuje o godzinach i cenach,
+                      umawia wizyty, przekazuje tylko sprawy wymagające indywidualnego podejścia.
+                    </p>
+                    <div className="ag-chan" data-edit="ag_a3_chan">telefon · zapisy · kalendarz</div>
+                  </div>
+                </article>
+
+                <article className="team-card" tabIndex={0} data-team="4" data-hideable="agent:asystent">
+                  <div className="tm-visual">
+                    <canvas className="tm-canvas" aria-hidden="true"></canvas>
+                    <img className="tm-photo" src="/assets/team/natalia.webp" alt="AI Asystent — Fastline InfinitiQ" data-edit="ag_a4_photo" data-edit-type="image" />
+                    <span className="tm-frame" aria-hidden="true"></span>
+                    <span className="tm-badge" data-edit="ag_a4_tag">● wsparcie zespołu</span>
+                  </div>
+                  <div className="tm-body">
+                    <div className="ag-role" data-edit="ag_a4_role" data-edit-type="html">Asystent wewnętrzny —<br />wiedza i dokumenty</div>
+                    <h3 data-edit="ag_a4_name">AI Asystent</h3>
+                    <p data-edit="ag_a4_desc" data-edit-type="html">
+                      Ma dostęp do przekazanej wiedzy o firmie, zna ofertę, cenniki i procedury.
+                      Odpowiada zespołowi na każde pytanie operacyjne w kilka sekund ze wskazaniem źródła.
+                    </p>
+                    <div className="ag-chan" data-edit="ag_a4_chan">wiedza · onboarding</div>
+                  </div>
+                </article>
+
               </div>
-            </article>
+            </div>
+          </section>
 
-            {/* --- 02 AI DORADCA --- */}
-            <article className="ag-agent rv flip" id="doradca" data-hideable="agent:doradca">
-              <div className="ag-agent-text">
-                <span className="ag-tag" data-edit="ag_a2_tag">● doradztwo</span>
-                <div className="ag-role" data-edit="ag_a2_role" data-edit-type="html">Doradca klienta —<br />wybór i oferta</div>
-                <h3 data-edit="ag_a2_name">AI Doradca</h3>
-                <p data-edit="ag_a2_desc" data-edit-type="html">
-                  Pracuje na stronie, tam gdzie klient się waha. Identyfikuje faktyczną potrzebę klienta
-                  i wskazuje jedno rozwiązanie z uzasadnieniem. Handlowiec dostaje gotowy kontekst.
+          {/* ===== 2 / W PRAKTYCE — sceny pracy agentów (poza makietą) ===== */}
+          <section className="slide" id="praktyka" data-hideable="sec:praktyka">
+            <div className="slide-inner ag-wrap">
+              <div className="sec-head rv rv1">
+                <div className="section-label" data-edit="ag_p_label">{'// w praktyce'}</div>
+                <h2 data-edit="ag_p_h2" data-edit-type="html">Tak wygląda ich praca</h2>
+                <p className="sec-lead" data-edit="ag_p_lead" data-edit-type="html">
+                  Podgląd rozmów: kanały klienta, telefon, strona i czat zespołu — na żywo, w Twoim tonie.
                 </p>
-                <div className="ag-chan" data-edit="ag_a2_chan">strona · rekomendacja · lead</div>
               </div>
 
-              {/* wizualizacja: widget na stronie klienta */}
-              <div className="ag-demo dm" data-demo="advisor">
-                <div className="dm-bar">
-                  <span className="dm-url"><IcGlobe /><span data-edit="ag_d2_url">twojafirma.pl/oferta</span></span>
-                  <span className="dm-live"><i></i><span data-edit="ag_d2_live">doradca aktywny</span></span>
-                </div>
+              <div className="dm-grid rv rv2">
 
-                <div className="dm-screen dm-site">
-                  <div className="site-skel" aria-hidden="true">
-                    <span className="sk sk-h"></span>
-                    <span className="sk sk-t"></span>
-                    <span className="sk sk-t short"></span>
-                    <div className="sk-cards"><span className="sk-card"></span><span className="sk-card"></span><span className="sk-card"></span></div>
-                  </div>
-
-                  <div className="adv-widget">
-                    <div className="adv-head"><IcSpark /><span data-edit="ag_d2_head">Doradca AI</span></div>
-                    <div className="msg in" data-s="1"><span data-edit="ag_d2_m1">Mam trzy warianty i nie wiem, który u nas zadziała.</span></div>
-                    <div className="msg typing" data-s="2"><span className="dots"><i></i><i></i><i></i></span></div>
-                    <div className="msg out" data-s="3"><span data-edit="ag_d2_m2">Ile zgłoszeń dostajecie w miesiącu i kto je dziś obsługuje?</span></div>
-                    <div className="msg in" data-s="4"><span data-edit="ag_d2_m3">Około 200, dwie osoby na zmianę.</span></div>
-                    <div className="adv-rec" data-s="5">
-                      <b data-edit="ag_d2_rec_h">Rekomendacja: wariant Wzrost</b>
-                      <span data-edit="ag_d2_rec_p">Przy 200 zgłoszeniach dwie osoby tracą wieczory. Wzrost przejmuje pierwszy kontakt i zostawia im tylko rozmowy decyzyjne.</span>
+                {/* --- kanały: Messenger / Instagram / WhatsApp --- */}
+                <div className="dm-cell">
+                  <div className="dm-cap" data-edit="ag_d1_cap">AI Sprzedawca · kanały klienta</div>
+                  <div className="ag-demo dm" data-demo="chat">
+                    <div className="dm-bar">
+                      <span className="dm-live"><i></i><span data-edit="ag_d1_live">agent odpisuje</span></span>
+                      <span className="dm-tabs">
+                        <b className="dm-tab on" data-ch="fb"><IcMessenger /><span data-edit="ag_d1_tab1">Messenger</span></b>
+                        <b className="dm-tab" data-ch="ig"><IcInstagram /><span data-edit="ag_d1_tab2">Instagram</span></b>
+                        <b className="dm-tab" data-ch="wa"><IcWhatsapp /><span data-edit="ag_d1_tab3">WhatsApp</span></b>
+                      </span>
                     </div>
-                    <div className="dm-chip" data-s="6"><IcUsers /><span data-edit="ag_d2_chip">Lead przekazany handlowcowi z kontekstem rozmowy</span></div>
-                  </div>
-                </div>
 
-                <div className="dm-foot"><IcArrow /><span data-edit="ag_d2_foot">zamiast „skontaktujemy się" — jedna decyzja i konkretny powód</span></div>
-              </div>
-            </article>
+                    <div className="dm-screen">
+                      <div className="dm-ch on" data-ch="fb">
+                        <div className="msg in" data-s="1"><span data-edit="ag_d1_fb1">Dzień dobry, robicie wycenę dla firmy? Ile to trwa?</span><i data-edit="ag_d1_fb1t">22:41</i></div>
+                        <div className="msg typing" data-s="2"><span className="dots"><i></i><i></i><i></i></span></div>
+                        <div className="msg out" data-s="3"><span data-edit="ag_d1_fb2">Dobry wieczór! Tak — wycena wraca w 24 h. Potrzebuję metrażu i terminu. Mam wolny wtorek 10:30 na krótkie omówienie.</span><i data-edit="ag_d1_fb2t">22:41</i></div>
+                        <div className="msg in" data-s="4"><span data-edit="ag_d1_fb3">Wtorek pasuje.</span><i data-edit="ag_d1_fb3t">22:42</i></div>
+                        <div className="dm-chip" data-s="5"><IcCalendar /><span data-edit="ag_d1_fbchip">Spotkanie wt. 10:30 — dodane do kalendarza</span></div>
+                      </div>
 
-            {/* --- 03 AI RECEPCJONISTKA --- */}
-            <article className="ag-agent rv" id="recepcja" data-hideable="agent:recepcja">
-              <div className="ag-agent-text">
-                <span className="ag-tag" data-edit="ag_a3_tag">● online 24/7</span>
-                <div className="ag-role" data-edit="ag_a3_role" data-edit-type="html">Recepcja telefoniczna —<br />połączenia i terminy</div>
-                <h3 data-edit="ag_a3_name">AI Recepcjonistka</h3>
-                <p data-edit="ag_a3_desc" data-edit-type="html">
-                  Odbiera telefon zawsze, nawet wtedy kiedy byś nie mógł. Informuje o godzinach i cenach,
-                  umawia wizyty, przekazuje tylko sprawy wymagające indywidualnego podejścia.
-                </p>
-                <div className="ag-chan" data-edit="ag_a3_chan">telefon · zapisy · kalendarz</div>
-              </div>
+                      <div className="dm-ch" data-ch="ig">
+                        <div className="msg in" data-s="1"><span data-edit="ag_d1_ig1">Hej! Widziałam realizację na profilu — robicie takie u klienta?</span><i data-edit="ag_d1_ig1t">23:12</i></div>
+                        <div className="msg typing" data-s="2"><span className="dots"><i></i><i></i><i></i></span></div>
+                        <div className="msg out" data-s="3"><span data-edit="ag_d1_ig2">Cześć! Tak, to nasz standardowy zakres. Podeślę dwa warianty z cenami — na jaki metraż liczymy?</span><i data-edit="ag_d1_ig2t">23:12</i></div>
+                        <div className="msg in" data-s="4"><span data-edit="ag_d1_ig3">Około 80 m².</span><i data-edit="ag_d1_ig3t">23:13</i></div>
+                        <div className="dm-chip" data-s="5"><IcDoc /><span data-edit="ag_d1_igchip">Oferta wysłana · lead w CRM</span></div>
+                      </div>
 
-              {/* wizualizacja: rozmowa telefoniczna na żywo */}
-              <div className="ag-demo dm" data-demo="call">
-                <div className="dm-bar">
-                  <span className="dm-live"><i></i><span data-edit="ag_d3_live">połączenie przychodzące</span></span>
-                  <span className="dm-timer" data-timer>00:00</span>
-                </div>
-
-                <div className="dm-screen dm-call">
-                  <div className="call-top">
-                    <span className="call-avatar"><IcPhone /></span>
-                    <div>
-                      <b className="call-num" data-edit="ag_d3_num">+48 501 ••• 218</b>
-                      <span className="call-state" data-s="1" data-edit="ag_d3_state">odebrane po 1. sygnale · 22:58</span>
+                      <div className="dm-ch" data-ch="wa">
+                        <div className="msg in" data-s="1"><span data-edit="ag_d1_wa1">Dzień dobry, jesteście dostępni w sobotę?</span><i data-edit="ag_d1_wa1t">07:04</i></div>
+                        <div className="msg typing" data-s="2"><span className="dots"><i></i><i></i><i></i></span></div>
+                        <div className="msg out" data-s="3"><span data-edit="ag_d1_wa2">Dzień dobry! W soboty pracujemy 9:00–14:00. Zarezerwuję termin — potrzebuję adresu i numeru.</span><i data-edit="ag_d1_wa2t">07:04</i></div>
+                        <div className="msg in" data-s="4"><span data-edit="ag_d1_wa3">Świetnie, wysyłam.</span><i data-edit="ag_d1_wa3t">07:05</i></div>
+                        <div className="dm-chip" data-s="5"><IcCheck /><span data-edit="ag_d1_wachip">Termin sobota 11:00 — potwierdzony</span></div>
+                      </div>
                     </div>
-                    <span className="call-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
-                  </div>
 
-                  <div className="call-log">
-                    <div className="line them" data-s="2"><b data-edit="ag_d3_r1">Klient</b><span data-edit="ag_d3_l1">Dzień dobry, czy da się jeszcze zapisać na środę?</span></div>
-                    <div className="line ai" data-s="3"><b data-edit="ag_d3_r2">Agent</b><span data-edit="ag_d3_l2">Dzień dobry! Mam wolne 14:00 i 17:30 w środę. Które godziny pasują?</span></div>
-                    <div className="line them" data-s="4"><b data-edit="ag_d3_r3">Klient</b><span data-edit="ag_d3_l3">14:00 poproszę. Ile to kosztuje?</span></div>
-                    <div className="line ai" data-s="5"><b data-edit="ag_d3_r4">Agent</b><span data-edit="ag_d3_l4">Standardowa wizyta to 180 zł, płatne na miejscu. Zapisuję na środę 14:00 — potwierdzenie SMS-em.</span></div>
+                    <div className="dm-foot"><IcClock /><span data-edit="ag_d1_foot">odpowiedź w 40 sekund · o 22:41, w niedzielę, w urlopie</span></div>
                   </div>
-
-                  <div className="dm-chip" data-s="6"><IcCalendar /><span data-edit="ag_d3_chip">Wizyta śr. 14:00 — zapisana, SMS wysłany</span></div>
                 </div>
 
-                <div className="dm-foot"><IcPhone /><span data-edit="ag_d3_foot">nieodebrane połączenie to najdroższa rzecz w firmie usługowej</span></div>
-              </div>
-            </article>
+                {/* --- widget doradcy na stronie --- */}
+                <div className="dm-cell">
+                  <div className="dm-cap" data-edit="ag_d2_cap">AI Doradca · widget na stronie</div>
+                  <div className="ag-demo dm" data-demo="advisor">
+                    <div className="dm-bar">
+                      <span className="dm-url"><IcGlobe /><span data-edit="ag_d2_url">twojafirma.pl/oferta</span></span>
+                      <span className="dm-live"><i></i><span data-edit="ag_d2_live">doradca aktywny</span></span>
+                    </div>
 
-            {/* --- 04 AI ASYSTENT --- */}
-            <article className="ag-agent rv flip" id="asystent" data-hideable="agent:asystent">
-              <div className="ag-agent-text">
-                <span className="ag-tag" data-edit="ag_a4_tag">● wsparcie zespołu</span>
-                <div className="ag-role" data-edit="ag_a4_role" data-edit-type="html">Asystent wewnętrzny —<br />wiedza i dokumenty</div>
-                <h3 data-edit="ag_a4_name">AI Asystent</h3>
-                <p data-edit="ag_a4_desc" data-edit-type="html">
-                  Ma dostęp do przekazanej wiedzy o firmie, zna ofertę, cenniki i procedury.
-                  Odpowiada zespołowi na każde pytanie operacyjne w kilka sekund ze wskazaniem źródła.
-                </p>
-                <div className="ag-chan" data-edit="ag_a4_chan">wiedza · onboarding</div>
-              </div>
+                    <div className="dm-screen dm-site">
+                      <div className="site-skel" aria-hidden="true">
+                        <span className="sk sk-h"></span>
+                        <span className="sk sk-t"></span>
+                        <span className="sk sk-t short"></span>
+                        <div className="sk-cards"><span className="sk-card"></span><span className="sk-card"></span><span className="sk-card"></span></div>
+                      </div>
 
-              {/* wizualizacja: czat wewnętrzny zespołu */}
-              <div className="ag-demo dm" data-demo="assist">
-                <div className="dm-bar">
-                  <span className="dm-live"><i></i><span data-edit="ag_d4_live">czat zespołu</span></span>
-                  <span className="dm-src"><IcDoc /><span data-edit="ag_d4_src">148 dokumentów</span></span>
-                </div>
+                      <div className="adv-widget">
+                        <div className="adv-head"><IcSpark /><span data-edit="ag_d2_head">Doradca AI</span></div>
+                        <div className="msg in" data-s="1"><span data-edit="ag_d2_m1">Mam trzy warianty i nie wiem, który u nas zadziała.</span></div>
+                        <div className="msg typing" data-s="2"><span className="dots"><i></i><i></i><i></i></span></div>
+                        <div className="msg out" data-s="3"><span data-edit="ag_d2_m2">Ile zgłoszeń dostajecie w miesiącu i kto je dziś obsługuje?</span></div>
+                        <div className="msg in" data-s="4"><span data-edit="ag_d2_m3">Około 200, dwie osoby na zmianę.</span></div>
+                        <div className="adv-rec" data-s="5">
+                          <b data-edit="ag_d2_rec_h">Rekomendacja: wariant Wzrost</b>
+                          <span data-edit="ag_d2_rec_p">Przy 200 zgłoszeniach dwie osoby tracą wieczory. Wzrost przejmuje pierwszy kontakt i zostawia im tylko rozmowy decyzyjne.</span>
+                        </div>
+                        <div className="dm-chip" data-s="6"><IcUsers /><span data-edit="ag_d2_chip">Lead przekazany handlowcowi z kontekstem rozmowy</span></div>
+                      </div>
+                    </div>
 
-                <div className="dm-screen dm-assist">
-                  <div className="msg in" data-s="1"><span data-edit="ag_d4_m1" data-edit-type="html"><b>Ola, sprzedaż:</b> jaki mamy rabat dla stałego klienta przy trzecim zamówieniu?</span></div>
-                  <div className="msg typing" data-s="2"><span className="dots"><i></i><i></i><i></i></span></div>
-                  <div className="msg out" data-s="3">
-                    <span data-edit="ag_d4_m2">10% od trzeciego zamówienia w roku, łączy się z rabatem ilościowym do 15%. Powyżej trzeba pytać zarząd.</span>
+                    <div className="dm-foot"><IcArrow /><span data-edit="ag_d2_foot">zamiast „skontaktujemy się" — jedna decyzja i konkretny powód</span></div>
                   </div>
-                  <div className="src-row" data-s="4"><IcDoc /><span data-edit="ag_d4_src_row" data-edit-type="html">źródło: <b>cennik_2026.pdf</b> · s. 3 · zaktualizowany 12.08</span></div>
-                  <div className="msg in" data-s="5"><span data-edit="ag_d4_m3" data-edit-type="html"><b>Ola, sprzedaż:</b> a termin dla zamówień specjalnych?</span></div>
-                  <div className="msg out" data-s="6"><span data-edit="ag_d4_m4">14 dni roboczych od potwierdzenia projektu.</span></div>
-                  <div className="dm-chip" data-s="7"><IcClock /><span data-edit="ag_d4_chip">Odpowiedź w 4 sekundy — zamiast pytania na korytarzu</span></div>
                 </div>
 
-                <div className="dm-foot"><IcSpark /><span data-edit="ag_d4_foot">nowa osoba w zespole pyta agenta, nie kolegi obok</span></div>
-              </div>
-            </article>
-          </div>
-        </section>
+                {/* --- rozmowa telefoniczna --- */}
+                <div className="dm-cell">
+                  <div className="dm-cap" data-edit="ag_d3_cap">AI Recepcjonistka · telefon</div>
+                  <div className="ag-demo dm" data-demo="call">
+                    <div className="dm-bar">
+                      <span className="dm-live"><i></i><span data-edit="ag_d3_live">połączenie przychodzące</span></span>
+                      <span className="dm-timer" data-timer>00:00</span>
+                    </div>
 
-        {/* ===== PROBLEM → ROZWIĄZANIE ===== */}
-        <section className="ag-sec ag-change" id="zmiana" data-hideable="sec:zmiana">
-          <div className="ag-wrap">
-            <div className="sec-head rv">
-              <div className="section-label" data-edit="ag_c_label">{'// problem → rozwiązanie'}</div>
-              <h2 data-edit="ag_c_h2" data-edit-type="html">Co się zmienia w firmie</h2>
-            </div>
+                    <div className="dm-screen dm-call">
+                      <div className="call-top">
+                        <span className="call-avatar"><IcPhone /></span>
+                        <div>
+                          <b className="call-num" data-edit="ag_d3_num">+48 501 ••• 218</b>
+                          <span className="call-state" data-s="1" data-edit="ag_d3_state">odebrane po 1. sygnale · 22:58</span>
+                        </div>
+                        <span className="call-wave" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>
+                      </div>
 
-            <div className="chg-grid rv">
-              <div className="chg-col-h now" data-edit="ag_c_now">Teraz</div>
-              <div className="chg-col-h" aria-hidden="true"></div>
-              <div className="chg-col-h fix" data-edit="ag_c_fix">Z zespołem agentów</div>
+                      <div className="call-log">
+                        <div className="line them" data-s="2"><b data-edit="ag_d3_r1">Klient</b><span data-edit="ag_d3_l1">Dzień dobry, czy da się jeszcze zapisać na środę?</span></div>
+                        <div className="line ai" data-s="3"><b data-edit="ag_d3_r2">Agent</b><span data-edit="ag_d3_l2">Dzień dobry! Mam wolne 14:00 i 17:30 w środę. Które godziny pasują?</span></div>
+                        <div className="line them" data-s="4"><b data-edit="ag_d3_r3">Klient</b><span data-edit="ag_d3_l3">14:00 poproszę. Ile to kosztuje?</span></div>
+                        <div className="line ai" data-s="5"><b data-edit="ag_d3_r4">Agent</b><span data-edit="ag_d3_l4">Standardowa wizyta to 180 zł, płatne na miejscu. Zapisuję na środę 14:00 — potwierdzenie SMS-em.</span></div>
+                      </div>
 
-              <div className="chg-now" data-edit="ag_c1_now">Telefon dzwoni w trakcie pracy. Nikt nie odbiera.</div>
-              <div className="chg-arrow" aria-hidden="true"><IcArrow /></div>
-              <div className="chg-fix" data-edit="ag_c1_fix">Każde połączenie odebrane, wizyta zapisana o 22:00.</div>
+                      <div className="dm-chip" data-s="6"><IcCalendar /><span data-edit="ag_d3_chip">Wizyta śr. 14:00 — zapisana, SMS wysłany</span></div>
+                    </div>
 
-              <div className="chg-now" data-edit="ag_c2_now">Zapytanie z wieczora czeka do rana.</div>
-              <div className="chg-arrow" aria-hidden="true"><IcArrow /></div>
-              <div className="chg-fix" data-edit="ag_c2_fix">Odpowiedź w minutę, też w nocy i w weekend.</div>
+                    <div className="dm-foot"><IcPhone /><span data-edit="ag_d3_foot">nieodebrane połączenie to najdroższa rzecz w firmie usługowej</span></div>
+                  </div>
+                </div>
 
-              <div className="chg-now" data-edit="ag_c3_now">Klient przewija ofertę i wychodzi.</div>
-              <div className="chg-arrow" aria-hidden="true"><IcArrow /></div>
-              <div className="chg-fix" data-edit="ag_c3_fix">Dostaje jedną rekomendację i przechodzi do kontaktu.</div>
+                {/* --- asystent wewnętrzny --- */}
+                <div className="dm-cell">
+                  <div className="dm-cap" data-edit="ag_d4_cap">AI Asystent · czat zespołu</div>
+                  <div className="ag-demo dm" data-demo="assist">
+                    <div className="dm-bar">
+                      <span className="dm-live"><i></i><span data-edit="ag_d4_live">czat zespołu</span></span>
+                      <span className="dm-src"><IcDoc /><span data-edit="ag_d4_src">148 dokumentów</span></span>
+                    </div>
 
-              <div className="chg-now" data-edit="ag_c4_now">„Kto wie, jak to się robi?” — pyta się kolegi.</div>
-              <div className="chg-arrow" aria-hidden="true"><IcArrow /></div>
-              <div className="chg-fix" data-edit="ag_c4_fix">Odpowiedź z Waszych dokumentów, ze wskazanym źródłem.</div>
-            </div>
-          </div>
-        </section>
+                    <div className="dm-screen dm-assist">
+                      <div className="msg in" data-s="1"><span data-edit="ag_d4_m1" data-edit-type="html"><b>Ola, sprzedaż:</b> jaki mamy rabat dla stałego klienta przy trzecim zamówieniu?</span></div>
+                      <div className="msg typing" data-s="2"><span className="dots"><i></i><i></i><i></i></span></div>
+                      <div className="msg out" data-s="3">
+                        <span data-edit="ag_d4_m2">10% od trzeciego zamówienia w roku, łączy się z rabatem ilościowym do 15%. Powyżej trzeba pytać zarząd.</span>
+                      </div>
+                      <div className="src-row" data-s="4"><IcDoc /><span data-edit="ag_d4_src_row" data-edit-type="html">źródło: <b>cennik_2026.pdf</b> · s. 3 · zaktualizowany 12.08</span></div>
+                      <div className="msg in" data-s="5"><span data-edit="ag_d4_m3" data-edit-type="html"><b>Ola, sprzedaż:</b> a termin dla zamówień specjalnych?</span></div>
+                      <div className="msg out" data-s="6"><span data-edit="ag_d4_m4">14 dni roboczych od potwierdzenia projektu.</span></div>
+                      <div className="dm-chip" data-s="7"><IcClock /><span data-edit="ag_d4_chip">Odpowiedź w 4 sekundy — zamiast pytania na korytarzu</span></div>
+                    </div>
 
-        {/* ===== JAK TO DZIAŁA ===== */}
-        <section className="ag-sec" id="jak" data-hideable="sec:jak">
-          <div className="ag-wrap">
-            <div className="sec-head rv">
-              <div className="section-label" data-edit="ag_s_label">{'// jak to działa'}</div>
-              <h2 data-edit="ag_s_h2" data-edit-type="html">Trzy kroki, resztę robimy my</h2>
-            </div>
+                    <div className="dm-foot"><IcSpark /><span data-edit="ag_d4_foot">nowa osoba w zespole pyta agenta, nie kolegi obok</span></div>
+                  </div>
+                </div>
 
-            <div className="steps rv">
-              <div className="step">
-                <span className="step-num" data-edit="ag_s1_num">01</span>
-                <h3 data-edit="ag_s1_h">Wypróbuj i wybierz</h3>
-                <p data-edit="ag_s1_p" data-edit-type="html">Rozmawiasz z AI Doradcą, on podpowiada, od którego agenta zacząć u Ciebie.</p>
-              </div>
-              <div className="step">
-                <span className="step-num" data-edit="ag_s2_num">02</span>
-                <h3 data-edit="ag_s2_h">Trening na Twojej firmie</h3>
-                <p data-edit="ag_s2_p" data-edit-type="html">Uczymy agentów Twojej oferty i procesów, podłączamy kanały, kalendarz i CRM.</p>
-              </div>
-              <div className="step">
-                <span className="step-num" data-edit="ag_s3_num">03</span>
-                <h3 data-edit="ag_s3_h">Start i dopinanie</h3>
-                <p data-edit="ag_s3_p" data-edit-type="html">Uruchomienie w [do potwierdzenia] dni roboczych. Pierwsze dni obserwujemy rozmowy.</p>
               </div>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* ===== KOSZT ===== */}
-        <section className="ag-sec ag-cost" id="koszt" data-hideable="sec:koszt">
-          <div className="ag-wrap">
-            <div className="sec-head rv">
-              <div className="section-label" data-edit="ag_k_label">{'// koszt'}</div>
-              <h2 data-edit="ag_k_h2" data-edit-type="html">Porównanie z etatem</h2>
-            </div>
-
-            <div className="cost-grid rv">
-              <div className="cost-card">
-                <div className="cost-tag" data-edit="ag_k1_tag">Jeden etat</div>
-                <div className="cost-price" data-edit="ag_k1_price">~[X] zł / mies.</div>
-                <p data-edit="ag_k1_p" data-edit-type="html">Pensja i ZUS. Osiem godzin, pon–pt. Plus rekrutacja, urlopy, L4 i rotacja.</p>
-                <div className="cost-bar"><i style={{ width: '100%' }}></i></div>
+          {/* ===== 3 / PROBLEM → ROZWIĄZANIE ===== */}
+          <section className="slide" id="zmiana" data-hideable="sec:zmiana">
+            <div className="slide-inner ag-wrap">
+              <div className="sec-head rv rv1">
+                <div className="section-label" data-edit="ag_c_label">{'// problem → rozwiązanie'}</div>
+                <h2 data-edit="ag_c_h2" data-edit-type="html">Co się zmienia w firmie</h2>
               </div>
 
-              <div className="cost-card acid">
-                <div className="cost-tag" data-edit="ag_k2_tag">Jeden agent AI</div>
-                <div className="cost-price" data-edit="ag_k2_price">od [X] zł / mies.</div>
-                <p data-edit="ag_k2_p" data-edit-type="html">Stały abonament, [X]× taniej. Pracuje całą dobę, bez urlopu i bez zastępstw.</p>
-                <div className="cost-bar"><i style={{ width: '26%' }}></i></div>
+              <div className="chg-grid rv rv2">
+                <div className="chg-col-h now" data-edit="ag_c_now">Teraz</div>
+                <div className="chg-col-h" aria-hidden="true"></div>
+                <div className="chg-col-h fix" data-edit="ag_c_fix">Z zespołem agentów</div>
+
+                <div className="chg-now" data-edit="ag_c1_now">Telefon dzwoni w trakcie pracy. Nikt nie odbiera.</div>
+                <div className="chg-arrow" aria-hidden="true"><IcArrow /></div>
+                <div className="chg-fix" data-edit="ag_c1_fix">Każde połączenie odebrane, wizyta zapisana o 22:00.</div>
+
+                <div className="chg-now" data-edit="ag_c2_now">Zapytanie z wieczora czeka do rana.</div>
+                <div className="chg-arrow" aria-hidden="true"><IcArrow /></div>
+                <div className="chg-fix" data-edit="ag_c2_fix">Odpowiedź w minutę, też w nocy i w weekend.</div>
+
+                <div className="chg-now" data-edit="ag_c3_now">Klient przewija ofertę i wychodzi.</div>
+                <div className="chg-arrow" aria-hidden="true"><IcArrow /></div>
+                <div className="chg-fix" data-edit="ag_c3_fix">Dostaje jedną rekomendację i przechodzi do kontaktu.</div>
+
+                <div className="chg-now" data-edit="ag_c4_now">„Kto wie, jak to się robi?” — pyta się kolegi.</div>
+                <div className="chg-arrow" aria-hidden="true"><IcArrow /></div>
+                <div className="chg-fix" data-edit="ag_c4_fix">Odpowiedź z Waszych dokumentów, ze wskazanym źródłem.</div>
               </div>
             </div>
+          </section>
 
-            <p className="cost-note rv" data-edit="ag_k_note" data-edit-type="html">Cały czteroosobowy zespół: od [X] zł / mies. — taniej niż każdy agent osobno.</p>
-          </div>
-        </section>
+          {/* ===== 4 / JAK TO DZIAŁA ===== */}
+          <section className="slide" id="jak" data-hideable="sec:jak">
+            <div className="slide-inner ag-wrap">
+              <div className="sec-head rv rv1">
+                <div className="section-label" data-edit="ag_s_label">{'// jak to działa'}</div>
+                <h2 data-edit="ag_s_h2" data-edit-type="html">Trzy kroki, resztę robimy my</h2>
+              </div>
 
-        {/* ===== FAQ ===== */}
-        <section className="ag-sec" id="faq" data-hideable="sec:faq">
-          <div className="ag-wrap">
-            <div className="sec-head rv">
-              <div className="section-label" data-edit="ag_f_label">{'// pytania'}</div>
-              <h2 data-edit="ag_f_h2" data-edit-type="html">Najczęstsze wątpliwości</h2>
+              <div className="steps rv rv2">
+                <div className="step">
+                  <span className="step-num" data-edit="ag_s1_num">01</span>
+                  <h3 data-edit="ag_s1_h">Wypróbuj i wybierz</h3>
+                  <p data-edit="ag_s1_p" data-edit-type="html">Rozmawiasz z AI Doradcą, on podpowiada, od którego agenta zacząć u Ciebie.</p>
+                </div>
+                <div className="step">
+                  <span className="step-num" data-edit="ag_s2_num">02</span>
+                  <h3 data-edit="ag_s2_h">Trening na Twojej firmie</h3>
+                  <p data-edit="ag_s2_p" data-edit-type="html">Uczymy agentów Twojej oferty i procesów, podłączamy kanały, kalendarz i CRM.</p>
+                </div>
+                <div className="step">
+                  <span className="step-num" data-edit="ag_s3_num">03</span>
+                  <h3 data-edit="ag_s3_h">Start i dopinanie</h3>
+                  <p data-edit="ag_s3_p" data-edit-type="html">Uruchomienie w [do potwierdzenia] dni roboczych. Pierwsze dni obserwujemy rozmowy.</p>
+                </div>
+              </div>
             </div>
+          </section>
 
-            <div className="faq rv">
-              <details>
-                <summary data-edit="ag_f1_q">Muszę wdrażać wszystkich czterech?</summary>
-                <p data-edit="ag_f1_a" data-edit-type="html">Nie. Każdy działa samodzielnie. Zaczynasz od jednego i dokładasz kolejnych, kiedy chcesz.</p>
-              </details>
-              <details>
-                <summary data-edit="ag_f2_q">Czy klient pozna, że rozmawia z AI?</summary>
-                <p data-edit="ag_f2_a" data-edit-type="html">Nie poznasz tego. Agent przedstawia się jako asystent i oddaje rozmowę człowiekowi, tylko kiedy trzeba.</p>
-              </details>
-              <details>
-                <summary data-edit="ag_f3_q">Co, jeśli agent nie zna odpowiedzi?</summary>
-                <p data-edit="ag_f3_a" data-edit-type="html">Nie zmyśla. Przekazuje sprawę człowiekowi razem z całym kontekstem rozmowy.</p>
-              </details>
-              <details>
-                <summary data-edit="ag_f4_q">Podłączycie nasze narzędzia?</summary>
-                <p data-edit="ag_f4_a" data-edit-type="html">Tak — CRM, kalendarz, telefonię i kanały, z których już korzystacie.</p>
-              </details>
+          {/* ===== 5 / KOSZT ===== */}
+          <section className="slide" id="koszt" data-hideable="sec:koszt">
+            <div className="slide-inner ag-wrap">
+              <div className="sec-head rv rv1">
+                <div className="section-label" data-edit="ag_k_label">{'// koszt'}</div>
+                <h2 data-edit="ag_k_h2" data-edit-type="html">Porównanie z etatem</h2>
+              </div>
+
+              <div className="cost-grid rv rv2">
+                <div className="cost-card">
+                  <div className="cost-tag" data-edit="ag_k1_tag">Jeden etat</div>
+                  <div className="cost-price" data-edit="ag_k1_price">~[X] zł / mies.</div>
+                  <p data-edit="ag_k1_p" data-edit-type="html">Pensja i ZUS. Osiem godzin, pon–pt. Plus rekrutacja, urlopy, L4 i rotacja.</p>
+                  <div className="cost-bar"><i style={{ width: '100%' }}></i></div>
+                </div>
+
+                <div className="cost-card acid">
+                  <div className="cost-tag" data-edit="ag_k2_tag">Jeden agent AI</div>
+                  <div className="cost-price" data-edit="ag_k2_price">od [X] zł / mies.</div>
+                  <p data-edit="ag_k2_p" data-edit-type="html">Stały abonament, [X]× taniej. Pracuje całą dobę, bez urlopu i bez zastępstw.</p>
+                  <div className="cost-bar"><i style={{ width: '26%' }}></i></div>
+                </div>
+              </div>
+
+              <p className="cost-note rv rv3" data-edit="ag_k_note" data-edit-type="html">Cały czteroosobowy zespół: od [X] zł / mies. — taniej niż każdy agent osobno.</p>
             </div>
-          </div>
-        </section>
+          </section>
 
-        {/* ===== CTA ===== */}
-        <section className="ag-sec ag-final" id="kontakt">
-          <div className="ag-wrap">
-            <h2 className="rv" data-edit="ag_final_h2" data-edit-type="html">Porozmawiaj z agentem,<br /><em>zanim go zatrudnisz.</em></h2>
-            <div className="ag-actions center rv">
-              <a href="/kontakt" data-wipe className="btn-primary" data-edit="ag_final_cta">Wypróbuj agenta sam</a>
-              <span className="ag-cta-note" data-edit="ag_final_note" data-edit-type="html">AI Doradca podpowie, od którego agenta zacząć — i ile to kosztuje.</span>
+          {/* ===== 6 / PYTANIA ===== */}
+          <section className="slide" id="faq" data-hideable="sec:faq">
+            <div className="slide-inner ag-wrap">
+              <div className="sec-head rv rv1">
+                <div className="section-label" data-edit="ag_f_label">{'// pytania'}</div>
+                <h2 data-edit="ag_f_h2" data-edit-type="html">Najczęstsze wątpliwości</h2>
+              </div>
+
+              <div className="faq-grid rv rv2">
+                <div className="faq-item">
+                  <h3 data-edit="ag_f1_q">Muszę wdrażać wszystkich czterech?</h3>
+                  <p data-edit="ag_f1_a" data-edit-type="html">Nie. Każdy działa samodzielnie. Zaczynasz od jednego i dokładasz kolejnych, kiedy chcesz.</p>
+                </div>
+                <div className="faq-item">
+                  <h3 data-edit="ag_f2_q">Czy klient pozna, że rozmawia z AI?</h3>
+                  <p data-edit="ag_f2_a" data-edit-type="html">Nie poznasz tego. Agent przedstawia się jako asystent i oddaje rozmowę człowiekowi, tylko kiedy trzeba.</p>
+                </div>
+                <div className="faq-item">
+                  <h3 data-edit="ag_f3_q">Co, jeśli agent nie zna odpowiedzi?</h3>
+                  <p data-edit="ag_f3_a" data-edit-type="html">Nie zmyśla. Przekazuje sprawę człowiekowi razem z całym kontekstem rozmowy.</p>
+                </div>
+                <div className="faq-item">
+                  <h3 data-edit="ag_f4_q">Podłączycie nasze narzędzia?</h3>
+                  <p data-edit="ag_f4_a" data-edit-type="html">Tak — CRM, kalendarz, telefonię i kanały, z których już korzystacie.</p>
+                </div>
+              </div>
             </div>
-            <p className="ag-alt rv">
-              <span data-edit="ag_final_alt">Lub zostaw dane kontaktowe,</span>{' '}
-              <a href="/kontakt" data-wipe data-edit="ag_final_alt_link">a my skontaktujemy się z Tobą</a>.
-            </p>
-          </div>
-        </section>
+          </section>
 
-        <footer className="ag-footer">
-          <span data-edit="ag_foot_l">© 2026 Fastline InfinitiQ · część Greywolf Group</span>
-          <a href="/" data-wipe data-edit="ag_foot_r">fastlineinfinitiq.pl</a>
-        </footer>
-      </main>
+          {/* ===== 7 / KONTAKT — kwasowa płyta jak w makiecie ===== */}
+          <section className="slide" id="kontakt">
+            <div className="slide-inner ag-wrap">
+              <div className="ag-final rv rv1">
+                <h2 data-edit="ag_final_h2" data-edit-type="html">Porozmawiaj z agentem, zanim go zatrudnisz.</h2>
+                <p className="ag-final-note" data-edit="ag_final_note" data-edit-type="html">AI Doradca podpowie, od którego agenta zacząć — i ile to kosztuje.</p>
+                <div className="ag-final-row">
+                  <a href="/kontakt" data-wipe className="btn-dark" data-edit="ag_final_cta">Wypróbuj agenta sam</a>
+                  <a href="/kontakt" data-wipe className="btn-dark ghost" data-edit="ag_final_alt" data-edit-type="html">Lub zostaw dane kontaktowe,<br />a my skontaktujemy się z Tobą</a>
+                </div>
+              </div>
+
+              <footer className="ag-footer rv rv2">
+                <span data-edit="ag_foot_l">© 2026 Fastline InfinitiQ · Zespół agentów AI · część Greywolf Group</span>
+                <a href="/" data-wipe data-edit="ag_foot_r">fastlineinfinitiq.pl</a>
+              </footer>
+            </div>
+          </section>
+
+        </div>
+      </div>
     </>
   );
 }
