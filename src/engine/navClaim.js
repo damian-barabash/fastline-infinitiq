@@ -60,3 +60,95 @@ export function watchNavClaim({ signal } = {}) {
 
   return () => { if (ro) ro.disconnect(); };
 }
+
+/* ===== Scramble-декод клейма =====
+   Текст живёт в разметке (SEO/SSG) — движок только «проявляет» его глиф-шумом.
+   На лендинге старт ждёт CMS и ухода прелоадера (иначе декод отыграл бы под
+   оверлеем или по тексту, который CMS ещё заменит); на страницах продуктов
+   ждать нечего — `immediate: true`. */
+const HC_GLYPHS = '#/\\<>[]{}=+*^-01';
+
+export function initClaimScramble({ signal, immediate = false } = {}) {
+  const words = Array.from(document.querySelectorAll('#heroClaim .hc-word'));
+  if (!words.length) return null;
+
+  const COARSE = matchMedia('(hover: none), (pointer: coarse)').matches;
+  const timers = [];
+  let dead = false;
+  const ct = (fn, ms) => { const id = setTimeout(fn, ms); timers.push(id); return id; };
+
+  function scrambleWord(el, flash) {
+    if (!el || el._hcRun || dead) return;
+    const target = el.textContent;
+    if (!target) return;
+    el._hcRun = true;
+    if (flash) el.classList.add('hc-on');
+    const len = target.length;
+    const DUR = 620;
+    const t0 = performance.now();
+    let lastDraw = 0;
+    function step(now) {
+      if (dead) { el._hcRun = false; return; }
+      const p = Math.min(1, (now - t0) / DUR);
+      // глифы меняем ~каждые 34мс, не каждый кадр — иначе на 120Гц сплошное мельтешение
+      if (now - lastDraw >= 34 || p >= 1) {
+        lastDraw = now;
+        const reveal = Math.floor(p * len);
+        let out = target.slice(0, reveal);
+        for (let i = reveal; i < len; i++) {
+          const c = target[i];
+          out += c === ' ' ? ' ' : HC_GLYPHS[(Math.random() * HC_GLYPHS.length) | 0];
+        }
+        el.textContent = out;
+      }
+      if (p < 1) { requestAnimationFrame(step); return; }
+      el.textContent = target;
+      el._hcRun = false;
+      if (flash) ct(() => el.classList.remove('hc-on'), 450);
+    }
+    requestAnimationFrame(step);
+  }
+
+  let started = false;
+  function start() {
+    if (started || dead) return;
+    started = true;
+    words.forEach((w, i) => ct(() => scrambleWord(w, true), 180 + i * 320));
+    // редкий глитч-пульс одного слова; клейм живёт в шапке — виден на всех гранях
+    timers.push(setInterval(() => {
+      if (document.hidden) return;
+      scrambleWord(words[(Math.random() * words.length) | 0], false);
+    }, 7000));
+  }
+
+  if (immediate) {
+    ct(start, 320);
+  } else {
+    let contentReady = false;
+    addEventListener('fiq:content-ready', () => { contentReady = true; }, { signal });
+    ct(() => { contentReady = true; }, 4600);           // страховка, если событие не пришло
+    const armId = setInterval(() => {
+      if (dead || started) { clearInterval(armId); return; }
+      if (contentReady && !document.getElementById('fiqLoader')) {
+        clearInterval(armId);
+        ct(start, 260);
+      }
+    }, 120);
+    timers.push(armId);
+  }
+
+  // интерактив: ховер (точный указатель) / тап (coarse) пере-декодирует фразу
+  words.forEach((w) => {
+    const re = () => scrambleWord(w, true);
+    if (COARSE) w.addEventListener('click', re, { signal });
+    else w.addEventListener('mouseenter', re, { signal });
+  });
+
+  return {
+    destroy() {
+      dead = true;
+      timers.forEach((id) => { clearTimeout(id); clearInterval(id); });
+      timers.length = 0;
+    },
+  };
+}

@@ -9,6 +9,23 @@
 import { iconSvgHtml } from './productIcons.js';
 
 const GROUPS = ['a', 'b', 'c', 'd'];
+
+/* Produkty, które mają własną stronę (LP). Dopasowanie PO NAZWIE — numery
+   katalogowe zmieniają się przy każdej rewizji oferty. Pierwsza taka strona
+   jest zbiorcza: czterej agenci prowadzą na jeden adres. */
+const PRODUCT_PAGES = [
+  { re: /sprzedawc/i, href: '/agenci-ai' },
+  { re: /doradc/i, href: '/agenci-ai' },
+  { re: /asystent/i, href: '/agenci-ai' },
+  { re: /recepcj/i, href: '/agenci-ai' },
+];
+
+/** Adres strony produktu albo '' — wtedy karta prowadzi do sekcji audytu. */
+export function productHref(name) {
+  const n = String(name || '');
+  const hit = PRODUCT_PAGES.find((p) => p.re.test(n));
+  return hit ? hit.href : '';
+}
 const esc = (s) => String(s == null ? '' : s)
   .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
   .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
@@ -39,9 +56,16 @@ export function renderHeroProducts(rows) {
     const list = (byGroup[g] || []).slice().sort((a, b) => (a.ord ?? a.id) - (b.ord ?? b.id));
     for (const r of list) {
       const desc = r.descr ? `<i class="pl-desc">${esc(r.descr)}</i>` : '';
-      html += `<div class="pl-node" role="button" tabindex="0" data-goto="1" data-g="${g}" data-i="${i}" data-pid="${r.id}">`
-        + `<div class="pl-top">${iconSvgHtml(r.name, r.id)}<span class="pl-num">${pad(i + 1)}</span></div>`
-        + `<b class="pl-name">${esc(r.name)}</b>${desc}</div>`;
+      const href = productHref(r.name);
+      // produkt ze stroną = prawdziwy <a> (bot widzi link, `data-wipe` daje przejście
+      // z kurtyną); reszta zostaje przyciskiem prowadzącym do sekcji audytu
+      const open = href
+        ? `<a class="pl-node has-page" href="${href}" data-wipe data-g="${g}" data-i="${i}" data-pid="${r.id}">`
+        : `<div class="pl-node" role="button" tabindex="0" data-goto="1" data-g="${g}" data-i="${i}" data-pid="${r.id}">`;
+      const go = href ? '<i class="pl-go" aria-hidden="true">→</i>' : '';
+      html += open
+        + `<div class="pl-top">${iconSvgHtml(r.name, r.id)}<span class="pl-num">${pad(i + 1)}</span>${go}</div>`
+        + `<b class="pl-name">${esc(r.name)}</b>${desc}${href ? '</a>' : '</div>'}`;
       i++;
     }
   }

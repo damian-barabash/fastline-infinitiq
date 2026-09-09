@@ -14,6 +14,7 @@
 
 ## Strony
 - [Strona główna](https://fastlineinfinitiq.pl/): pełna oferta, model współpracy (briefing → diagnoza i roadmapa → retainer), dla kogo pracujemy
+- [Agenci AI](https://fastlineinfinitiq.pl/agenci-ai): zbiorcza strona produktu — AI Sprzedawca (zapytania i spotkania), AI Doradca (rekomendacja na stronie), AI Recepcjonistka (telefon 24/7, zapisy), AI Asystent (wiedza firmy dla zespołu). Jeden agent albo cały zespół, trening na ofercie i procesach klienta.
 - [Kontakt](https://fastlineinfinitiq.pl/kontakt): umów briefing strategiczny — bez umów i zobowiązań
 
 ## Kontakt

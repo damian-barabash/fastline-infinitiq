@@ -4,7 +4,10 @@
 import { renderHeroProducts } from './heroProducts.js';
 import { fitNavClaim } from './navClaim.js';
 
-export function initEditorLayer({ sb, onRequireLogin }) {
+export function initEditorLayer({ sb, onRequireLogin, pageId = 'index' }) {
+
+  // Redaktor obsługuje kilka stron: lądowanie leży w wierszu `index`,
+  // strona produktu /agenci-ai w `agenci-ai`. Cała reszta warstwy jest wspólna.
 
   const ac = new AbortController();
   const signal = ac.signal;
@@ -280,7 +283,7 @@ export function initEditorLayer({ sb, onRequireLogin }) {
     const patch = asDraft
       ? { draft: content, updated_at: new Date().toISOString(), updated_by: session.user.id }
       : { published: content, draft: null, updated_at: new Date().toISOString(), updated_by: session.user.id };
-    const { error } = await sb.from('site_content').update(patch).eq('id', 'index');
+    const { error } = await sb.from('site_content').update(patch).eq('id', pageId);
     if (error) { showToast('Błąd zapisu: ' + error.message, true); checkDirty(); return; }
     baseline = serialize(content);
     loadedFrom = asDraft ? 'draft' : 'published';
@@ -344,7 +347,7 @@ export function initEditorLayer({ sb, onRequireLogin }) {
     userEl.textContent = s.user.email;
     let content = {};
     try {
-      const { data } = await sb.from('site_content').select('published,draft').eq('id', 'index').maybeSingle();
+      const { data } = await sb.from('site_content').select('published,draft').eq('id', pageId).maybeSingle();
       if (data) {
         if (data.draft) { content = data.draft; loadedFrom = 'draft'; }
         else if (data.published) { content = data.published; loadedFrom = 'published'; }

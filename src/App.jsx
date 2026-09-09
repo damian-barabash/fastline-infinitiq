@@ -2,6 +2,7 @@ import React, { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Home from './pages/Home.jsx';
 import Kontakt from './pages/Kontakt.jsx';
+import Agenci from './pages/Agenci.jsx';
 
 // Не-пререндеренные роуты — lazy: supabase-js + редакторский код не попадают
 // в основной бандл лендинга. В SSG рендерятся только / и /kontakt (eager).
@@ -53,6 +54,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} />
         <Route path="/kontakt" element={<Kontakt />} />
+        <Route path="/agenci-ai" element={<Agenci />} />
         <Route path="/login" element={<Login />} />
         <Route path="/editor" element={<Editor />} />
         <Route path="/audyt/:slug" element={<Audit />} />

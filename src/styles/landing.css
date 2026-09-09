@@ -2592,3 +2592,17 @@ nav.shrunk .nav-brand .nav-logo img { height: 20px; }
   .nav-brand .nav-logo img { height: 24px; }
   nav.shrunk .nav-brand .nav-logo img { height: 20px; }
 }
+
+/* Karta produktu, który ma własną stronę: strzałka zamiast numeru i kursor linku
+   (2026-09-09, pierwsza taka strona to /agenci-ai). */
+.pl-go {
+  margin-left: auto;
+  font-style: normal;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 13px;
+  color: var(--green);
+  opacity: 0.75;
+  transition: transform 0.25s ease, opacity 0.25s ease;
+}
+a.pl-node { text-decoration: none; color: inherit; display: block; }
+a.pl-node:hover .pl-go { transform: translateX(3px); opacity: 1; }

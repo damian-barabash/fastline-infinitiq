@@ -116,21 +116,21 @@ export default function LandingShell() {
                     <b className="pl-name">Loyalty Engine</b>
                     <i className="pl-desc">Własna aplikacja lojalnościowa z gamifikacją i AI push.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="c" data-i="7">
-                    <div className="pl-top"><ProductIcon id={8} /><span className="pl-num">08</span></div>
+                  <a className="pl-node has-page" href="/agenci-ai" data-wipe data-g="c" data-i="7">
+                    <div className="pl-top"><ProductIcon id={8} /><span className="pl-num">08</span><i className="pl-go" aria-hidden="true">→</i></div>
                     <b className="pl-name">AI Sprzedawca</b>
                     <i className="pl-desc">Pierwsza linia: łapie zapytanie w sekundę i domyka.</i>
-                  </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="c" data-i="8">
-                    <div className="pl-top"><ProductIcon id={9} /><span className="pl-num">09</span></div>
+                  </a>
+                  <a className="pl-node has-page" href="/agenci-ai" data-wipe data-g="c" data-i="8">
+                    <div className="pl-top"><ProductIcon id={9} /><span className="pl-num">09</span><i className="pl-go" aria-hidden="true">→</i></div>
                     <b className="pl-name">AI Doradca</b>
                     <i className="pl-desc">Dobiera wariant, rozbraja wątpliwości, prowadzi do zakupu.</i>
-                  </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="c" data-i="9">
-                    <div className="pl-top"><ProductIcon id={10} /><span className="pl-num">10</span></div>
+                  </a>
+                  <a className="pl-node has-page" href="/agenci-ai" data-wipe data-g="c" data-i="9">
+                    <div className="pl-top"><ProductIcon id={10} /><span className="pl-num">10</span><i className="pl-go" aria-hidden="true">→</i></div>
                     <b className="pl-name">AI Recepcja 24/7</b>
                     <i className="pl-desc">Odbiera telefon o każdej porze, umawia i pilnuje kalendarza.</i>
-                  </div>
+                  </a>
                   <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="d" data-i="10">
                     <div className="pl-top"><ProductIcon id={11} /><span className="pl-num">11</span></div>
                     <b className="pl-name">AI Data Hub</b>
@@ -151,11 +151,11 @@ export default function LandingShell() {
                     <b className="pl-name">AI Project Manager</b>
                     <i className="pl-desc">Twój projekt manager AI.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="d" data-i="14">
-                    <div className="pl-top"><ProductIcon id={15} /><span className="pl-num">15</span></div>
+                  <a className="pl-node has-page" href="/agenci-ai" data-wipe data-g="d" data-i="14">
+                    <div className="pl-top"><ProductIcon id={15} /><span className="pl-num">15</span><i className="pl-go" aria-hidden="true">→</i></div>
                     <b className="pl-name">AI Asystent</b>
                     <i className="pl-desc">Baza wiedzy firmy: zespół pyta, asystent odpowiada.</i>
-                  </div>
+                  </a>
                   <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="d" data-i="15">
                     <div className="pl-top"><ProductIcon id={16} /><span className="pl-num">16</span></div>
                     <b className="pl-name">Rekruter AI</b>
