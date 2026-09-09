@@ -149,7 +149,7 @@ export function initHeroSphere() {
     if (mode === 'list') {                       // telefon: karty w zwykłym potoku pod kulą
       byGroup[GROUPS.indexOf(active)].forEach((n, i) => {
         n.style.transform = '';
-        n.style.setProperty('--d', i * 70 + 'ms');
+        n.style.setProperty('--d', i * 24 + 'ms');
       });
       placeLabels(null);
       return;
@@ -191,7 +191,7 @@ export function initHeroSphere() {
       const midY = y + h / 2;
       n.classList.toggle('l', side < 0);
       n.classList.toggle('r', side > 0);
-      n.style.setProperty('--d', k * 90 + 'ms');
+      n.style.setProperty('--d', k * 30 + 'ms');
       n.style.transform = `translate3d(${Math.round(lx)}px, ${Math.round(y)}px, 0)`;
       anchors.push({ node: n, lx, ly: midY, side, i: k });
       y += h + gap;
@@ -453,7 +453,7 @@ export function initHeroSphere() {
 
     const step = 1 - Math.pow(0.001, dt / 1000);
     if (active) {
-      reveal = Math.min(1, reveal + dt / 1500);            // ~1,5 s na całą sekwencję
+      reveal = Math.min(1, reveal + dt / 500);             // ~0,5 s na całą sekwencję (3× szybciej, prośba właściciela)
       // karty zapalają się jedna po drugiej — bez linii, sam rytm
       const step2 = 0.85 / Math.max(1, anchors.length);
       anchors.forEach((a, i) => { if (reveal >= (i + 0.35) * step2) a.node.classList.add('ready'); });

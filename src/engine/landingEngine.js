@@ -3,6 +3,7 @@
 // адаптация только: (1) SPA-переходы через onNavigate, (2) cleanup для React.
 import { interceptInternalLinks } from './wipe.js';
 import { initTeam } from './team.js';
+import { watchNavClaim } from './navClaim.js';
 
 export function initLanding({ onNavigate }) {
 
@@ -177,10 +178,12 @@ export function initLanding({ onNavigate }) {
   }
   addEventListener('fiq:content-ready', syncWhatMedia, { signal });
 
-  /* ===== Hero claim: scramble-декод «Data driven. Mind created. Unique executed.» =====
+  /* ===== Claim под лого в шапке: scramble-декод «Data driven. Mind created. Unique executed.» =====
      Текст в разметке (SEO/SSG) — движок только «проявляет» его глиф-шумом.
      Старт: контент CMS применён (событие из Home) И прелоадер ушёл из DOM —
-     иначе декод отыграл бы под оверлеем или по тексту, который CMS ещё заменит. */
+     иначе декод отыграл бы под оверлеем или по тексту, который CMS ещё заменит.
+     Ширину и кегль (ровно по ширине лого) держит navClaim.js. */
+  const unwatchClaim = watchNavClaim({ signal });
   const claimWords = Array.from(document.querySelectorAll('#heroClaim .hc-word'));
   const claimTimers = [];
   const ct = (fn, ms) => { const id = setTimeout(fn, ms); claimTimers.push(id); return id; };
@@ -222,9 +225,9 @@ export function initLanding({ onNavigate }) {
       if (claimStarted || destroyed) return;
       claimStarted = true;
       claimWords.forEach((w, i) => ct(() => scrambleWord(w, true), 180 + i * 320));
-      // редкий глитч-пульс одного слова, только пока виден hero
+      // редкий глитч-пульс одного слова; клейм живёт в шапке — виден на всех гранях
       claimTimers.push(setInterval(() => {
-        if (activeIdx !== 0 || document.hidden) return;
+        if (document.hidden) return;
         scrambleWord(claimWords[(Math.random() * claimWords.length) | 0], false);
       }, 7000));
     }
@@ -605,6 +608,7 @@ export function initLanding({ onNavigate }) {
     ac.abort();
     claimTimers.forEach(id => { clearTimeout(id); clearInterval(id); });
     claimTimers.length = 0;
+    unwatchClaim();
     delete window.fiqInitServices;
     delete window.fiqRemeasure;
     document.documentElement.classList.remove('mode-3d', 'coarse');

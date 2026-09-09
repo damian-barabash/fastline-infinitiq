@@ -14,9 +14,20 @@ export default function LandingShell() {
 
       {/* NAV */}
       <nav>
-        <a className="nav-logo" href="#" id="navHome" aria-label="Fastline InfinitiQ">
-          <img src="/assets/logo/LOGO.png" alt="Fastline InfinitiQ" data-edit="nav_logo" data-edit-type="image" />
-        </a>
+        {/* logo + claim = jeden lokal marki: claim ma dokładnie szerokość logo
+            (kegl dobiera silnik w navClaim.js), litery „wywołują się" glifami */}
+        <div className="nav-brand">
+          <a className="nav-logo" href="#" id="navHome" aria-label="Fastline InfinitiQ">
+            <img src="/assets/logo/LOGO.png" alt="Fastline InfinitiQ" data-edit="nav_logo" data-edit-type="image" />
+          </a>
+          <div className="nav-claim" id="heroClaim">
+            <span className="hc-word" data-edit="hero_claim_1">Data driven.</span>
+            <span className="hc-sep" aria-hidden="true"></span>
+            <span className="hc-word" data-edit="hero_claim_2">Mind created.</span>
+            <span className="hc-sep" aria-hidden="true"></span>
+            <span className="hc-word" data-edit="hero_claim_3">Unique executed.</span>
+          </div>
+        </div>
         <a href="#audyt" data-goto="1" className="nav-cta"><span className="cta-full" data-edit="nav_cta_full">Darmowy audyt AI</span><span className="cta-short" data-edit="nav_cta_short">Audyt</span></a>
       </nav>
 

@@ -2,6 +2,7 @@
 // сбор контента и сохранение (published/draft). Перенос 1:1 из editor.html.
 // Адаптация: sb-клиент и редиректы приходят из React, cleanup для SPA.
 import { renderHeroProducts } from './heroProducts.js';
+import { fitNavClaim } from './navClaim.js';
 
 export function initEditorLayer({ sb, onRequireLogin }) {
 
@@ -358,6 +359,9 @@ export function initEditorLayer({ sb, onRequireLogin }) {
     // 2-й проход: перестраиваем списки/блоки уже в структурную форму
     FIQ.applyContent(content, { editor: true });
     enableEditing();
+    // claim pod logo ma szerokość logo — w edytorze też, żeby podgląd nie kłamał
+    fitNavClaim();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitNavClaim()).catch(() => {});
     await showHeroProducts();
     baseline = serialize(collect());
     setStatus(loadedFrom === 'draft' ? 'draft' : 'saved');

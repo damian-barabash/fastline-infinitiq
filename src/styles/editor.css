@@ -2355,7 +2355,9 @@ body.fiq-edit [data-f] { pointer-events: auto; }
   display: flex;
   flex-direction: column;
   height: 100%;
-  padding: 116px 88px 34px 48px;
+  /* symetryczne pola: hero jest wyśrodkowane, a 88/48 z reszty granic
+     przesuwało całą treść o 20 px w lewo względem logo w pasku */
+  padding: 116px 68px 34px 68px;
 }
 
 #start .hero-h1 {
@@ -2450,7 +2452,7 @@ body.fiq-edit [data-f] { pointer-events: auto; }
   width: 244px;
   display: none;
   opacity: 0;
-  transition: opacity 0.42s ease var(--d, 0ms), filter 0.42s ease var(--d, 0ms);
+  transition: opacity 0.14s ease var(--d, 0ms), filter 0.14s ease var(--d, 0ms);
   filter: blur(2px);
   padding: 12px 16px 13px;
   /* matowa płyta jak w kartach sekcji: prawie nieprzezroczysta baza + światło
@@ -2473,7 +2475,7 @@ body.fiq-edit [data-f] { pointer-events: auto; }
 .pl-node.l::after { right: -1px; }
 .pl-node.on { display: block; }
 .pl-node.on.ready { opacity: 1; filter: none; }
-.pl-node { transition-duration: 0.26s; }
+.pl-node { transition-duration: 0.12s; }   /* pokaz kart 3× szybszy (2026-09-09) */
 .pl-stage.swap .pl-node.on { opacity: 0; filter: blur(2px); transition-delay: 0ms; }
 .pl-node.l { text-align: right; }
 
@@ -2762,3 +2764,61 @@ html.coarse [contenteditable="true"] { cursor: auto; }
 }
 .pl-cmshint a { color: #B8FF00; pointer-events: auto; }
 body.fiq-edit .pl-cmshint a { pointer-events: auto; }
+
+
+/* ===== NAV: logo + claim pod nim (2026-09-09) =====
+   Właściciel: logo mniejsze, pod nim wraca claim „Data driven. Mind created.
+   Unique executed." — dokładnie na szerokość logo, z tym samym efektem
+   „wywoływania" liter glifami co kiedyś w hero (silnik: landingEngine + navClaim).
+   Logo i claim to jeden lokal marki wyśrodkowany w pasku; wcześniej pozycjonowało
+   się samo `.nav-logo`. Blok IDENTYCZNY w landing.css i editor.css. */
+.nav-brand {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  /* claim jest DWA razy szerszy od logo — przy szerokości 1:1 linia schodziła
+     do ~5px i była już tylko ozdobą; na telefonie mnożnik mniejszy, bo obok
+     stoi przycisk CTA */
+  --nav-claim-k: 2;
+  --nav-claim-w: 208px;   /* fallback dla SSG/edytora: 24px logo × proporcja × k */
+}
+.nav-brand .nav-logo { position: static; left: auto; top: auto; transform: none; }
+.nav-brand .nav-logo img { height: 24px; }
+nav.shrunk .nav-brand .nav-logo img { height: 20px; }
+
+.nav-claim {
+  width: var(--nav-claim-w);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 7.9px;          /* pomiar w navClaim.js nadpisze: linia = 2 × szerokość logo */
+  line-height: 1;
+  letter-spacing: 0.02em;   /* linia jest mikro — trackingu nie ma z czego brać */
+  text-transform: uppercase;
+  color: rgba(245,245,240,0.74);
+  white-space: nowrap;
+  user-select: none;
+}
+.nav-claim .hc-word { transition: color 0.3s ease, text-shadow 0.3s ease; }
+.nav-claim .hc-word.hc-on { color: var(--green); text-shadow: 0 0 10px rgba(184,255,0,0.45); }
+.nav-claim .hc-sep {
+  flex: 0 0 auto;
+  /* w em — inaczej pomiar kegla nie schodziłby proporcjonalnie */
+  width: 0.58em; height: 0.58em;
+  background: rgba(184,255,0,0.55);
+  animation: hcBlink 2.2s ease infinite;
+}
+.nav-claim .hc-sep:last-of-type { animation-delay: 1.1s; }
+
+@media (max-width: 900px) {
+  /* pełne 2× nachodziłoby na przycisk „Audyt" (pomiar: 307 px vs CTA od 300 px) */
+  .nav-brand { gap: 5px; --nav-claim-k: 1.75; --nav-claim-w: 182px; }
+  .nav-brand .nav-logo img { height: 24px; }
+  nav.shrunk .nav-brand .nav-logo img { height: 20px; }
+}
