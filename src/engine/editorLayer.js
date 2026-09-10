@@ -74,6 +74,8 @@ export function initEditorLayer({ sb, onRequireLogin, pageId = 'index' }) {
     const hid = [];
     document.querySelectorAll('[data-hideable]').forEach(el => { if (el.classList.contains('fiq-hidden')) hid.push(el.getAttribute('data-hideable')); });
     o._hidden = hid;
+    // usunięte bloki nie istnieją już w DOM — lista pamięta je za nas
+    o._removed = Array.from(removedKeys);
     const blocks = {};
     document.querySelectorAll('[data-zone]').forEach(zone => {
       blocks[zone.getAttribute('data-zone')] = Array.from(zone.querySelectorAll(':scope > .fb')).map(readBlock);
@@ -147,13 +149,14 @@ export function initEditorLayer({ sb, onRequireLogin, pageId = 'index' }) {
     tb.appendChild(tbi('↑', 'W górę', () => { const p = item.previousElementSibling; if (p && p.matches('[data-litem], .fb-item')) { item.parentNode.insertBefore(item, p); renumber(item.parentNode); checkDirty(); } }));
     tb.appendChild(tbi('↓', 'W dół', () => { const n = item.nextElementSibling; if (n && n.matches('[data-litem], .fb-item')) { item.parentNode.insertBefore(n, item); renumber(item.parentNode); checkDirty(); } }));
     if (!sub) tb.appendChild(tbi('◉', 'Ukryj / pokaż', s => { item.classList.toggle('fiq-hidden'); s.classList.toggle('on', item.classList.contains('fiq-hidden')); checkDirty(); }));
-    tb.appendChild(tbi('✕', 'Usuń', () => { const p = item.parentNode; item.remove(); renumber(p); checkDirty(); }, 'del'));
+    tb.appendChild(delBtn(item, (p) => renumber(p)));
     item.appendChild(tb);
   }
   function addHideTb(el) {
     if (el.querySelector(':scope > .fiq-tb')) return;
     const tb = document.createElement('span'); tb.className = 'fiq-tb';
-    tb.appendChild(tbi('◉', 'Ukryj / pokaż', s => { el.classList.toggle('fiq-hidden'); s.classList.toggle('on', el.classList.contains('fiq-hidden')); checkDirty(); }));
+    tb.appendChild(tbi('◉', 'Ukryj / pokaż', s2 => { el.classList.toggle('fiq-hidden'); s2.classList.toggle('on', el.classList.contains('fiq-hidden')); checkDirty(); }));
+    tb.appendChild(delBtn(el));
     el.appendChild(tb);
   }
   function addBlockTb(block) {
@@ -163,7 +166,7 @@ export function initEditorLayer({ sb, onRequireLogin, pageId = 'index' }) {
     tb.appendChild(tbi('↓', 'W dół', () => { const n = block.nextElementSibling; if (n && n.matches('.fb')) { block.parentNode.insertBefore(n, block); checkDirty(); } }));
     if (block.hasAttribute('data-flip')) tb.appendChild(tbi('⇄', 'Odbij', s => { const f = block.getAttribute('data-flip') === '1'; block.setAttribute('data-flip', f ? '0' : '1'); const sp = block.querySelector('.fb-split'); if (sp) sp.classList.toggle('fb-flip', !f); s.classList.toggle('on', !f); checkDirty(); }));
     tb.appendChild(tbi('◉', 'Ukryj / pokaż', s => { block.classList.toggle('fiq-hidden'); s.classList.toggle('on', block.classList.contains('fiq-hidden')); checkDirty(); }));
-    tb.appendChild(tbi('✕', 'Usuń blok', () => { block.remove(); checkDirty(); }, 'del'));
+    tb.appendChild(delBtn(block));
     block.appendChild(tb);
   }
 
@@ -224,60 +227,62 @@ export function initEditorLayer({ sb, onRequireLogin, pageId = 'index' }) {
     zone.appendChild(btn);
   }
 
-  /* ===== Панель «Bloki» =====
-     Тулбар ◉ висит на самом блоке — его надо найти мышкой, а на длинной
-     странице это лотерея. Панель даёт один список всего, что можно убрать:
-     подпись из `data-hide-label`, вложенность — по родителям-hideable. */
-  function hideLabel(el) {
+  /* ===== Usuwanie bloków =====
+     Ukrycie jest odwracalne jednym kliknięciem, usunięcie — nie, więc idzie
+     przez okno z losowym 10-cyfrowym kodem do przepisania. Klucze usuniętych
+     elementów `data-hideable` trzymamy w `_removed`: markup strony jest
+     statyczny (snapshot dla SSG), więc bez tej listy blok wróciłby po odświeżeniu. */
+  const removedKeys = new Set();
+  const cf = $('fiqConfirm'), cfWhat = $('fiqConfirmWhat'), cfCode = $('fiqConfirmCode');
+  const cfInput = $('fiqConfirmInput'), cfOk = $('fiqConfirmOk'), cfCancel = $('fiqConfirmCancel');
+  let cfResolve = null;
+
+  function blockLabel(el) {
     const own = el.getAttribute('data-hide-label');
     if (own) return own;
-    const h = el.querySelector('h1, h2, h3, .section-label, .dm-cap, .cost-tag');
+    const h = el.querySelector('h1, h2, h3, .section-label, .dm-cap, .cost-tag, .svc-name, .who-tag');
     const t = (h ? h.textContent : el.textContent || '').trim().replace(/\s+/g, ' ');
-    return t ? t.slice(0, 46) : el.getAttribute('data-hideable');
+    return t ? t.slice(0, 60) : 'blok';
   }
-  const blocksPanel = $('fiqBlocks'), blocksList = $('fiqBlocksList');
-  function setHidden(el, v) {
-    el.classList.toggle('fiq-hidden', v);
-    // ten sam blok ma jeszcze przełącznik ◉ w swoim tulbarze — trzymamy je zgodnie
-    el.querySelectorAll(':scope > .fiq-tb .tbi').forEach(t => {
-      if (t.textContent === '◉') t.classList.toggle('on', v);
-    });
-    checkDirty();
+  function askDelete(el) {
+    if (!cf) return Promise.resolve(true);
+    const code = String(Math.floor(Math.random() * 9e9) + 1e9);
+    cfWhat.textContent = '// ' + blockLabel(el);
+    cfCode.textContent = code;
+    cfInput.value = '';
+    cfOk.disabled = true;
+    cf.classList.add('show');
+    setTimeout(() => cfInput.focus(), 30);
+    const check = () => { cfOk.disabled = cfInput.value.trim() !== code; };
+    cfInput.oninput = check;
+    return new Promise(resolve => { cfResolve = resolve; });
   }
-  function buildBlocksList() {
-    if (!blocksList) return;
-    blocksList.innerHTML = '';
-    const all = Array.from(document.querySelectorAll('[data-hideable]'));
-    all.forEach(el => {
-      const depth = all.filter(o => o !== el && o.contains(el)).length;
-      const row = document.createElement('div');
-      row.className = 'fiq-blk' + (el.classList.contains('fiq-hidden') ? ' off' : '');
-      row.style.paddingLeft = (14 + depth * 18) + 'px';
-      const sw = document.createElement('button');
-      sw.className = 'fiq-blk-sw'; sw.type = 'button';
-      sw.setAttribute('aria-label', 'Pokaż / ukryj blok');
-      const name = document.createElement('span');
-      name.className = 'fiq-blk-name'; name.textContent = hideLabel(el);
-      const go = document.createElement('button');
-      go.className = 'fiq-blk-go'; go.type = 'button'; go.textContent = 'pokaż';
-      sw.addEventListener('click', () => {
-        const v = !el.classList.contains('fiq-hidden');
-        setHidden(el, v);
-        row.classList.toggle('off', v);
-      }, { signal });
-      go.addEventListener('click', () => {
-        blocksPanel.classList.remove('show');
-        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }, { signal });
-      row.appendChild(sw); row.appendChild(name); row.appendChild(go);
-      blocksList.appendChild(row);
-    });
-    if (!all.length) blocksList.innerHTML = '<div class="fiq-blk-empty">Ta strona nie ma jeszcze wyłączanych bloków.</div>';
+  function closeConfirm(v) {
+    if (!cf) return;
+    cf.classList.remove('show');
+    cfInput.oninput = null;
+    const r = cfResolve; cfResolve = null;
+    if (r) r(v);
   }
-  if (blocksPanel) {
-    $('fiqBlocksBtn').addEventListener('click', () => { buildBlocksList(); blocksPanel.classList.add('show'); }, { signal });
-    $('fiqBlocksClose').addEventListener('click', () => blocksPanel.classList.remove('show'), { signal });
-    blocksPanel.addEventListener('click', e => { if (e.target === blocksPanel) blocksPanel.classList.remove('show'); }, { signal });
+  if (cf) {
+    cfOk.addEventListener('click', () => { if (!cfOk.disabled) closeConfirm(true); }, { signal });
+    cfCancel.addEventListener('click', () => closeConfirm(false), { signal });
+    cf.addEventListener('click', e => { if (e.target === cf) closeConfirm(false); }, { signal });
+    cfInput.addEventListener('keydown', e => { if (e.key === 'Enter' && !cfOk.disabled) closeConfirm(true); }, { signal });
+    addEventListener('keydown', e => { if (e.key === 'Escape' && cf.classList.contains('show')) closeConfirm(false); }, { signal });
+  }
+
+  /** Kasownik z potwierdzeniem — wspólny dla sekcji, kart list i bloków. */
+  function delBtn(el, after) {
+    return tbi('✕', 'Usuń', async () => {
+      if (!await askDelete(el)) return;
+      const key = el.getAttribute('data-hideable');
+      if (key) removedKeys.add(key);
+      const parent = el.parentNode;
+      el.remove();
+      if (after) after(parent);
+      checkDirty();
+    }, 'del');
   }
 
   /* ===== Палитра блоков ===== */
@@ -413,6 +418,7 @@ export function initEditorLayer({ sb, onRequireLogin, pageId = 'index' }) {
     if (!content || typeof content !== 'object') content = {};
     // 1-й проход: применяем flat-ключи к статичным строкам (для деривации _lists)
     FIQ.applyContent(content, { editor: true });
+    (content._removed || []).forEach(k => removedKeys.add(k));
     if (!content._lists) content._lists = deriveLists();
     if (!content._blocks) content._blocks = {};
     // 2-й проход: перестраиваем списки/блоки уже в структурную форму

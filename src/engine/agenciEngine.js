@@ -56,29 +56,14 @@ export function initAgenci({ onNavigate }) {
     }, { signal });
   }
 
-  /* Na DUŻYM ekranie właściciel chce blok „Poznaj zespół" na samej górze —
-     przestawiamy grań przed hero (razem z pozycją railu, z którego menu bierze
-     podpisy). Na telefonie zostaje kolejność z makiety: najpierw hero. */
-  if (!FLAT) {
-    const drumEl = document.getElementById('drum');
-    const startEl = document.getElementById('start');
-    const zespolEl = document.getElementById('zespol');
-    if (drumEl && startEl && zespolEl) drumEl.insertBefore(zespolEl, startEl);
-    // przestawienie railu wykonujemy raz na dokument: silnik startuje ponownie,
-    // gdy CMS wytnie którąś grań, a drugi swap wróciłby do starej kolejności
-    const railBox = document.getElementById('rail');
-    if (railBox && !railBox.hasAttribute('data-reordered') && railBox.children.length > 1) {
-      railBox.setAttribute('data-reordered', '1');
-      railBox.insertBefore(railBox.children[1], railBox.children[0]);
-      Array.from(railBox.children).forEach((b2, i) => { b2.dataset.i = String(i); });
-    }
-  }
-
   /* ===== 3D-барабан + гибридный скролл (как на главной) ===== */
   const slides = Array.from(document.querySelectorAll('.slide'));
   const inners = slides.map((s) => s.querySelector('.slide-inner'));
   const N = slides.length;
-  const ZESPOL = slides.findIndex((s) => s.id === 'zespol');
+  // karty agentów żyją teraz w grani hero — szukamy jej po samej siatce kart,
+  // żeby przeniesienie bloku nie wymagało ruszania silnika
+  const teamGridEl = document.getElementById('teamGrid');
+  const ZESPOL = teamGridEl ? slides.findIndex((s2) => s2.contains(teamGridEl)) : -1;
   const track = document.getElementById('track');
   const drum = document.getElementById('drum');
   const FACE = 72;

@@ -64,16 +64,15 @@ export default function AgenciShell() {
       {/* PROGRESS RAIL */}
       <div className="rail" id="rail" role="navigation" aria-label="Sekcje">
         <button className="rail-item" data-i="0"><span className="rail-name">Start</span><span className="rail-tick"></span></button>
-        <button className="rail-item" data-i="1"><span className="rail-name">Zespół</span><span className="rail-tick"></span></button>
-        <button className="rail-item" data-i="2"><span className="rail-name">W praktyce</span><span className="rail-tick"></span></button>
-        <button className="rail-item" data-i="3"><span className="rail-name">Co się zmienia</span><span className="rail-tick"></span></button>
-        <button className="rail-item" data-i="4"><span className="rail-name">Jak to działa</span><span className="rail-tick"></span></button>
-        <button className="rail-item" data-i="5"><span className="rail-name">Koszt</span><span className="rail-tick"></span></button>
-        <button className="rail-item" data-i="6"><span className="rail-name">Pytania</span><span className="rail-tick"></span></button>
-        <button className="rail-item" data-i="7"><span className="rail-name">Kontakt</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="1"><span className="rail-name">W praktyce</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="2"><span className="rail-name">Co się zmienia</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="3"><span className="rail-name">Jak to działa</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="4"><span className="rail-name">Koszt</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="5"><span className="rail-name">Pytania</span><span className="rail-tick"></span></button>
+        <button className="rail-item" data-i="6"><span className="rail-name">Kontakt</span><span className="rail-tick"></span></button>
       </div>
 
-      <div className="counter" id="counter"><span className="cur">01</span><span>/ 08</span></div>
+      <div className="counter" id="counter"><span className="cur">01</span><span>/ 07</span></div>
       <div className="scroll-hint" id="scrollHint">Scroll</div>
 
       <div id="track"></div>
@@ -97,29 +96,10 @@ export default function AgenciShell() {
                 <a href="/kontakt" data-wipe className="btn-primary" data-edit="ag_cta">Wypróbuj agenta sam</a>
                 <a href="/kontakt" data-wipe className="btn-ghost" data-edit="ag_cta2" data-edit-type="html">Lub zostaw dane kontaktowe,<br />a my skontaktujemy się z Tobą</a>
               </div>
-              <div className="ag-cta-note rv rv3" data-hideable="ag:cta-note" data-hide-label="Hero — podpis pod CTA" data-edit="ag_cta_note" data-edit-type="html">Rozmawiasz z AI Doradcą. Bezpłatnie, bez logowania, bez zobowiązań.</div>
 
-              <ul className="ag-checks rv rv4" data-hideable="ag:checks" data-hide-label="Hero — lista punktów">
-                <li><IcCheck /><span data-edit="ag_chk1">Jeden agent albo cały zespół</span></li>
-                <li><IcCheck /><span data-edit="ag_chk2">Pracują 24/7</span></li>
-                <li><IcCheck /><span data-edit="ag_chk3">Twoja oferta i brand voice</span></li>
-                <li><IcCheck /><span data-edit="ag_chk4">Bez rekrutacji</span></li>
-              </ul>
-            </div>
-          </section>
-
-          {/* ===== 1 / POZNAJ ZESPÓŁ — cztery karty agentów ===== */}
-          <section className="slide" id="zespol" data-hideable="sec:zespol" data-hide-label="Sekcja — Poznaj zespół">
-            <div className="slide-inner ag-wrap">
-              <div className="sec-head rv rv1">
-                <div className="section-label" data-edit="ag_z_label">{'// poznaj zespół'}</div>
-                <h2 data-edit="ag_z_h2" data-edit-type="html">Wybierz agenta AI albo zbuduj cały zespół.</h2>
-                <p className="sec-lead" data-edit="ag_z_lead" data-edit-type="html">
-                  Każdy agent odpowiada za inny etap i działa samodzielnie — nie musisz brać wszystkich naraz.
-                </p>
-              </div>
-
-              <div className="team-grid rv rv2" id="teamGrid">
+              {/* karty agentów siedzą w tej samej grani co hero — właściciel chce
+                  je zobaczyć od razu, bez osobnego nagłówka „poznaj zespół" */}
+              <div className="team-grid rv rv3" id="teamGrid">
 
                 <article className="team-card" tabIndex={0} data-team="1" data-hideable="agent:sprzedawca" data-hide-label="Agent — Sprzedawca">
                   <div className="tm-visual">

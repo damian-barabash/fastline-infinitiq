@@ -171,10 +171,20 @@ export function ensureFIQ() {
       }
     });
 
-    // 3. Скрываемые одиночные элементы
+    // 3. Скрываемые и удалённые одиночные элементы.
+    //    Удалённые (`_removed`) в редакторе физически убираем из DOM — редактор
+    //    показывает правду; на живой странице ведут себя как скрытые, потому что
+    //    дальше страница сама выкидывает скрытые грани из барабана.
+    const removed = new Set(content._removed || []);
     const hidden = new Set(content._hidden || []);
     document.querySelectorAll('[data-hideable]').forEach(el => {
-      const isH = hidden.has(el.getAttribute('data-hideable'));
+      const key = el.getAttribute('data-hideable');
+      if (removed.has(key)) {
+        if (ed) el.remove();
+        else el.style.display = 'none';
+        return;
+      }
+      const isH = hidden.has(key);
       if (ed) { el.classList.toggle('fiq-hidden', isH); el.style.display = ''; }
       else el.style.display = isH ? 'none' : '';
     });

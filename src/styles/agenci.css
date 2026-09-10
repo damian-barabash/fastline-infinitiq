@@ -615,6 +615,17 @@
   }
   .ag-checks svg { color: var(--green); flex: 0 0 auto; }
 
+  /* Hero i karty agentów stoją w jednej grani (2026-09-10) — nagłówek musi być
+     niższy, inaczej karty schodzą poza kadr i grań rośnie o pół ekranu. */
+  #start .ag-h1 { font-size: clamp(28px, 3vw, 44px); max-width: 24ch; }
+  #start .ag-lead { margin-top: 16px; font-size: 15.5px; max-width: 900px; }
+  #start .ag-actions { margin-top: 22px; }
+  #start .team-grid { margin-top: 28px; }
+  #start .tm-visual { aspect-ratio: 8 / 5; }
+  #start .tm-body { padding: 12px 14px 16px; }
+  #start .team-card h3 { font-size: 19px; }
+  #start .team-card p { font-size: 12.8px; line-height: 1.48; }
+
   /* ===== Karty agentów (wizual + tekst z makiety) ===== */
   .team-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px; }
   .tm-body { padding: 14px 16px 18px; }

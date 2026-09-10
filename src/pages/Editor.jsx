@@ -69,14 +69,20 @@ export default function Editor() {
           <button className="fiq-pal-close" id="fiqPalClose">Anuluj</button>
         </div>
       </div>
-      {/* panel „Bloki” — jedno miejsce, w którym widać wszystkie usuwalne
-          kawałki strony i można je wyłączyć bez szukania ich myszką */}
-      <div id="fiqBlocks">
-        <div className="fiq-blocks-card">
-          <div className="fiq-pal-head">Bloki strony</div>
-          <div className="fiq-pal-sub">{'// wyłączony blok znika ze strony; wracasz go tym samym przełącznikiem'}</div>
-          <div className="fiq-blocks-list" id="fiqBlocksList"></div>
-          <button className="fiq-pal-close" id="fiqBlocksClose">Zamknij</button>
+      {/* usunięcie bloku jest nieodwracalne — trzeba przepisać losowy kod */}
+      <div id="fiqConfirm">
+        <div className="fiq-confirm-card">
+          <div className="fiq-pal-head">Usunąć blok?</div>
+          <div className="fiq-pal-sub" id="fiqConfirmWhat"></div>
+          <p className="fiq-confirm-lead">
+            Tego nie da się cofnąć przyciskiem „ukryj". Przepisz kod, żeby potwierdzić:
+          </p>
+          <div className="fiq-confirm-code" id="fiqConfirmCode"></div>
+          <input className="fiq-confirm-input" id="fiqConfirmInput" inputMode="numeric" autoComplete="off" placeholder="0000000000" />
+          <div className="fiq-confirm-row">
+            <button className="fiq-btn" id="fiqConfirmCancel">Anuluj</button>
+            <button className="fiq-btn danger" id="fiqConfirmOk" disabled>Usuń blok</button>
+          </div>
         </div>
       </div>
       <div id="fiqBar" style={{ display: 'none' }}>
@@ -96,7 +102,6 @@ export default function Editor() {
           <button className={'fiq-tab-btn' + (tab === 'audyty' ? ' on' : '')} onClick={() => setTab(tab === 'audyty' ? page : 'audyty')}>Audyt</button>
         </span>
         <span id="fiqStatus" className="saved"><span className="dot"></span><span id="fiqStatusText">Zapisano</span></span>
-        <button className="fiq-btn" id="fiqBlocksBtn">Bloki</button>
         <span className="fiq-spacer"></span>
         <span className="fiq-user" id="fiqUser"></span>
         <button className="fiq-btn" id="fiqSaveDraft">Zapisz jako wersję roboczą</button>
