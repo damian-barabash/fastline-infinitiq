@@ -107,7 +107,7 @@ body.fiq-edit .ap-wrap a { pointer-events: auto; }
 .ap-prices-actions { margin-top: 14px; display: flex; gap: 10px; }
 
 /* табы в нижней панели */
-.fiq-tabs { display: inline-flex; gap: 4px; margin-left: 6px; }
+.fiq-tabs { display: inline-flex; align-items: center; gap: 12px; margin-left: 6px; }
 .fiq-tab-btn {
   font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase;
   color: rgba(245,245,240,0.5); background: transparent; border: 1px solid rgba(255,255,255,0.14);

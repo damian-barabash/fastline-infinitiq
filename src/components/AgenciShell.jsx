@@ -1,7 +1,7 @@
 import React from 'react';
 import {
   IcMessenger, IcInstagram, IcWhatsapp, IcPhone, IcCalendar, IcDoc,
-  IcGlobe, IcSpark, IcCheck, IcArrow, IcUsers, IcClock,
+  IcGlobe, IcSpark, IcCheck, IcArrow, IcUsers, IcClock, IcDotArrow,
 } from './agentIcons.jsx';
 
 /* Разметка страницы /agenci-ai — как LandingShell для главной: один и тот же
@@ -26,11 +26,11 @@ export default function AgenciShell() {
             <div className="menu-list" id="menuSections"></div>
           </div>
           <div className="menu-col">
-            <div className="menu-cap">{'// strony'}</div>
-            <div className="menu-list">
-              <a className="menu-link" href="/" data-wipe><span className="menu-num">→</span><span>Strona główna</span></a>
+            <div className="menu-cap">{'// produkty'}</div>
+            {/* lista z katalogu (`landing_products`): produkt ze swoją stroną jest
+                linkiem, pozostałe stoją na szaro — widać całą ofertę i to, co gotowe */}
+            <div className="menu-list" id="menuProducts">
               <a className="menu-link" href="/agenci-ai" data-wipe><span className="menu-num">→</span><span>Agenci AI</span></a>
-              <a className="menu-link" href="/kontakt" data-wipe><span className="menu-num">→</span><span>Kontakt</span></a>
             </div>
             <a className="menu-cta" href="/#audyt" data-wipe>Darmowy audyt AI</a>
           </div>
@@ -225,6 +225,11 @@ export default function AgenciShell() {
 
                     <div className="dm-screen">
                       <div className="dm-ch on" data-ch="fb">
+                        <div className="im-head">
+                          <span className="im-av" aria-hidden="true"></span>
+                          <span className="im-who"><b data-edit="ag_d1_fb_name">Twoja Firma</b><i data-edit="ag_d1_fb_state">Firma · aktywny teraz</i></span>
+                          <span className="im-app">Messenger</span>
+                        </div>
                         <div className="msg in" data-s="1"><span data-edit="ag_d1_fb1">Dzień dobry, robicie wycenę dla firmy? Ile to trwa?</span><i data-edit="ag_d1_fb1t">22:41</i></div>
                         <div className="msg typing" data-s="2"><span className="dots"><i></i><i></i><i></i></span></div>
                         <div className="msg out" data-s="3"><span data-edit="ag_d1_fb2">Dobry wieczór! Tak — wycena wraca w 24 h. Potrzebuję metrażu i terminu. Mam wolny wtorek 10:30 na krótkie omówienie.</span><i data-edit="ag_d1_fb2t">22:41</i></div>
@@ -233,6 +238,11 @@ export default function AgenciShell() {
                       </div>
 
                       <div className="dm-ch" data-ch="ig">
+                        <div className="im-head">
+                          <span className="im-av" aria-hidden="true"></span>
+                          <span className="im-who"><b data-edit="ag_d1_ig_name">Twoja Firma</b><i data-edit="ag_d1_ig_state">Direct · widziane</i></span>
+                          <span className="im-app">Instagram</span>
+                        </div>
                         <div className="msg in" data-s="1"><span data-edit="ag_d1_ig1">Hej! Widziałam realizację na profilu — robicie takie u klienta?</span><i data-edit="ag_d1_ig1t">23:12</i></div>
                         <div className="msg typing" data-s="2"><span className="dots"><i></i><i></i><i></i></span></div>
                         <div className="msg out" data-s="3"><span data-edit="ag_d1_ig2">Cześć! Tak, to nasz standardowy zakres. Podeślę dwa warianty z cenami — na jaki metraż liczymy?</span><i data-edit="ag_d1_ig2t">23:12</i></div>
@@ -241,6 +251,11 @@ export default function AgenciShell() {
                       </div>
 
                       <div className="dm-ch" data-ch="wa">
+                        <div className="im-head">
+                          <span className="im-av" aria-hidden="true"></span>
+                          <span className="im-who"><b data-edit="ag_d1_wa_name">Twoja Firma</b><i data-edit="ag_d1_wa_state">online</i></span>
+                          <span className="im-app">WhatsApp</span>
+                        </div>
                         <div className="msg in" data-s="1"><span data-edit="ag_d1_wa1">Dzień dobry, jesteście dostępni w sobotę?</span><i data-edit="ag_d1_wa1t">07:04</i></div>
                         <div className="msg typing" data-s="2"><span className="dots"><i></i><i></i><i></i></span></div>
                         <div className="msg out" data-s="3"><span data-edit="ag_d1_wa2">Dzień dobry! W soboty pracujemy 9:00–14:00. Zarezerwuję termin — potrzebuję adresu i numeru.</span><i data-edit="ag_d1_wa2t">07:04</i></div>
@@ -364,19 +379,19 @@ export default function AgenciShell() {
                 <div className="chg-col-h fix" data-edit="ag_c_fix">Z zespołem agentów</div>
 
                 <div className="chg-now" data-edit="ag_c1_now">Telefon dzwoni w trakcie pracy. Nikt nie odbiera.</div>
-                <div className="chg-arrow" aria-hidden="true"><IcArrow /></div>
+                <div className="chg-arrow" aria-hidden="true"><IcDotArrow /></div>
                 <div className="chg-fix" data-edit="ag_c1_fix">Każde połączenie odebrane, wizyta zapisana o 22:00.</div>
 
                 <div className="chg-now" data-edit="ag_c2_now">Zapytanie z wieczora czeka do rana.</div>
-                <div className="chg-arrow" aria-hidden="true"><IcArrow /></div>
+                <div className="chg-arrow" aria-hidden="true"><IcDotArrow /></div>
                 <div className="chg-fix" data-edit="ag_c2_fix">Odpowiedź w minutę, też w nocy i w weekend.</div>
 
                 <div className="chg-now" data-edit="ag_c3_now">Klient przewija ofertę i wychodzi.</div>
-                <div className="chg-arrow" aria-hidden="true"><IcArrow /></div>
+                <div className="chg-arrow" aria-hidden="true"><IcDotArrow /></div>
                 <div className="chg-fix" data-edit="ag_c3_fix">Dostaje jedną rekomendację i przechodzi do kontaktu.</div>
 
                 <div className="chg-now" data-edit="ag_c4_now">„Kto wie, jak to się robi?” — pyta się kolegi.</div>
-                <div className="chg-arrow" aria-hidden="true"><IcArrow /></div>
+                <div className="chg-arrow" aria-hidden="true"><IcDotArrow /></div>
                 <div className="chg-fix" data-edit="ag_c4_fix">Odpowiedź z Waszych dokumentów, ze wskazanym źródłem.</div>
               </div>
             </div>
@@ -448,18 +463,22 @@ export default function AgenciShell() {
 
               <div className="faq-grid rv rv2">
                 <div className="faq-item">
+                  <span className="faq-num" aria-hidden="true">01</span>
                   <h3 data-edit="ag_f1_q">Muszę wdrażać wszystkich czterech?</h3>
                   <p data-edit="ag_f1_a" data-edit-type="html">Nie. Każdy działa samodzielnie. Zaczynasz od jednego i dokładasz kolejnych, kiedy chcesz.</p>
                 </div>
                 <div className="faq-item">
+                  <span className="faq-num" aria-hidden="true">02</span>
                   <h3 data-edit="ag_f2_q">Czy klient pozna, że rozmawia z AI?</h3>
                   <p data-edit="ag_f2_a" data-edit-type="html">Nie poznasz tego. Agent przedstawia się jako asystent i oddaje rozmowę człowiekowi, tylko kiedy trzeba.</p>
                 </div>
                 <div className="faq-item">
+                  <span className="faq-num" aria-hidden="true">03</span>
                   <h3 data-edit="ag_f3_q">Co, jeśli agent nie zna odpowiedzi?</h3>
                   <p data-edit="ag_f3_a" data-edit-type="html">Nie zmyśla. Przekazuje sprawę człowiekowi razem z całym kontekstem rozmowy.</p>
                 </div>
                 <div className="faq-item">
+                  <span className="faq-num" aria-hidden="true">04</span>
                   <h3 data-edit="ag_f4_q">Podłączycie nasze narzędzia?</h3>
                   <p data-edit="ag_f4_a" data-edit-type="html">Tak — CRM, kalendarz, telefonię i kanały, z których już korzystacie.</p>
                 </div>

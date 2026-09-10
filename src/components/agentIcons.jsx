@@ -87,3 +87,16 @@ export const IcClock = (p) => (
     <path {...S} d="M12 7v5.4l3.4 2" />
   </svg>
 );
+
+/* Strzałka „z kropek" — ten sam język graficzny co łuki wokół kuli w hero. */
+export const IcDotArrow = (p) => (
+  <svg viewBox="0 0 44 16" width="44" height="16" aria-hidden="true" {...p}>
+    {[0, 7, 14, 21].map((x, i) => (
+      <rect key={x} x={x} y="6.5" width="3.4" height="3.4" fill="currentColor" opacity={0.45 + i * 0.16} />
+    ))}
+    <rect x="29" y="6.5" width="3.4" height="3.4" fill="currentColor" />
+    <rect x="33.2" y="2.6" width="3.4" height="3.4" fill="currentColor" opacity="0.9" />
+    <rect x="33.2" y="10.4" width="3.4" height="3.4" fill="currentColor" opacity="0.9" />
+    <rect x="37.4" y="6.5" width="3.4" height="3.4" fill="currentColor" opacity="0.75" />
+  </svg>
+);

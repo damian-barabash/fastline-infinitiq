@@ -1185,3 +1185,237 @@ html.menu-open nav .nav-brand, html.menu-open nav .nav-cta, html.menu-open nav .
     .ag-role { font-size: 10px; }
     .ag-chan { margin-top: 10px; padding-top: 8px; font-size: 9.5px; }
   }
+
+/* produkt bez własnej strony — widoczny, ale wygaszony */
+.menu-link.off { color: rgba(245,245,240,0.34); cursor: default; }
+.menu-link.off:hover { color: rgba(245,245,240,0.34); padding-left: 0; border-color: rgba(245,245,240,0.08); }
+.menu-link.off .menu-num { color: rgba(245,245,240,0.25); }
+
+/* lista produktów bywa długa (cały katalog) — drobniejsza od sekcji i z zapasem
+   na przewijanie, żeby CTA pod nią zawsze było dostępne */
+#menuProducts .menu-link { font-size: clamp(15px, 1.5vw, 19px); padding: 6px 0; }
+.menu-overlay { overflow-y: auto; }
+.menu-inner { align-items: start; }
+@media (max-height: 900px) {
+  #menuProducts .menu-link { font-size: 15px; padding: 5px 0; }
+}
+
+/* ===== SCENY „W PRAKTYCE" — jasne okna jak w prawdziwych aplikacjach (2026-09-10)
+   Właściciel: „okna białe, w stylu Messengera / Instagrama / WhatsAppa".
+   Ciemna została tylko ramka sceny (podpis kanału + stopka z pointą). ===== */
+.dm .dm-screen {
+  background: #FFFFFF;
+  color: #14161A;
+}
+.dm-bar {
+  background: #F4F5F7;
+  border-bottom: 1px solid rgba(20,22,26,0.1);
+}
+.dm-bar .dm-live, .dm-bar .dm-src, .dm-bar .dm-url, .dm-bar .dm-timer { color: rgba(20,22,26,0.62); }
+.dm-bar .dm-live i { background: #22C55E; }
+.dm-bar .dm-timer { color: #14161A; }
+.dm-bar .dm-url svg, .dm-bar .dm-src svg { color: rgba(20,22,26,0.5); }
+.dm-tab {
+  border-color: rgba(20,22,26,0.14);
+  color: rgba(20,22,26,0.5);
+  background: #fff;
+  border-radius: 999px;
+}
+.dm-tab.on { color: #14161A; border-color: rgba(20,22,26,0.3); background: #EDEFF3; }
+.dm-tab[data-ch="fb"].on { color: #0084FF; border-color: rgba(0,132,255,0.45); background: rgba(0,132,255,0.08); }
+.dm-tab[data-ch="ig"].on { color: #C13584; border-color: rgba(193,53,132,0.45); background: rgba(193,53,132,0.08); }
+.dm-tab[data-ch="wa"].on { color: #128C7E; border-color: rgba(18,140,126,0.45); background: rgba(18,140,126,0.1); }
+
+/* nagłówek rozmowy: awatar + nazwa + status, jak w komunikatorze */
+.im-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 0 0 10px;
+  margin-bottom: 10px;
+  border-bottom: 1px solid rgba(20,22,26,0.08);
+}
+.im-av {
+  width: 32px; height: 32px;
+  border-radius: 50%;
+  flex: 0 0 auto;
+  background: linear-gradient(140deg, #D9DEE6, #B9C1CC);
+}
+.im-who { display: flex; flex-direction: column; line-height: 1.2; }
+.im-who b { font-family: 'Schibsted Grotesk', sans-serif; font-size: 13px; font-weight: 600; color: #14161A; }
+.im-who i { font-style: normal; font-size: 10.5px; color: rgba(20,22,26,0.5); }
+.im-app {
+  margin-left: auto;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 9px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: rgba(20,22,26,0.4);
+}
+.dm-ch[data-ch="fb"] .im-av { background: linear-gradient(140deg, #00B2FF, #006AFF); }
+.dm-ch[data-ch="ig"] .im-av { background: linear-gradient(140deg, #FEDA75, #D62976 55%, #4F5BD5); }
+.dm-ch[data-ch="wa"] .im-av { background: linear-gradient(140deg, #4AD07D, #128C7E); }
+.dm-ch[data-ch="fb"] .im-app { color: #0084FF; }
+.dm-ch[data-ch="ig"] .im-app { color: #C13584; }
+.dm-ch[data-ch="wa"] .im-app { color: #128C7E; }
+.dm-ch[data-ch="wa"] { background: #ECE5DD; margin: -14px -13px 0; padding: 14px 13px 0; }
+.dm-ch[data-ch="wa"] .im-head { background: #ECE5DD; }
+
+/* dymki jak w aplikacjach: zaokrąglone, kolor kanału po stronie firmy */
+.dm .msg span {
+  border: none;
+  border-radius: 18px;
+  padding: 9px 13px;
+  background: #EDEFF3;
+  color: #14161A;
+  box-shadow: 0 1px 1px rgba(20,22,26,0.05);
+}
+.dm .msg i { color: rgba(20,22,26,0.4); }
+.dm .msg b { color: #14161A; }
+.dm .msg.out span { background: #E7E9EE; color: #14161A; }
+.dm-ch[data-ch="fb"] .msg.out span { background: #0084FF; color: #fff; }
+.dm-ch[data-ch="ig"] .msg.out span { background: linear-gradient(120deg, #833AB4, #C13584 55%, #E1306C); color: #fff; }
+.dm-ch[data-ch="wa"] .msg.out span { background: #DCF8C6; color: #14161A; }
+.dm-ch[data-ch="wa"] .msg.in span { background: #FFFFFF; }
+.dm .dots i { background: rgba(20,22,26,0.35); }
+
+/* potwierdzenie akcji zostaje w barwach marki — to nasz agent, nie komunikator */
+.dm .dm-chip {
+  border-radius: 999px;
+  border-color: rgba(20,22,26,0.12);
+  background: #14161A;
+  color: var(--green);
+}
+.dm .dm-chip svg { color: var(--green); }
+
+/* widget doradcy na jasnej stronie klienta */
+.dm-site .sk { background: rgba(20,22,26,0.08); }
+.dm-site .sk-card { border-color: rgba(20,22,26,0.1); background: rgba(20,22,26,0.04); }
+.adv-widget {
+  background: #FFFFFF;
+  border: 1px solid rgba(20,22,26,0.12);
+  border-radius: 14px;
+  box-shadow: 0 14px 30px -18px rgba(20,22,26,0.5);
+}
+.adv-head { color: #14161A; }
+.adv-head svg { color: var(--green); filter: drop-shadow(0 0 4px rgba(120,180,0,0.35)); }
+.adv-rec { border-left-color: #78C000; }
+.adv-rec b { color: #4E8C00; }
+.adv-rec span { color: rgba(20,22,26,0.75); }
+
+/* telefon — jasny ekran połączenia */
+.dm-call .call-top { border-bottom-color: rgba(20,22,26,0.1); }
+.call-avatar { border-color: rgba(20,22,26,0.15); color: #128C7E; background: #EAF7F2; border-radius: 50%; }
+.call-num { color: #14161A; }
+.call-state { color: #128C7E; }
+.call-wave i { background: rgba(18,140,126,0.45); }
+.call-log b { color: rgba(20,22,26,0.42); }
+.call-log .line.ai b { color: #4E8C00; }
+.call-log span { color: #14161A; }
+
+/* czat zespołu — jasny, jak w narzędziu pracy */
+.dm-assist .msg.out span { background: #EAF3FF; color: #14161A; }
+.src-row { color: rgba(20,22,26,0.55); }
+.src-row b { color: #4E8C00; }
+.src-row svg { color: rgba(20,22,26,0.45); }
+
+/* podpis kafelka i stopka zostają w ciemnym stylu strony */
+.dm-foot { background: #14161A; border-top-color: rgba(245,245,240,0.09); color: rgba(245,245,240,0.6); }
+
+/* ===== „Co się zmienia w firmie" — mocniej i czytelniej (2026-09-10) =====
+   Właściciel: lewa kolumna była szara (ledwo widoczna), prawa biała; teraz lewa
+   jest biała, prawa kwasowa, teksty większe, a strzałki z kropek — jak łuki
+   wokół kuli w hero. */
+.ag-change .sec-head h2 { font-size: clamp(30px, 4vw, 56px); }
+.chg-grid { grid-template-columns: 1fr 72px 1fr; }
+.chg-col-h { font-size: 12px; letter-spacing: 0.22em; padding-bottom: 16px; }
+.chg-col-h.now { color: rgba(245,245,240,0.75); }
+.chg-now, .chg-fix { padding: 22px 0; font-size: 18px; line-height: 1.5; }
+.chg-now { color: #F5F5F0; }
+.chg-fix { color: var(--green); font-weight: 500; }
+.chg-arrow { padding: 22px 0; color: var(--green); }
+.chg-arrow svg { width: 44px; height: 16px; }
+@media (max-width: 900px) {
+  .chg-now, .chg-fix { font-size: 15.5px; padding: 13px 0; }
+}
+
+/* ===== FAQ — karty z numerem i rosnącą kwasową krawędzią ===== */
+.faq-grid { gap: 22px 34px; }
+.faq-item {
+  position: relative;
+  border: 1px solid rgba(245,245,240,0.12);
+  border-top-color: rgba(245,245,240,0.12);
+  background: linear-gradient(158deg, rgba(28,31,22,0.6) 0%, rgba(14,15,11,0.7) 100%);
+  padding: 26px 24px 24px 30px;
+  overflow: hidden;
+  transition: border-color 0.35s ease, background 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.faq-item::before {
+  content: '';
+  position: absolute;
+  left: 0; top: 0; bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, var(--green), rgba(184,255,0,0.25));
+  transform: scaleY(0.18);
+  transform-origin: top;
+  transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.faq-item:hover { border-color: rgba(184,255,0,0.35); background: linear-gradient(158deg, rgba(38,44,26,0.7) 0%, rgba(16,18,12,0.8) 100%); transform: translateY(-3px); }
+.faq-item:hover::before { transform: scaleY(1); }
+.faq-num {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 11px;
+  letter-spacing: 0.24em;
+  color: rgba(184,255,0,0.7);
+  margin-bottom: 12px;
+  transition: color 0.3s ease;
+}
+.faq-item:hover .faq-num { color: var(--green); }
+.faq-item h3 { font-size: 19px; line-height: 1.15; }
+.faq-item p { margin-top: 12px; font-size: 15.5px; color: rgba(245,245,240,0.82); }
+/* delikatna siatka punktów w tle karty — ten sam motyw co kula */
+.faq-item::after {
+  content: '';
+  position: absolute;
+  right: -30px; bottom: -30px;
+  width: 140px; height: 140px;
+  background-image: radial-gradient(rgba(184,255,0,0.5) 1px, transparent 1.2px);
+  background-size: 12px 12px;
+  opacity: 0.16;
+  pointer-events: none;
+  transition: opacity 0.4s ease, transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.faq-item:hover::after { opacity: 0.4; transform: translate(-6px, -6px); }
+@media (max-width: 900px) {
+  .faq-item { padding: 20px 18px 18px 22px; }
+  .faq-item h3 { font-size: 17px; }
+  .faq-item p { font-size: 14.5px; }
+}
+
+/* nagłówek rozmowy zawsze na wierzchu: przy `justify-content: flex-end` treść
+   rosnąca w górę wypychała awatar poza kadr (widać było ucięty pasek) */
+.dm-screen { justify-content: flex-start; }
+.dm-screen > .dm-ch.on { justify-content: flex-start; }
+.dm-ch { display: flex; flex-direction: column; }
+.dm-ch .im-head { flex: 0 0 auto; }
+@media (max-width: 900px) {
+  /* na telefonie tekst łamie się na więcej wierszy — sceny dostają więcej wysokości */
+  .dm-screen { height: 470px; min-height: 470px; }
+}
+
+/* scena doradcy była najwyższa (szkielet strony + widget z sześcioma krokami)
+   i wychodziła poza kadr — szkielet skracamy, widget zbijamy */
+.dm-site .sk-cards { display: none; }
+.dm-site .sk-h { height: 12px; margin-bottom: 10px; }
+.dm-site .sk-t { height: 7px; margin-bottom: 6px; }
+.adv-widget { margin-top: 10px; padding: 11px 12px; }
+.adv-head { margin-bottom: 8px; }
+.adv-rec { padding: 7px 0 7px 10px; margin: 2px 0 8px; }
+.adv-rec b { font-size: 13px; }
+.adv-rec span { font-size: 12px; line-height: 1.45; }
+/* kafelki w rzędzie mają równą wysokość (flex), więc zamiast podnosić scenę
+   doradcy — zbijamy jej treść: to ona była najwyższa */
+.adv-widget .msg { margin-bottom: 6px; font-size: 12px; }
+.adv-widget .msg span { padding: 7px 11px; }
+.adv-widget .dm-chip { margin-top: 2px; padding: 6px 10px; font-size: 9px; }

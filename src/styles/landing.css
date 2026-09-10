@@ -2811,3 +2811,17 @@ html.menu-open nav .nav-brand, html.menu-open nav .nav-cta, html.menu-open nav .
 @media (max-width: 900px) {
   html { overflow-x: hidden; overflow-x: clip; }
 }
+
+/* produkt bez własnej strony — widoczny, ale wygaszony */
+.menu-link.off { color: rgba(245,245,240,0.34); cursor: default; }
+.menu-link.off:hover { color: rgba(245,245,240,0.34); padding-left: 0; border-color: rgba(245,245,240,0.08); }
+.menu-link.off .menu-num { color: rgba(245,245,240,0.25); }
+
+/* lista produktów bywa długa (cały katalog) — drobniejsza od sekcji i z zapasem
+   na przewijanie, żeby CTA pod nią zawsze było dostępne */
+#menuProducts .menu-link { font-size: clamp(15px, 1.5vw, 19px); padding: 6px 0; }
+.menu-overlay { overflow-y: auto; }
+.menu-inner { align-items: start; }
+@media (max-height: 900px) {
+  #menuProducts .menu-link { font-size: 15px; padding: 5px 0; }
+}

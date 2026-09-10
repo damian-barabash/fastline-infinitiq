@@ -20,11 +20,11 @@ export default function LandingShell() {
             <div className="menu-list" id="menuSections"></div>
           </div>
           <div className="menu-col">
-            <div className="menu-cap">{'// strony'}</div>
-            <div className="menu-list">
-              <a className="menu-link" href="/" data-wipe><span className="menu-num">→</span><span>Strona główna</span></a>
+            <div className="menu-cap">{'// produkty'}</div>
+            {/* lista z katalogu (`landing_products`): produkt ze swoją stroną jest
+                linkiem, pozostałe stoją na szaro — widać całą ofertę i to, co gotowe */}
+            <div className="menu-list" id="menuProducts">
               <a className="menu-link" href="/agenci-ai" data-wipe><span className="menu-num">→</span><span>Agenci AI</span></a>
-              <a className="menu-link" href="/kontakt" data-wipe><span className="menu-num">→</span><span>Kontakt</span></a>
             </div>
             <a className="menu-cta" href="/#audyt" data-wipe>Darmowy audyt AI</a>
           </div>
