@@ -88,11 +88,18 @@ export function initHeroSphere() {
     // lista tylko na wąskich ekranach (telefon) albo gdy scena jest skrajnie niska
     mode = (W < 560 || H < 260) ? 'list' : 'ring';
     stage.dataset.mode = mode;
+    // Na telefonie karty mają być widoczne od razu — otwieramy „Sprzedaż" (ćwiartka B).
+    // Bez tego widać samą kulę i trzeba zgadywać, że należy w nią stuknąć.
+    if (mode === 'list' && !active) { active = GROUPS.indexOf('b') >= 0 ? 'b' : GROUPS[0]; stage.classList.add('picked'); }
     cx = W / 2;
-    cy = mode === 'list' ? Math.min(H * 0.5, 150) : H / 2;
+    // ⚠️ strzałki biegną po okręgu 1,25 R wokół kuli — środek musi być niżej niż R*1.3,
+    // inaczej górny łuk wychodzi poza canvas i jest ucięty
     R = mode === 'list'
-      ? Math.min(W * 0.36, 140)
+      ? Math.min(W * 0.27, 104)
       : Math.min(W * 0.15, H * 0.36, 172);
+    // telefon: podpisy stoją nad i pod pierścieniem strzałek, więc środek musi
+    // zostawić miejsce na jeden podpis u góry (≈32 px + zapas)
+    cy = mode === 'list' ? R * 1.35 + 22 : H / 2;
     place();
   }
 
@@ -127,11 +134,24 @@ export function initHeroSphere() {
       {
         // Gdy któraś grupa jest otwarta, pozostałe podpisy „wsysają się" do środka
         // kuli (i mają własną podkładkę, żeby dało się je czytać na punktach).
-        const far = mode === 'list' ? 1.1 : (active ? 0.5 : 1.3);
-        const d = R * far;
-        x = cx + q.sx * d * (active && mode !== 'list' ? 0.62 : 0.78) - (q.sx > 0 ? 0 : w);
-        y = cy - q.sy * d * (active && mode !== 'list' ? 0.62 : 0.78) - h / 2;
-        el.classList.toggle('in', !!active && mode !== 'list');
+        if (active && mode !== 'list') {
+          const d = R * 0.5;
+          x = cx + q.sx * d * 0.62 - (q.sx > 0 ? 0 : w);
+          y = cy - q.sy * d * 0.62 - h / 2;
+          el.classList.add('in');
+        } else {
+          // Podpis siada DOKŁADNIE w okienku między łukami strzałek — łuki stoją na
+          // górze/dole/lewo/prawo (±0,5 rad), więc wolne są przekątne. Narożnik
+          // prostokąta bliższy środkowi kładziemy tuż za pierścieniem.
+          // Na telefonie nazwa łamie się na dwa wiersze (CSS), inaczej nie zmieściłaby
+          // się w rogu przy 390 px.
+          const out = R * 1.2 + (mode === 'list' ? 8 : 16);
+          const dx = q.sx * Math.SQRT1_2 * out;
+          const dy = -q.sy * Math.SQRT1_2 * out;
+          x = cx + dx - (q.sx > 0 ? 0 : w);
+          y = cy + dy - (q.sy > 0 ? h : 0);
+          el.classList.remove('in');
+        }
       }
       if (g === active) el.classList.remove('in');
       x = clamp(x, 4, Math.max(4, W - w - 4));
@@ -150,6 +170,9 @@ export function initHeroSphere() {
       byGroup[GROUPS.indexOf(active)].forEach((n, i) => {
         n.style.transform = '';
         n.style.setProperty('--d', i * 24 + 'ms');
+        // w liście nie ma sekwencji rysowania linii, więc karty zapalamy od razu —
+        // bez tego `.ready` nigdy nie przychodzi i na telefonie widać pustkę
+        n.classList.add('ready');
       });
       placeLabels(null);
       return;
@@ -200,11 +223,23 @@ export function initHeroSphere() {
 
   }
 
+  // po wybraniu grupy na telefonie zjeżdżamy do kart — inaczej użytkownik stuka
+  // w kulę i nie widzi, że coś się pod nią zmieniło
+  function scrollToCards() {
+    requestAnimationFrame(() => {
+      const first = (byGroup[GROUPS.indexOf(active)] || [])[0];
+      if (!first) return;
+      const top = first.getBoundingClientRect().top + scrollY - 84;
+      scrollTo({ top, behavior: 'smooth' });
+    });
+  }
+
   /* ===== wybór wycinka ===== */
   function setActive(g, byUser = true) {
     userHold = byUser && !!g;
     if (g === active) return;
     active = g;
+    if (mode === 'list' && byUser && g) scrollToCards();
     stage.classList.toggle('picked', !!g);
     reveal = 0;                                        // każde wejście rysuje się od nowa
     nodes.forEach(n => n.classList.remove('ready'));
@@ -318,6 +353,9 @@ export function initHeroSphere() {
     // Strzałki na granicach wycinków: wszystkie w jedną stronę (zgodnie ze
     // wskazówkami zegara), narysowane KROPKAMI jak cała kula, a po okręgu
     // przebiega świetlna fala — obszary „przekazują sobie" pracę.
+    // Na telefonie łuki-strzałki wokół kuli odpuszczamy: przy 390 px podpisy grup
+    // nie mieszczą się poza pierścieniem i zawsze na niego wchodzą. Zostaje
+    // czytelna kula, podpisy w narożnikach i strzałka w dół do kart.
     const arrowR = R * 1.2;
     const wave = (now * 0.00028) % 1;
     const dot = (x, y, sz, alpha) => {
@@ -402,8 +440,30 @@ export function initHeroSphere() {
   }
 
   // cienka linia od każdego podpisu do jego wycinka
+  // telefon: zamiast wynośnych linii — kropkowana strzałka w dół, od kuli do kart
+  function drawListArrow() {
+    if (mode !== 'list' || !active) return;
+    // start pod dolnymi podpisami (pierścień + wysokość podpisu + zapas)
+    const top = cy + R * 1.2 + 52;
+    const bottom = Math.min(H - 6, top + 40);
+    ctx.save();
+    for (let y = top; y < bottom - 10; y += 7) {
+      const k = (y - top) / Math.max(1, bottom - top);
+      ctx.fillStyle = `rgba(184,255,0,${(0.25 + 0.55 * k).toFixed(3)})`;
+      ctx.fillRect(cx - 1.5, y, 3, 3);
+    }
+    ctx.strokeStyle = 'rgba(184,255,0,0.85)';
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(cx - 7, bottom - 9);
+    ctx.lineTo(cx, bottom - 1);
+    ctx.lineTo(cx + 7, bottom - 9);
+    ctx.stroke();
+    ctx.restore();
+  }
+
   function drawLabelLinks() {
-    if (mode === 'list') return;
+    if (mode === 'list') { drawListArrow(); return; }
     for (const g of GROUPS) {
       const box = labelBox[g];
       if (!box) continue;

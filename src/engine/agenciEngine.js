@@ -56,6 +56,21 @@ export function initAgenci({ onNavigate }) {
     }, { signal });
   }
 
+  /* Na DUŻYM ekranie właściciel chce blok „Poznaj zespół" na samej górze —
+     przestawiamy grań przed hero (razem z pozycją railu, z którego menu bierze
+     podpisy). Na telefonie zostaje kolejność z makiety: najpierw hero. */
+  if (!FLAT) {
+    const drumEl = document.getElementById('drum');
+    const startEl = document.getElementById('start');
+    const zespolEl = document.getElementById('zespol');
+    if (drumEl && startEl && zespolEl) drumEl.insertBefore(zespolEl, startEl);
+    const railBox = document.getElementById('rail');
+    if (railBox && railBox.children.length > 1) {
+      railBox.insertBefore(railBox.children[1], railBox.children[0]);
+      Array.from(railBox.children).forEach((b2, i) => { b2.dataset.i = String(i); });
+    }
+  }
+
   /* ===== 3D-барабан + гибридный скролл (как на главной) ===== */
   const slides = Array.from(document.querySelectorAll('.slide'));
   const inners = slides.map((s) => s.querySelector('.slide-inner'));
@@ -309,8 +324,15 @@ export function initAgenci({ onNavigate }) {
     updateNav();
     // team.tick читает getBoundingClientRect — зовём ДО записи трансформов барабана
     if (team && ZESPOL >= 0) {
-      const d = FLAT ? (activeIdx === ZESPOL ? 0 : 2) : Math.abs(pSmooth - ZESPOL);
-      team.tick(time, d < 1.15, Math.round(FLAT ? scrollY : ySmooth), d < 0.45);
+      if (FLAT) {
+        // grań z kartami rysujemy, gdy jest w oknie (z zapasem ekranu w każdą stronę)
+        const r = slides[ZESPOL].getBoundingClientRect();
+        const near = r.bottom > -innerHeight && r.top < innerHeight * 2;
+        team.tick(time, near, Math.round(scrollY), near);
+      } else {
+        const d = Math.abs(pSmooth - ZESPOL);
+        team.tick(time, d < 1.15, Math.round(ySmooth), d < 0.45);
+      }
     }
     if (FLAT) updateFlat(); else updateDrum();
     drawNeural(time);

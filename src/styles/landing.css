@@ -2604,7 +2604,9 @@ nav.shrunk .nav-brand .nav-logo img { height: 20px; }
   opacity: 0.75;
   transition: transform 0.25s ease, opacity 0.25s ease;
 }
-a.pl-node { text-decoration: none; color: inherit; display: block; }
+/* ⚠️ bez `display` — inaczej karty-linki są widoczne zawsze, także wtedy gdy ich
+   grupa jest zwinięta (bazowa reguła `.pl-node { display: none }` przestaje działać) */
+a.pl-node { text-decoration: none; color: inherit; }
 a.pl-node:hover .pl-go { transform: translateX(3px); opacity: 1; }
 
 /* ===== BURGER + pełnoekranowe menu (2026-09-09) =====
@@ -2744,3 +2746,68 @@ html.menu-open nav {
 }
 html.menu-open nav .menu-btn { pointer-events: auto; }
 html.menu-open nav .nav-brand, html.menu-open nav .nav-cta, html.menu-open nav .nav-back { opacity: 0; transition: opacity .2s; }
+
+/* ===== TELEFON: hero głównej — wszystko na środku, tytuł większy (2026-09-10) =====
+   Blok IDENTYCZNY w landing.css i editor.css. */
+@media (max-width: 900px) {
+  #start .hero-h1 {
+    font-size: clamp(30px, 8.6vw, 44px);
+    line-height: 1.04;
+    text-align: center;
+    margin: 0 auto;
+    max-width: 18ch;
+  }
+  #start .hero-sub {
+    text-align: center;
+    margin: 14px auto 0;
+    font-size: 15px;
+    max-width: 34ch;
+  }
+  #start .hero-actions { align-items: center; margin-top: 18px; }
+  #start .hero-actions .btn-primary { width: 100%; max-width: 320px; text-align: center; }
+  .hero-cta-note { text-align: center; margin: 0 auto; }
+  /* karty produktów: pełna szerokość pod kulą, wyśrodkowane */
+  /* kula u góry, karty tuż pod strzałką — bez pustki do przycisku.
+     ⚠️ Wiersz sceny w gridzie hero jest `1fr` — na telefonie musi być `auto`,
+     inaczej scena rozciąga się na resztę ekranu i robi się dziura nad CTA. */
+  /* dekoracyjny napis tła wystawał poza ekran i robił poziome przewijanie */
+  #start .hero-bg-text { display: none; }
+  #start .hero-grid { grid-template-rows: auto auto auto; }
+  #start .pl-stage[data-mode="list"] { align-self: start; height: auto; min-height: 0; }
+  .pl-stage[data-mode="list"] .pl-nodes {
+    padding-top: 392px;      /* kula + strzałka w dół + zapas, żeby grot nie chował się pod kartą */
+    height: auto;
+    align-items: stretch;
+    gap: 10px;
+  }
+  /* podpisy grup siedzą w rogach (okienka między łukami) — na 390 px muszą się
+     łamać na dwa wiersze, inaczej nie zmieszczą się poza pierścieniem */
+  .pl-stage[data-mode="list"] .pl-gname {
+    font-size: 11px;
+    padding: 5px 8px;
+    letter-spacing: 0.01em;
+    white-space: normal;
+    max-width: 104px;
+    line-height: 1.16;
+    text-align: center;
+  }
+  .pl-stage[data-mode="list"] .pl-node {
+    text-align: left;
+    padding-left: 18px;
+    /* karty wjeżdżają z dołu, jedna po drugiej (--d ustawia silnik).
+       `!important`, bo starsza reguła listy zeruje transform tym samym słowem */
+    transform: translateY(16px) !important;
+    transition: opacity 0.42s ease var(--d, 0ms), transform 0.42s cubic-bezier(0.22, 1, 0.36, 1) var(--d, 0ms), filter 0.42s ease var(--d, 0ms);
+  }
+  .pl-stage[data-mode="list"] .pl-node.on.ready { transform: translateY(0) !important; }
+  /* kwasowa krawędź na samej krawędzi karty, nie w tekście */
+  .pl-stage[data-mode="list"] .pl-node::after { left: 0; right: auto; }
+}
+
+/* Telefon: nic nie może wywoływać poziomego przewijania. `body` już ma
+   `overflow-x: hidden`, ale przy pierwszym układzie kart w kuli `scrollWidth`
+   dokumentu potrafił zostać szerszy — `clip` na `html` domyka temat
+   (bez tworzenia kontekstu przewijania, więc sticky/smooth działają dalej). */
+@media (max-width: 900px) {
+  html { overflow-x: hidden; overflow-x: clip; }
+}

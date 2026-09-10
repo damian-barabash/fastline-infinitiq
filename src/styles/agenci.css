@@ -1164,3 +1164,24 @@ html.menu-open nav {
 }
 html.menu-open nav .menu-btn { pointer-events: auto; }
 html.menu-open nav .nav-brand, html.menu-open nav .nav-cta, html.menu-open nav .nav-back { opacity: 0; transition: opacity .2s; }
+
+/* Telefon: nic nie może wywoływać poziomego przewijania. `body` już ma
+   `overflow-x: hidden`, ale przy pierwszym układzie kart w kuli `scrollWidth`
+   dokumentu potrafił zostać szerszy — `clip` na `html` domyka temat
+   (bez tworzenia kontekstu przewijania, więc sticky/smooth działają dalej). */
+@media (max-width: 900px) {
+  html { overflow-x: hidden; overflow-x: clip; }
+}
+
+  /* telefon: karty agentów były bardzo wysokie (wizual 8/7 + pełny opis) i przez
+     pół ekranu przewijało się pustkę — zbijamy wizual i odstępy */
+  @media (max-width: 900px) {
+    .team-grid { gap: 14px; }
+    .team-card { max-width: 520px; }
+    .tm-visual { aspect-ratio: 16 / 11; }
+    .tm-body { padding: 12px 14px 16px; }
+    .team-card h3 { font-size: 19px; }
+    .team-card p { font-size: 13px; line-height: 1.45; }
+    .ag-role { font-size: 10px; }
+    .ag-chan { margin-top: 10px; padding-top: 8px; font-size: 9.5px; }
+  }

@@ -18,7 +18,10 @@ export function initLanding({ onNavigate }) {
      Windows с выключенными «эффектами анимации» репортит reduce
      и юзер получил бы мёртвую статичную страницу. */
   const COARSE = matchMedia('(hover: none), (pointer: coarse)').matches;
-  document.documentElement.classList.add('mode-3d');
+  // Telefon: żadnego bębna — zwykłe przewijanie. 3D-transformacje na każdej grani
+  // i frost-canvasy zjadały klatki, a właściciel prosił, żeby „latało".
+  const FLAT = COARSE || matchMedia('(max-width: 900px)').matches;
+  document.documentElement.classList.add(FLAT ? 'mode-flat' : 'mode-3d');
   if (COARSE) document.documentElement.classList.add('coarse');
 
   const slides = Array.from(document.querySelectorAll('.slide'));
@@ -118,7 +121,9 @@ export function initLanding({ onNavigate }) {
   let activeIdx = -1;
 
   function goTo(i) {
-    scrollTo({ top: starts[i], behavior: 'smooth' });
+    const idx = clamp(i, 0, N - 1);
+    if (FLAT) { slides[idx].scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
+    scrollTo({ top: starts[idx], behavior: 'smooth' });
   }
   railItems.forEach(b => b.addEventListener('click', () => goTo(+b.dataset.i), { signal }));
   const closeMenu = initMenu({ signal, goTo });
@@ -136,6 +141,23 @@ export function initLanding({ onNavigate }) {
     slides.forEach((s, i) => s.classList.toggle('active', i === idx));
     fxIdx = idx;
     if (!first) kickColumn(); // нейро-столп реагирует на смену слайда
+  }
+
+  // płaski tryb (telefon): aktywna jest grań najbliżej środka ekranu
+  let flatKey = -1;
+  function updateFlat() {
+    const key = Math.round(scrollY / 40);
+    if (key === flatKey) return;      // reguła projektu: nie piszemy do DOM bez powodu
+    flatKey = key;
+    let best = 0, bestD = Infinity;
+    for (let i = 0; i < N; i++) {
+      const r = slides[i].getBoundingClientRect();
+      const d = Math.abs(r.top + r.height / 2 - innerHeight / 2);
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    pSmooth = best;
+    setActive(best);
+    hint.classList.toggle('gone', scrollY > innerHeight * 0.3);
   }
 
   function updateDrum() {
@@ -404,6 +426,7 @@ export function initLanding({ onNavigate }) {
     });
   }
   function frostRects() {
+    if (FLAT) return;
     frost.tick++;
     if (ySmooth === frost.lastY && frost.tick % 20) return; // покой: ревизия раз в 20 кадров
     frost.lastY = ySmooth;
@@ -412,6 +435,7 @@ export function initLanding({ onNavigate }) {
     }
   }
   function frostDraw() {
+    if (FLAT) return;
     if (WEAK && frost.tick % 2) return;
     const kx = canvas.width / vw, ky = canvas.height / vh;
     for (const it of frost.items) {
@@ -429,8 +453,10 @@ export function initLanding({ onNavigate }) {
       it.ctx.drawImage(frostOff, 0, 0, dw, dh, 0, 0, w, h);
     }
   }
-  frostCollect();
-  addEventListener('fiq:content-ready', frostCollect, { signal });
+  if (!FLAT) {
+    frostCollect();
+    addEventListener('fiq:content-ready', frostCollect, { signal });
+  }
 
   /* ===== Who «Co robimy»: живой спарклайн pipeline в hero-карточке =====
      Ховер по карточкам категорий даёт импульс вверх — «каждый obszar кормит pipeline». */
@@ -498,7 +524,7 @@ export function initLanding({ onNavigate }) {
       team.tick(performance.now(), d < 1.15, Math.round(ySmooth), d < 0.45);
     }
     frostRects(); // тоже читает layout — до записей барабана
-    updateDrum();
+    if (FLAT) updateFlat(); else updateDrum();
 
     if (!COARSE) {
       dot.style.transform = `translate(${mouse.x}px, ${mouse.y}px) translate(-50%, -50%)`;
@@ -514,15 +540,21 @@ export function initLanding({ onNavigate }) {
   }
 
   /* ===== Init ===== */
-  measure();
+  if (FLAT) {
+    slides.forEach(s2 => s2.classList.add('shown'));
+    track.innerHTML = '';
+  } else {
+    measure();
+  }
   sizeCanvas();
   // хук для пересчёта высот после того как loader подставит контент из БД
-  window.fiqRemeasure = () => { measure(); sizeCanvas(); if (team) team.resize(); };
+  window.fiqRemeasure = () => { if (!FLAT) measure(); sizeCanvas(); if (team) team.resize(); };
   // перемер после шрифтов и полной загрузки (высоты слайдов меняются)
   let fontsAlive = true;
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (fontsAlive) measure(); });
-  addEventListener('load', () => measure(), { signal });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (fontsAlive && !FLAT) measure(); });
+  addEventListener('load', () => { if (!FLAT) measure(); }, { signal });
   addEventListener('resize', () => {
+    if (FLAT) { sizeCanvas(); return; }
     // iOS toolbar дёргает innerHeight — пересобираем только при реальном изменении
     if (innerWidth !== lastW || Math.abs(innerHeight - lockedVh) > 120) {
       lastW = innerWidth;
@@ -559,6 +591,6 @@ export function initLanding({ onNavigate }) {
     unwatchClaim();
     delete window.fiqInitServices;
     delete window.fiqRemeasure;
-    document.documentElement.classList.remove('mode-3d', 'coarse');
+    document.documentElement.classList.remove('mode-3d', 'mode-flat', 'coarse');
   };
 }
