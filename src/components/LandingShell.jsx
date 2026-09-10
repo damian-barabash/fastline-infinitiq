@@ -194,7 +194,7 @@ export default function LandingShell() {
 
               <div className="hero-actions rv rv5">
                 <a href="#audyt" className="btn-primary" data-goto="1" data-edit="hero_btn_primary">Darmowy audyt AI</a>
-                <div className="hero-cta-note" data-edit="hero_cta_note" data-edit-type="html">Bezpłatna diagnoza · 3 minuty · konkretne rozwiązania i widełki cenowe</div>
+                <div className="hero-cta-note" data-hideable="hero:cta-note" data-hide-label="Hero — podpis pod CTA" data-edit="hero_cta_note" data-edit-type="html">Bezpłatna diagnoza · 3 minuty · konkretne rozwiązania i widełki cenowe</div>
               </div>
              </div>
             </div>
@@ -202,7 +202,7 @@ export default function LandingShell() {
 
           {/* 1 / AUDYT — darmowy audyt AI zaraz po hero:
               lewa kolumna tłumaczy, czym to jest i co klient dostaje, prawa to formularz. */}
-          <section className="slide" id="audyt" data-hideable="sec:audyt">
+          <section className="slide" id="audyt" data-hideable="sec:audyt" data-hide-label="Sekcja — Darmowy audyt">
             <div className="slide-inner">
               <div className="aud-grid">
                 <div className="aud-left">
@@ -215,7 +215,7 @@ export default function LandingShell() {
                   </p>
                 </div>
 
-                <div className="aud-listw">
+                <div className="aud-listw" data-hideable="aud:list" data-hide-label="Audyt — lista punktów">
                   <div className="aud-list rv rv4">
                     <div className="aud-b">
                       <span className="aud-b-n">01</span>
@@ -252,14 +252,14 @@ export default function LandingShell() {
                 <div className="aud-right rv rv4">
                   <AuditForm />
                   <a href="/kontakt" data-wipe className="cta-alt aud-alt" data-edit="aud_alt">Wolisz najpierw porozmawiać? Umów briefing →</a>
-                  <div className="aud-note" data-edit="aud_note">Raport gotowy w kilka minut · odzywamy się w ciągu 24 h roboczych</div>
+                  <div className="aud-note" data-hideable="aud:note" data-hide-label="Audyt — podpis pod formularzem" data-edit="aud_note">Raport gotowy w kilka minut · odzywamy się w ciągu 24 h roboczych</div>
                 </div>
               </div>
             </div>
           </section>
 
           {/* 2 / WHAT */}
-          <section className="slide" id="czym-jestesmy" data-hideable="sec:czym-jestesmy">
+          <section className="slide" id="czym-jestesmy" data-hideable="sec:czym-jestesmy" data-hide-label="Sekcja — Czym jesteśmy">
             <div className="slide-inner">
               <div className="what-grid">
                 <div className="what-head">
@@ -322,7 +322,7 @@ export default function LandingShell() {
                       <p data-edit="what_diff6_p">Dashboard od wydatku do przychodu. Zawsze wiesz, za co płacisz i co to dało.</p>
                     </div>
                   </div>
-                  <div className="what-media rv rv6" id="whatMedia">
+                  <div className="what-media rv rv6" id="whatMedia" data-hideable="what:media" data-hide-label="Czym jesteśmy — wizual">
                     <img className="wm-src" src="/assets/img/what-visual.jpg" alt="Neuronowy rdzeń AI — Fastline InfinitiQ" data-edit="what_visual" data-edit-type="image" />
                     <div className="wm-strips" aria-hidden="true">
                       {Array.from({ length: 12 }, (_, i) => (
@@ -338,7 +338,7 @@ export default function LandingShell() {
           </section>
 
           {/* 2 / SERVICES */}
-          <section className="slide" id="oferta" data-hideable="sec:oferta">
+          <section className="slide" id="oferta" data-hideable="sec:oferta" data-hide-label="Sekcja — Mapa procesu">
             <div className="slide-inner">
               <div className="services-head">
                 <div>
@@ -389,7 +389,7 @@ export default function LandingShell() {
           {/* 3 / TEAM — cyfrowi pracownicy (облака точек + фото по ховеру) */}
 
           {/* 4 / MODEL */}
-          <section className="slide" id="model" data-hideable="sec:model">
+          <section className="slide" id="model" data-hideable="sec:model" data-hide-label="Sekcja — Model współpracy">
             <div className="slide-inner">
               <div className="model-panel rv rv1">
                 <div className="model-left">
@@ -416,7 +416,7 @@ export default function LandingShell() {
           </section>
 
           {/* 5 / WHO */}
-          <section className="slide" id="dla-kogo" data-hideable="sec:dla-kogo">
+          <section className="slide" id="dla-kogo" data-hideable="sec:dla-kogo" data-hide-label="Sekcja — Co robimy">
             <div className="slide-inner">
               <div className="section-label rv rv1" data-edit="who_label">05 — Co robimy</div>
               <h2 className="who-h2 rv rv2" data-edit="who_h2" data-edit-type="html">Od pierwszego leada po<br />stałego klienta.</h2>
@@ -463,7 +463,7 @@ export default function LandingShell() {
           </section>
 
           {/* 6 / PARENT */}
-          <section className="slide" id="grupa" data-hideable="sec:grupa">
+          <section className="slide" id="grupa" data-hideable="sec:grupa" data-hide-label="Sekcja — Greywolf Group">
             <div className="slide-inner">
               <div className="parent-inner">
                 <img className="rv rv1" src="/assets/Greywolf/logo_greywolf.png" alt="Greywolf Group" data-edit="parent_logo" data-edit-type="image" />
@@ -478,7 +478,7 @@ export default function LandingShell() {
           </section>
 
           {/* 8 / CTA — finał: rozmowa (formularz audytu żyje w sekcji 01) */}
-          <section className="slide" id="kontakt" data-hideable="sec:kontakt">
+          <section className="slide" id="kontakt" data-hideable="sec:kontakt" data-hide-label="Sekcja — Kontakt">
             <div className="slide-inner cta-slide-inner">
               <div className="cta-bg" data-edit="cta_bg">IQ</div>
               <div className="section-label rv rv1" data-edit="fin_label">06 — Kontakt</div>
@@ -488,10 +488,10 @@ export default function LandingShell() {
                 ile to kosztuje i co dokładnie zrobimy w pierwszym miesiącu. Bez prezentacji o transformacji cyfrowej.
               </p>
               <a href="/kontakt" data-wipe className="btn-primary rv rv4" data-edit="fin_btn">Umów briefing</a>
-              <a href="#audyt" className="cta-alt rv rv5" data-goto="1" data-edit="fin_alt">Wolisz najpierw twarde dane? Odbierz darmowy audyt →</a>
+              <a href="#audyt" className="cta-alt rv rv5" data-goto="1" data-hideable="fin:alt" data-hide-label="Kontakt — link do audytu" data-edit="fin_alt">Wolisz najpierw twarde dane? Odbierz darmowy audyt →</a>
               <div className="cta-note rv rv5" data-edit="fin_note">Odpowiadamy w ciągu 24 h roboczych</div>
             </div>
-            <div className="footer-bar">
+            <div className="footer-bar" data-hideable="fin:footer" data-hide-label="Stopka">
               <p data-edit="footer_left" data-edit-type="html">© 2026 Fastline InfinitiQ — <a href="https://greywolfgroup.pl/" target="_blank" rel="noopener">Greywolf Group</a></p>
               <p data-edit="footer_right" data-edit-type="html">Data driven. Mind created. <span style={{ color: 'var(--green)' }}>AI executed.</span></p>
             </div>

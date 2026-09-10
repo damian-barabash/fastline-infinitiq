@@ -97,9 +97,9 @@ export default function AgenciShell() {
                 <a href="/kontakt" data-wipe className="btn-primary" data-edit="ag_cta">Wypróbuj agenta sam</a>
                 <a href="/kontakt" data-wipe className="btn-ghost" data-edit="ag_cta2" data-edit-type="html">Lub zostaw dane kontaktowe,<br />a my skontaktujemy się z Tobą</a>
               </div>
-              <div className="ag-cta-note rv rv3" data-edit="ag_cta_note" data-edit-type="html">Rozmawiasz z AI Doradcą. Bezpłatnie, bez logowania, bez zobowiązań.</div>
+              <div className="ag-cta-note rv rv3" data-hideable="ag:cta-note" data-hide-label="Hero — podpis pod CTA" data-edit="ag_cta_note" data-edit-type="html">Rozmawiasz z AI Doradcą. Bezpłatnie, bez logowania, bez zobowiązań.</div>
 
-              <ul className="ag-checks rv rv4">
+              <ul className="ag-checks rv rv4" data-hideable="ag:checks" data-hide-label="Hero — lista punktów">
                 <li><IcCheck /><span data-edit="ag_chk1">Jeden agent albo cały zespół</span></li>
                 <li><IcCheck /><span data-edit="ag_chk2">Pracują 24/7</span></li>
                 <li><IcCheck /><span data-edit="ag_chk3">Twoja oferta i brand voice</span></li>
@@ -109,7 +109,7 @@ export default function AgenciShell() {
           </section>
 
           {/* ===== 1 / POZNAJ ZESPÓŁ — cztery karty agentów ===== */}
-          <section className="slide" id="zespol" data-hideable="sec:zespol">
+          <section className="slide" id="zespol" data-hideable="sec:zespol" data-hide-label="Sekcja — Poznaj zespół">
             <div className="slide-inner ag-wrap">
               <div className="sec-head rv rv1">
                 <div className="section-label" data-edit="ag_z_label">{'// poznaj zespół'}</div>
@@ -121,7 +121,7 @@ export default function AgenciShell() {
 
               <div className="team-grid rv rv2" id="teamGrid">
 
-                <article className="team-card" tabIndex={0} data-team="1" data-hideable="agent:sprzedawca">
+                <article className="team-card" tabIndex={0} data-team="1" data-hideable="agent:sprzedawca" data-hide-label="Agent — Sprzedawca">
                   <div className="tm-visual">
                     <canvas className="tm-canvas" aria-hidden="true"></canvas>
                     <img className="tm-photo" src="/assets/team/kacper.webp" alt="AI Sprzedawca — Fastline InfinitiQ" data-edit="ag_a1_photo" data-edit-type="image" />
@@ -139,7 +139,7 @@ export default function AgenciShell() {
                   </div>
                 </article>
 
-                <article className="team-card" tabIndex={0} data-team="2" data-hideable="agent:doradca">
+                <article className="team-card" tabIndex={0} data-team="2" data-hideable="agent:doradca" data-hide-label="Agent — Doradca">
                   <div className="tm-visual">
                     <canvas className="tm-canvas" aria-hidden="true"></canvas>
                     <img className="tm-photo" src="/assets/team/maja.webp" alt="AI Doradca — Fastline InfinitiQ" data-edit="ag_a2_photo" data-edit-type="image" />
@@ -157,7 +157,7 @@ export default function AgenciShell() {
                   </div>
                 </article>
 
-                <article className="team-card" tabIndex={0} data-team="3" data-hideable="agent:recepcja">
+                <article className="team-card" tabIndex={0} data-team="3" data-hideable="agent:recepcja" data-hide-label="Agent — Recepcjonistka">
                   <div className="tm-visual">
                     <canvas className="tm-canvas" aria-hidden="true"></canvas>
                     <img className="tm-photo" src="/assets/team/adam.webp" alt="AI Recepcjonistka — Fastline InfinitiQ" data-edit="ag_a3_photo" data-edit-type="image" />
@@ -175,7 +175,7 @@ export default function AgenciShell() {
                   </div>
                 </article>
 
-                <article className="team-card" tabIndex={0} data-team="4" data-hideable="agent:asystent">
+                <article className="team-card" tabIndex={0} data-team="4" data-hideable="agent:asystent" data-hide-label="Agent — Asystent">
                   <div className="tm-visual">
                     <canvas className="tm-canvas" aria-hidden="true"></canvas>
                     <img className="tm-photo" src="/assets/team/natalia.webp" alt="AI Asystent — Fastline InfinitiQ" data-edit="ag_a4_photo" data-edit-type="image" />
@@ -198,7 +198,7 @@ export default function AgenciShell() {
           </section>
 
           {/* ===== 2 / W PRAKTYCE — sceny pracy agentów (poza makietą) ===== */}
-          <section className="slide" id="praktyka" data-hideable="sec:praktyka">
+          <section className="slide" id="praktyka" data-hideable="sec:praktyka" data-hide-label="Sekcja — W praktyce">
             <div className="slide-inner ag-wrap">
               <div className="sec-head rv rv1">
                 <div className="section-label" data-edit="ag_p_label">{'// w praktyce'}</div>
@@ -211,7 +211,7 @@ export default function AgenciShell() {
               <div className="dm-grid rv rv2">
 
                 {/* --- kanały: Messenger / Instagram / WhatsApp --- */}
-                <div className="dm-cell">
+                <div className="dm-cell" data-hideable="dm:chat" data-hide-label="Scena — kanały klienta">
                   <div className="dm-cap" data-edit="ag_d1_cap">AI Sprzedawca · kanały klienta</div>
                   <div className="ag-demo dm" data-demo="chat">
                     <div className="dm-bar">
@@ -269,7 +269,7 @@ export default function AgenciShell() {
                 </div>
 
                 {/* --- widget doradcy na stronie --- */}
-                <div className="dm-cell">
+                <div className="dm-cell" data-hideable="dm:advisor" data-hide-label="Scena — widget na stronie">
                   <div className="dm-cap" data-edit="ag_d2_cap">AI Doradca · widget na stronie</div>
                   <div className="ag-demo dm" data-demo="advisor">
                     <div className="dm-bar">
@@ -304,7 +304,7 @@ export default function AgenciShell() {
                 </div>
 
                 {/* --- rozmowa telefoniczna --- */}
-                <div className="dm-cell">
+                <div className="dm-cell" data-hideable="dm:call" data-hide-label="Scena — telefon">
                   <div className="dm-cap" data-edit="ag_d3_cap">AI Recepcjonistka · telefon</div>
                   <div className="ag-demo dm" data-demo="call">
                     <div className="dm-bar">
@@ -337,7 +337,7 @@ export default function AgenciShell() {
                 </div>
 
                 {/* --- asystent wewnętrzny --- */}
-                <div className="dm-cell">
+                <div className="dm-cell" data-hideable="dm:assist" data-hide-label="Scena — czat zespołu">
                   <div className="dm-cap" data-edit="ag_d4_cap">AI Asystent · czat zespołu</div>
                   <div className="ag-demo dm" data-demo="assist">
                     <div className="dm-bar">
@@ -366,7 +366,7 @@ export default function AgenciShell() {
           </section>
 
           {/* ===== 3 / PROBLEM → ROZWIĄZANIE ===== */}
-          <section className="slide" id="zmiana" data-hideable="sec:zmiana">
+          <section className="slide" id="zmiana" data-hideable="sec:zmiana" data-hide-label="Sekcja — Co się zmienia">
             <div className="slide-inner ag-wrap">
               <div className="sec-head rv rv1">
                 <div className="section-label" data-edit="ag_c_label">{'// problem → rozwiązanie'}</div>
@@ -398,7 +398,7 @@ export default function AgenciShell() {
           </section>
 
           {/* ===== 4 / JAK TO DZIAŁA ===== */}
-          <section className="slide" id="jak" data-hideable="sec:jak">
+          <section className="slide" id="jak" data-hideable="sec:jak" data-hide-label="Sekcja — Jak to działa">
             <div className="slide-inner ag-wrap">
               <div className="sec-head rv rv1">
                 <div className="section-label" data-edit="ag_s_label">{'// jak to działa'}</div>
@@ -406,17 +406,17 @@ export default function AgenciShell() {
               </div>
 
               <div className="steps rv rv2">
-                <div className="step">
+                <div className="step" data-hideable="step:1" data-hide-label="Krok 01">
                   <span className="step-num" data-edit="ag_s1_num">01</span>
                   <h3 data-edit="ag_s1_h">Wypróbuj i wybierz</h3>
                   <p data-edit="ag_s1_p" data-edit-type="html">Rozmawiasz z AI Doradcą, on podpowiada, od którego agenta zacząć u Ciebie.</p>
                 </div>
-                <div className="step">
+                <div className="step" data-hideable="step:2" data-hide-label="Krok 02">
                   <span className="step-num" data-edit="ag_s2_num">02</span>
                   <h3 data-edit="ag_s2_h">Trening na Twojej firmie</h3>
                   <p data-edit="ag_s2_p" data-edit-type="html">Uczymy agentów Twojej oferty i procesów, podłączamy kanały, kalendarz i CRM.</p>
                 </div>
-                <div className="step">
+                <div className="step" data-hideable="step:3" data-hide-label="Krok 03">
                   <span className="step-num" data-edit="ag_s3_num">03</span>
                   <h3 data-edit="ag_s3_h">Start i dopinanie</h3>
                   <p data-edit="ag_s3_p" data-edit-type="html">Uruchomienie w [do potwierdzenia] dni roboczych. Pierwsze dni obserwujemy rozmowy.</p>
@@ -426,7 +426,7 @@ export default function AgenciShell() {
           </section>
 
           {/* ===== 5 / KOSZT ===== */}
-          <section className="slide" id="koszt" data-hideable="sec:koszt">
+          <section className="slide" id="koszt" data-hideable="sec:koszt" data-hide-label="Sekcja — Koszt">
             <div className="slide-inner ag-wrap">
               <div className="sec-head rv rv1">
                 <div className="section-label" data-edit="ag_k_label">{'// koszt'}</div>
@@ -434,14 +434,14 @@ export default function AgenciShell() {
               </div>
 
               <div className="cost-grid rv rv2">
-                <div className="cost-card">
+                <div className="cost-card" data-hideable="cost:etat" data-hide-label="Koszt — karta „Jeden etat”">
                   <div className="cost-tag" data-edit="ag_k1_tag">Jeden etat</div>
                   <div className="cost-price" data-edit="ag_k1_price">~[X] zł / mies.</div>
                   <p data-edit="ag_k1_p" data-edit-type="html">Pensja i ZUS. Osiem godzin, pon–pt. Plus rekrutacja, urlopy, L4 i rotacja.</p>
                   <div className="cost-bar"><i style={{ width: '100%' }}></i></div>
                 </div>
 
-                <div className="cost-card acid">
+                <div className="cost-card acid" data-hideable="cost:agent" data-hide-label="Koszt — karta „Jeden agent AI”">
                   <div className="cost-tag" data-edit="ag_k2_tag">Jeden agent AI</div>
                   <div className="cost-price" data-edit="ag_k2_price">od [X] zł / mies.</div>
                   <p data-edit="ag_k2_p" data-edit-type="html">Stały abonament, [X]× taniej. Pracuje całą dobę, bez urlopu i bez zastępstw.</p>
@@ -449,12 +449,12 @@ export default function AgenciShell() {
                 </div>
               </div>
 
-              <p className="cost-note rv rv3" data-edit="ag_k_note" data-edit-type="html">Cały czteroosobowy zespół: od [X] zł / mies. — taniej niż każdy agent osobno.</p>
+              <p className="cost-note rv rv3" data-hideable="cost:note" data-hide-label="Koszt — podpis pod kartami" data-edit="ag_k_note" data-edit-type="html">Cały czteroosobowy zespół: od [X] zł / mies. — taniej niż każdy agent osobno.</p>
             </div>
           </section>
 
           {/* ===== 6 / PYTANIA ===== */}
-          <section className="slide" id="faq" data-hideable="sec:faq">
+          <section className="slide" id="faq" data-hideable="sec:faq" data-hide-label="Sekcja — Pytania">
             <div className="slide-inner ag-wrap">
               <div className="sec-head rv rv1">
                 <div className="section-label" data-edit="ag_f_label">{'// pytania'}</div>
@@ -462,22 +462,22 @@ export default function AgenciShell() {
               </div>
 
               <div className="faq-grid rv rv2">
-                <div className="faq-item">
+                <div className="faq-item" data-hideable="faq:1" data-hide-label="Pytanie 01">
                   <span className="faq-num" aria-hidden="true">01</span>
                   <h3 data-edit="ag_f1_q">Muszę wdrażać wszystkich czterech?</h3>
                   <p data-edit="ag_f1_a" data-edit-type="html">Nie. Każdy działa samodzielnie. Zaczynasz od jednego i dokładasz kolejnych, kiedy chcesz.</p>
                 </div>
-                <div className="faq-item">
+                <div className="faq-item" data-hideable="faq:2" data-hide-label="Pytanie 02">
                   <span className="faq-num" aria-hidden="true">02</span>
                   <h3 data-edit="ag_f2_q">Czy klient pozna, że rozmawia z AI?</h3>
                   <p data-edit="ag_f2_a" data-edit-type="html">Nie poznasz tego. Agent przedstawia się jako asystent i oddaje rozmowę człowiekowi, tylko kiedy trzeba.</p>
                 </div>
-                <div className="faq-item">
+                <div className="faq-item" data-hideable="faq:3" data-hide-label="Pytanie 03">
                   <span className="faq-num" aria-hidden="true">03</span>
                   <h3 data-edit="ag_f3_q">Co, jeśli agent nie zna odpowiedzi?</h3>
                   <p data-edit="ag_f3_a" data-edit-type="html">Nie zmyśla. Przekazuje sprawę człowiekowi razem z całym kontekstem rozmowy.</p>
                 </div>
-                <div className="faq-item">
+                <div className="faq-item" data-hideable="faq:4" data-hide-label="Pytanie 04">
                   <span className="faq-num" aria-hidden="true">04</span>
                   <h3 data-edit="ag_f4_q">Podłączycie nasze narzędzia?</h3>
                   <p data-edit="ag_f4_a" data-edit-type="html">Tak — CRM, kalendarz, telefonię i kanały, z których już korzystacie.</p>
@@ -487,7 +487,7 @@ export default function AgenciShell() {
           </section>
 
           {/* ===== 7 / KONTAKT — kwasowa płyta jak w makiecie ===== */}
-          <section className="slide" id="kontakt">
+          <section className="slide" id="kontakt" data-hideable="sec:kontakt" data-hide-label="Sekcja — Kontakt">
             <div className="slide-inner ag-wrap">
               <div className="ag-final rv rv1">
                 <h2 data-edit="ag_final_h2" data-edit-type="html">Porozmawiaj z agentem, zanim go zatrudnisz.</h2>
@@ -498,7 +498,7 @@ export default function AgenciShell() {
                 </div>
               </div>
 
-              <footer className="ag-footer rv rv2">
+              <footer className="ag-footer rv rv2" data-hideable="ag:footer" data-hide-label="Stopka">
                 <span data-edit="ag_foot_l">© 2026 Fastline InfinitiQ · Zespół agentów AI · część Greywolf Group</span>
                 <a href="/" data-wipe data-edit="ag_foot_r">fastlineinfinitiq.pl</a>
               </footer>

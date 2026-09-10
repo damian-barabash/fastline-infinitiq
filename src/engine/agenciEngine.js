@@ -64,8 +64,11 @@ export function initAgenci({ onNavigate }) {
     const startEl = document.getElementById('start');
     const zespolEl = document.getElementById('zespol');
     if (drumEl && startEl && zespolEl) drumEl.insertBefore(zespolEl, startEl);
+    // przestawienie railu wykonujemy raz na dokument: silnik startuje ponownie,
+    // gdy CMS wytnie którąś grań, a drugi swap wróciłby do starej kolejności
     const railBox = document.getElementById('rail');
-    if (railBox && railBox.children.length > 1) {
+    if (railBox && !railBox.hasAttribute('data-reordered') && railBox.children.length > 1) {
+      railBox.setAttribute('data-reordered', '1');
       railBox.insertBefore(railBox.children[1], railBox.children[0]);
       Array.from(railBox.children).forEach((b2, i) => { b2.dataset.i = String(i); });
     }

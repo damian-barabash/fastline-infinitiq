@@ -224,6 +224,62 @@ export function initEditorLayer({ sb, onRequireLogin, pageId = 'index' }) {
     zone.appendChild(btn);
   }
 
+  /* ===== Панель «Bloki» =====
+     Тулбар ◉ висит на самом блоке — его надо найти мышкой, а на длинной
+     странице это лотерея. Панель даёт один список всего, что можно убрать:
+     подпись из `data-hide-label`, вложенность — по родителям-hideable. */
+  function hideLabel(el) {
+    const own = el.getAttribute('data-hide-label');
+    if (own) return own;
+    const h = el.querySelector('h1, h2, h3, .section-label, .dm-cap, .cost-tag');
+    const t = (h ? h.textContent : el.textContent || '').trim().replace(/\s+/g, ' ');
+    return t ? t.slice(0, 46) : el.getAttribute('data-hideable');
+  }
+  const blocksPanel = $('fiqBlocks'), blocksList = $('fiqBlocksList');
+  function setHidden(el, v) {
+    el.classList.toggle('fiq-hidden', v);
+    // ten sam blok ma jeszcze przełącznik ◉ w swoim tulbarze — trzymamy je zgodnie
+    el.querySelectorAll(':scope > .fiq-tb .tbi').forEach(t => {
+      if (t.textContent === '◉') t.classList.toggle('on', v);
+    });
+    checkDirty();
+  }
+  function buildBlocksList() {
+    if (!blocksList) return;
+    blocksList.innerHTML = '';
+    const all = Array.from(document.querySelectorAll('[data-hideable]'));
+    all.forEach(el => {
+      const depth = all.filter(o => o !== el && o.contains(el)).length;
+      const row = document.createElement('div');
+      row.className = 'fiq-blk' + (el.classList.contains('fiq-hidden') ? ' off' : '');
+      row.style.paddingLeft = (14 + depth * 18) + 'px';
+      const sw = document.createElement('button');
+      sw.className = 'fiq-blk-sw'; sw.type = 'button';
+      sw.setAttribute('aria-label', 'Pokaż / ukryj blok');
+      const name = document.createElement('span');
+      name.className = 'fiq-blk-name'; name.textContent = hideLabel(el);
+      const go = document.createElement('button');
+      go.className = 'fiq-blk-go'; go.type = 'button'; go.textContent = 'pokaż';
+      sw.addEventListener('click', () => {
+        const v = !el.classList.contains('fiq-hidden');
+        setHidden(el, v);
+        row.classList.toggle('off', v);
+      }, { signal });
+      go.addEventListener('click', () => {
+        blocksPanel.classList.remove('show');
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, { signal });
+      row.appendChild(sw); row.appendChild(name); row.appendChild(go);
+      blocksList.appendChild(row);
+    });
+    if (!all.length) blocksList.innerHTML = '<div class="fiq-blk-empty">Ta strona nie ma jeszcze wyłączanych bloków.</div>';
+  }
+  if (blocksPanel) {
+    $('fiqBlocksBtn').addEventListener('click', () => { buildBlocksList(); blocksPanel.classList.add('show'); }, { signal });
+    $('fiqBlocksClose').addEventListener('click', () => blocksPanel.classList.remove('show'), { signal });
+    blocksPanel.addEventListener('click', e => { if (e.target === blocksPanel) blocksPanel.classList.remove('show'); }, { signal });
+  }
+
   /* ===== Палитра блоков ===== */
   const pal = $('fiqPal'), palGrid = $('fiqPalGrid');
   const PAL_IC = { partners: '▦', gallery: '▣', textimg: '◧', stats: '＃', cards: '▤', quote: '❝', cta: '➔', logotext: '◉', steps: '☰' };

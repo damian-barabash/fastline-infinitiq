@@ -43,11 +43,30 @@ export function initMenu({ signal, goTo } = {}) {
     });
   }
 
-  /* ---- produkty ---- */
+  /* ---- produkty ----
+     Katalog bywa „szerszy” niż menu: ten sam produkt stoi w dwóch grupach
+     (np. „AI Sprzedawca” w Sprzedaży i u Agentów) — w kuli to ma sens, w liście
+     to zwykły duplikat, więc zostawiamy pierwsze wystąpienie nazwy.
+     Gotowe strony idą na górę: klient najpierw widzi to, co może otworzyć. */
+  const norm = (s) => String(s || '').toLowerCase().replace(/\s+/g, ' ').trim();
+  function prepare(rows) {
+    const seen = new Set();
+    const uniq = [];
+    (rows || []).forEach((r) => {
+      const k = norm(r.name);
+      if (!k || seen.has(k)) return;
+      seen.add(k);
+      uniq.push(r);
+    });
+    const ready = uniq.filter((r) => productHref(r.name));
+    const rest = uniq.filter((r) => !productHref(r.name));
+    return ready.concat(rest);
+  }
+
   function renderProducts(rows) {
     if (!prodBox) return;
     prodBox.innerHTML = '';
-    (rows || []).forEach((r) => {
+    prepare(rows).forEach((r) => {
       const href = productHref(r.name);
       const el = document.createElement(href ? 'a' : 'span');
       el.className = 'menu-link' + (href ? '' : ' off');

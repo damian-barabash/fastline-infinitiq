@@ -19,7 +19,7 @@ export default function Agenci() {
   useEffect(() => {
     document.title = 'Agenci AI — zespół, który pracuje, kiedy Ty śpisz | Fastline InfinitiQ';
     ensureFIQ();
-    const destroy = initAgenci({ onNavigate: (to) => wipeTo(navigate, to) });
+    let destroy = initAgenci({ onNavigate: (to) => wipeTo(navigate, to) });
 
     // treść z CMS: czysty REST, bez supabase-js (ta sama zasada co na lądowaniu)
     let alive = true;
@@ -32,7 +32,31 @@ export default function Agenci() {
       .then((rows) => {
         if (!alive) return;
         const published = rows && rows[0] && rows[0].published;
-        if (published && window.FIQ) window.FIQ.applyContent(published, { editor: false });
+        if (published && window.FIQ) {
+          window.FIQ.applyContent(published, { editor: false });
+
+          // Grań wyłączona w edytorze (`_hidden: "sec:<id>"`) dostaje display:none,
+          // ale bęben zmierzył już wszystkie ściany — pusta ściana zostawiłaby
+          // dziurę w przewijaniu. Usuwamy grań i jej pozycję z railu, po czym
+          // stawiamy silnik od nowa (jak na lądowaniu).
+          const hiddenSlides = Array.from(document.querySelectorAll('.slide[data-hideable]'))
+            .filter((el) => el.style.display === 'none');
+          if (hiddenSlides.length) {
+            destroy();
+            const all = Array.from(document.querySelectorAll('.slide'));
+            const rail = Array.from(document.querySelectorAll('.rail-item'));
+            hiddenSlides.forEach((el) => {
+              const i = all.indexOf(el);
+              if (rail[i]) rail[i].remove();
+              el.remove();
+            });
+            document.querySelectorAll('.rail-item').forEach((b, i) => { b.dataset.i = String(i); });
+            const total = document.querySelectorAll('.slide').length;
+            const cntTotal = document.querySelector('#counter span:last-child');
+            if (cntTotal) cntTotal.textContent = '/ ' + String(total).padStart(2, '0');
+            destroy = initAgenci({ onNavigate: (to) => wipeTo(navigate, to) });
+          }
+        }
       })
       .catch(() => {})
       .finally(() => {

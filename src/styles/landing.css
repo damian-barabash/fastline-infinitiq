@@ -2819,9 +2819,9 @@ html.menu-open nav .nav-brand, html.menu-open nav .nav-cta, html.menu-open nav .
 
 /* lista produktów bywa długa (cały katalog) — drobniejsza od sekcji i z zapasem
    na przewijanie, żeby CTA pod nią zawsze było dostępne */
-#menuProducts .menu-link { font-size: clamp(15px, 1.5vw, 19px); padding: 6px 0; }
+#menuProducts .menu-link { font-size: clamp(17px, 1.9vw, 24px); padding: 8px 0; }
 .menu-overlay { overflow-y: auto; }
 .menu-inner { align-items: start; }
 @media (max-height: 900px) {
-  #menuProducts .menu-link { font-size: 15px; padding: 5px 0; }
+  #menuProducts .menu-link { font-size: 19px; padding: 6px 0; }
 }
