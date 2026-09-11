@@ -97,9 +97,12 @@ export function initHeroSphere() {
     R = mode === 'list'
       ? Math.min(W * 0.27, 104)
       : Math.min(W * 0.15, H * 0.36, 172);
-    // telefon: podpisy stoją nad i pod pierścieniem strzałek, więc środek musi
-    // zostawić miejsce na jeden podpis u góry (≈32 px + zapas)
-    cy = mode === 'list' ? R * 1.35 + 22 : H / 2;
+    // Telefon: karty idą NAD kulą (2026-09-11 — właściciel), więc kula siedzi
+    // w dolnym pasie sceny (rezerwuje go `padding-bottom` w `.pl-nodes`).
+    // Zapas R*1.35 + 22 to miejsce na pierścień strzałek i podpis pod nim.
+    // R*1.45 + 34: pierścień strzałek (1,25 R) + podpis pod nim (~32 px) + zapas,
+    // żeby dolne podpisy nie schodziły pod scenę na przycisk CTA
+    cy = mode === 'list' ? H - (R * 1.45 + 34) : H / 2;
     place();
   }
 
@@ -227,9 +230,12 @@ export function initHeroSphere() {
   // w kulę i nie widzi, że coś się pod nią zmieniło
   function scrollToCards() {
     requestAnimationFrame(() => {
-      const first = (byGroup[GROUPS.indexOf(active)] || [])[0];
+      const list = byGroup[GROUPS.indexOf(active)] || [];
+      const first = list[0];
       if (!first) return;
-      const top = first.getBoundingClientRect().top + scrollY - 84;
+      // karty stoją NAD kulą, więc celujemy w ich początek (przewijanie w górę);
+      // 84 px to wysokość paska z zapasem
+      const top = Math.max(0, first.getBoundingClientRect().top + scrollY - 84);
       scrollTo({ top, behavior: 'smooth' });
     });
   }
@@ -258,7 +264,13 @@ export function initHeroSphere() {
     const inside = Math.hypot(dx, dy) <= R * (mode === 'list' ? 1.35 : 1.18);
     if (!inside) return;                       // poza kulą — zostawiamy jak jest
     const g = groupAt(dx > 0 ? 1 : -1, dy < 0 ? 1 : -1);
-    if (mode === 'list' && e.type === 'pointerdown') { setActive(g === active ? null : g); return; }
+    // Telefon: stuknięcie w OTWARTĄ już grupę nie zwija jej, tylko jeszcze raz
+    // przewija do kart (właściciel: „нажимаешь на открытую группу — всё равно
+    // скролит"). Zwijanie zabierało produkty komuś, kto tylko chciał je zobaczyć.
+    if (mode === 'list' && e.type === 'pointerdown') {
+      if (g === active) scrollToCards(); else setActive(g);
+      return;
+    }
     if (mode !== 'list') setActive(g);
   }
 
@@ -443,21 +455,22 @@ export function initHeroSphere() {
   // telefon: zamiast wynośnych linii — kropkowana strzałka w dół, od kuli do kart
   function drawListArrow() {
     if (mode !== 'list' || !active) return;
-    // start pod dolnymi podpisami (pierścień + wysokość podpisu + zapas)
-    const top = cy + R * 1.2 + 52;
-    const bottom = Math.min(H - 6, top + 40);
+    // Strzałka biegnie W GÓRĘ — od kuli do kart, które stoją nad nią.
+    // Start nad górnymi podpisami (pierścień + wysokość podpisu + zapas).
+    const bottom = cy - R * 1.2 - 52;
+    const top = Math.max(6, bottom - 40);
     ctx.save();
-    for (let y = top; y < bottom - 10; y += 7) {
-      const k = (y - top) / Math.max(1, bottom - top);
+    for (let y = bottom; y > top + 10; y -= 7) {
+      const k = (bottom - y) / Math.max(1, bottom - top);
       ctx.fillStyle = `rgba(184,255,0,${(0.25 + 0.55 * k).toFixed(3)})`;
       ctx.fillRect(cx - 1.5, y, 3, 3);
     }
     ctx.strokeStyle = 'rgba(184,255,0,0.85)';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(cx - 7, bottom - 9);
-    ctx.lineTo(cx, bottom - 1);
-    ctx.lineTo(cx + 7, bottom - 9);
+    ctx.moveTo(cx - 7, top + 9);
+    ctx.lineTo(cx, top + 1);
+    ctx.lineTo(cx + 7, top + 9);
     ctx.stroke();
     ctx.restore();
   }

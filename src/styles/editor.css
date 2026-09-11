@@ -2229,10 +2229,12 @@ body.fiq-edit [data-f] { pointer-events: auto; }
 
 /* wąski ekran: planeta na górze, produkty listą pod nią (linie nie mają sensu) */
 .pl-stage[data-mode="list"] { min-height: 0; }
-.pl-stage[data-mode="list"] .pl-canvas { height: 260px; bottom: auto; }
+/* kula w DOLE sceny, karty nad nią (2026-09-11) */
+.pl-stage[data-mode="list"] .pl-canvas { height: 260px; top: auto; bottom: 0; }
 .pl-stage[data-mode="list"] .pl-nodes {
   position: static;
-  padding-top: 266px;
+  padding-top: 0;
+  padding-bottom: 266px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -2697,7 +2699,8 @@ html.menu-open nav .nav-brand, html.menu-open nav .nav-cta, html.menu-open nav .
   #start .hero-grid { grid-template-rows: auto auto auto; }
   #start .pl-stage[data-mode="list"] { align-self: start; height: auto; min-height: 0; }
   .pl-stage[data-mode="list"] .pl-nodes {
-    padding-top: 392px;      /* kula + strzałka w dół + zapas, żeby grot nie chował się pod kartą */
+    padding-top: 0;
+    padding-bottom: 420px;   /* kula pod kartami + podpisy + strzałka w górę z grotem */
     height: auto;
     align-items: stretch;
     gap: 10px;

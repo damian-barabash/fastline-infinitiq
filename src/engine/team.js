@@ -316,7 +316,10 @@ export function initTeam({ signal, coarse, weak, mouse }) {
     const offX = (w - rw * S) / 2, offY = (h - rh * S) / 2;
     const cxp = w / 2, cyp = h / 2;
 
-    const hv = it.hover;
+    // ⚠️ Odwrócone (2026-09-11, prośba właściciela): domyślnie widać ZDJĘCIE,
+    // a chmura punktów pojawia się po najechaniu. `it.hover` nadal znaczy
+    // „karta aktywna", więc tutaj odwracamy wartość: hv = 1 → siatka wygaszona.
+    const hv = 1 - it.hover;
     if (!(w > 0) || !(h > 0)) return;
     // лёгкое вращение вокруг вертикали: силуэт обязан оставаться читаемым
     const ang = 0.13 * Math.sin(time * 0.00019 + it.phase) + (it.parallax || 0);

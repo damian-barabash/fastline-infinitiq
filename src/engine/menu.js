@@ -27,18 +27,27 @@ export function initMenu({ signal, goTo } = {}) {
   /* ---- sekcje ---- */
   function buildSections() {
     if (!box) return;
+    // Strona z bębnem (lądowanie, /agenci-ai) ma granie `.slide`; strona zwykła
+    // (/kontakt) — bloki `[data-msec]`. Wtedy zamiast `goTo` przewijamy do bloku.
     const slides = Array.from(document.querySelectorAll('.slide'));
+    const drum = slides.length > 0;
+    const secs = drum ? slides : Array.from(document.querySelectorAll('[data-msec]'));
     const railNames = Array.from(document.querySelectorAll('.rail-item .rail-name')).map((n) => n.textContent.trim());
     box.innerHTML = '';
-    slides.forEach((s, i) => {
+    secs.forEach((s, i) => {
       const fromCms = stripNum((s.querySelector('.section-label') || {}).textContent || '');
-      const label = i === 0 ? HOME_LABEL : (fromCms || railNames[i] || s.dataset.title || s.id);
+      const label = i === 0 ? HOME_LABEL : (fromCms || (drum ? railNames[i] : s.dataset.msec) || s.dataset.title || s.id);
       const b = document.createElement('button');
       b.className = 'menu-link';
       b.type = 'button';
       b.innerHTML = `<span class="menu-num">${String(i + 1).padStart(2, '0')}</span><span></span>`;
       b.lastElementChild.textContent = label;
-      b.addEventListener('click', () => { close(); if (goTo) goTo(i); }, { signal });
+      b.addEventListener('click', () => {
+        close();
+        if (drum && goTo) { goTo(i); return; }
+        if (i === 0) { scrollTo({ top: 0, behavior: 'smooth' }); return; }
+        s.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, { signal });
       box.appendChild(b);
     });
   }

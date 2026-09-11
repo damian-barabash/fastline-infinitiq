@@ -206,7 +206,7 @@ export default function AgenciShell() {
                     <div className="dm-screen">
                       <div className="dm-ch on" data-ch="fb">
                         <div className="im-head">
-                          <span className="im-av" aria-hidden="true"></span>
+                          <span className="im-av" aria-hidden="true"><IcMessenger /></span>
                           <span className="im-who"><b data-edit="ag_d1_fb_name">Twoja Firma</b><i data-edit="ag_d1_fb_state">Firma · aktywny teraz</i></span>
                           <span className="im-app">Messenger</span>
                         </div>
@@ -219,7 +219,7 @@ export default function AgenciShell() {
 
                       <div className="dm-ch" data-ch="ig">
                         <div className="im-head">
-                          <span className="im-av" aria-hidden="true"></span>
+                          <span className="im-av" aria-hidden="true"><IcInstagram /></span>
                           <span className="im-who"><b data-edit="ag_d1_ig_name">Twoja Firma</b><i data-edit="ag_d1_ig_state">Direct · widziane</i></span>
                           <span className="im-app">Instagram</span>
                         </div>
@@ -232,7 +232,7 @@ export default function AgenciShell() {
 
                       <div className="dm-ch" data-ch="wa">
                         <div className="im-head">
-                          <span className="im-av" aria-hidden="true"></span>
+                          <span className="im-av" aria-hidden="true"><IcWhatsapp /></span>
                           <span className="im-who"><b data-edit="ag_d1_wa_name">Twoja Firma</b><i data-edit="ag_d1_wa_state">online</i></span>
                           <span className="im-app">WhatsApp</span>
                         </div>
@@ -266,7 +266,7 @@ export default function AgenciShell() {
                       </div>
 
                       <div className="adv-widget">
-                        <div className="adv-head"><IcSpark /><span data-edit="ag_d2_head">Doradca AI</span></div>
+                        <div className="adv-head"><img className="adv-fav" src="/assets/favicon/favicon-192.png" alt="" aria-hidden="true" /><span data-edit="ag_d2_head">Doradca AI</span></div>
                         <div className="msg in" data-s="1"><span data-edit="ag_d2_m1">Mam trzy warianty i nie wiem, który u nas zadziała.</span></div>
                         <div className="msg typing" data-s="2"><span className="dots"><i></i><i></i><i></i></span></div>
                         <div className="msg out" data-s="3"><span data-edit="ag_d2_m2">Ile zgłoszeń dostajecie w miesiącu i kto je dziś obsługuje?</span></div>
@@ -474,7 +474,7 @@ export default function AgenciShell() {
                 <p className="ag-final-note" data-edit="ag_final_note" data-edit-type="html">AI Doradca podpowie, od którego agenta zacząć — i ile to kosztuje.</p>
                 <div className="ag-final-row">
                   <a href="/kontakt" data-wipe className="btn-dark" data-edit="ag_final_cta">Wypróbuj agenta sam</a>
-                  <a href="/kontakt" data-wipe className="btn-dark ghost" data-edit="ag_final_alt" data-edit-type="html">Lub zostaw dane kontaktowe,<br />a my skontaktujemy się z Tobą</a>
+                  <a href="/kontakt" data-wipe className="btn-dark ghost" data-hideable="ag:final-alt" data-hide-label="Finał — drugi przycisk" data-edit="ag_final_alt" data-edit-type="html">Lub zostaw dane kontaktowe,<br />a my skontaktujemy się z Tobą</a>
                 </div>
               </div>
 

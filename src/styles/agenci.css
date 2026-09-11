@@ -297,6 +297,9 @@
     transition: opacity 0.6s ease, transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
   }
   .team-card.on .tm-visual::before { opacity: 1; transform: scale(1); }
+  /* ⚠️ Odwrócone 2026-09-11: zdjęcie jest stanem domyślnym, chmura punktów
+     wchodzi po najechaniu (wcześniej było na odwrót). Silnik `team.js` odwraca
+     u siebie `hv`, więc punkty i tak reagują na kursor dopiero wtedy, gdy widać siatkę. */
   .tm-photo {
     position: absolute;
     inset: 0;
@@ -306,17 +309,18 @@
     object-position: center;
     -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent 97%);
     mask-image: linear-gradient(180deg, #000 60%, transparent 97%);
-    opacity: 0;
-    filter: grayscale(1) contrast(1.08) brightness(0.82);
-    clip-path: inset(0 0 100% 0);
+    opacity: 1;
+    filter: grayscale(0.18) contrast(1.02) brightness(0.97);
+    clip-path: inset(0 0 0 0);
     transition: opacity 0.4s ease, filter 0.7s ease, clip-path 0.75s cubic-bezier(0.22, 1, 0.36, 1);
     will-change: clip-path;
   }
   .team-card.on .tm-photo {
-    opacity: 1;
-    clip-path: inset(0 0 0 0);
-    filter: grayscale(0.18) contrast(1.02) brightness(0.97);
+    opacity: 0;
+    clip-path: inset(0 0 100% 0);
+    filter: grayscale(1) contrast(1.08) brightness(0.82);
   }
+  .team-card.on .tm-canvas { opacity: 1; }
   /* фолбэк: облако точек не построилось (CORS/фото без альфы) — фото видно всегда */
   .team-card.tm-static .tm-photo { opacity: 1; clip-path: inset(0 0 0 0); }
   .team-card.tm-static .tm-canvas { display: none; }
@@ -327,6 +331,10 @@
     width: 100%; height: 100%;
     z-index: 2;
     pointer-events: none;
+    /* siatka wchodzi razem ze stanem `.on` — bez tego resztka punktów (meshK
+       nie schodzi do zera) prześwitywałaby przez zdjęcie */
+    opacity: 0;
+    transition: opacity 0.45s ease;
     -webkit-mask-image: linear-gradient(180deg, #000 60%, transparent 97%);
     mask-image: linear-gradient(180deg, #000 60%, transparent 97%);
   }
@@ -1250,8 +1258,12 @@ html.menu-open nav .nav-brand, html.menu-open nav .nav-cta, html.menu-open nav .
   width: 32px; height: 32px;
   border-radius: 50%;
   flex: 0 0 auto;
+  display: grid; place-items: center;
   background: linear-gradient(140deg, #D9DEE6, #B9C1CC);
 }
+/* awatar = znak aplikacji na jej własnym gradiencie (2026-09-11) */
+.im-av svg { width: 19px; height: 19px; color: #fff; }
+.dm-ch[data-ch="wa"] .im-av svg { width: 20px; height: 20px; }
 .im-who { display: flex; flex-direction: column; line-height: 1.2; }
 .im-who b { font-family: 'Schibsted Grotesk', sans-serif; font-size: 13px; font-weight: 600; color: #14161A; }
 .im-who i { font-style: normal; font-size: 10.5px; color: rgba(20,22,26,0.5); }
@@ -1310,13 +1322,16 @@ html.menu-open nav .nav-brand, html.menu-open nav .nav-cta, html.menu-open nav .
 }
 .adv-head { color: #14161A; }
 .adv-head svg { color: var(--green); filter: drop-shadow(0 0 4px rgba(120,180,0,0.35)); }
+.adv-fav { width: 17px; height: 17px; display: block; flex: 0 0 auto; }
 .adv-rec { border-left-color: #78C000; }
 .adv-rec b { color: #4E8C00; }
 .adv-rec span { color: rgba(20,22,26,0.75); }
 
 /* telefon — jasny ekran połączenia */
 .dm-call .call-top { border-bottom-color: rgba(20,22,26,0.1); }
-.call-avatar { border-color: rgba(20,22,26,0.15); color: #128C7E; background: #EAF7F2; border-radius: 50%; }
+/* krążek zielony, słuchawka biała — jak przycisk odbioru w telefonie (2026-09-11) */
+.call-avatar { border-color: transparent; color: #fff; background: #2FBF71; border-radius: 50%; }
+.call-avatar svg { width: 19px; height: 19px; }
 .call-num { color: #14161A; }
 .call-state { color: #128C7E; }
 .call-wave i { background: rgba(18,140,126,0.45); }

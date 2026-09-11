@@ -1,6 +1,8 @@
 // Движок страницы kontakt: нейро-столп слева, курсор, nav shrink, форма→mailto.
 // Перенос 1:1 из kontakt.html; адаптация: SPA-переходы + cleanup.
 import { interceptInternalLinks } from './wipe.js';
+import { initMenu } from './menu.js';
+import { fitNavClaim, watchNavClaim, initClaimScramble } from './navClaim.js';
 
 export function initKontakt({ onNavigate }) {
 
@@ -27,6 +29,16 @@ export function initKontakt({ onNavigate }) {
   }, { passive: true, signal });
   document.addEventListener('mouseleave', () => { mouse.active = false; }, { signal });
 
+  /* menu pod burgerem — ta sama mechanika co na lądowaniu; tu nie ma grani
+     bębna, więc menu buduje sekcje z bloków `[data-msec]` i przewija do nich */
+  const closeMenu = initMenu({ signal });
+  // claim pod logo: szerokość mierzy silnik, dekod startuje od razu (nie ma
+  // prelodera ani CMS, na które trzeba czekać — inaczej niż na lądowaniu)
+  fitNavClaim();
+  watchNavClaim({ signal });
+  initClaimScramble({ signal, immediate: true });
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => fitNavClaim()).catch(() => {});
+
   /* nav shrink */
   const navEl = document.querySelector('nav');
   let navShrunk = false;
@@ -41,10 +53,10 @@ export function initKontakt({ onNavigate }) {
   let rx = vw / 2, ry = vh / 2;
   if (!FLAT) {
     document.addEventListener('mouseover', e => {
-      if (e.target.closest('a, button, input, textarea')) ring.classList.add('link');
+      if (e.target.closest('a, button, input, textarea, [contenteditable="true"]')) ring.classList.add('link');
     }, { signal });
     document.addEventListener('mouseout', e => {
-      if (e.target.closest('a, button, input, textarea')) ring.classList.remove('link');
+      if (e.target.closest('a, button, input, textarea, [contenteditable="true"]')) ring.classList.remove('link');
     }, { signal });
   }
 
@@ -250,6 +262,7 @@ export function initKontakt({ onNavigate }) {
   return function destroy() {
     destroyed = true;
     cancelAnimationFrame(rafId);
+    closeMenu();
     ac.abort();
     document.documentElement.classList.remove('mode-3d', 'mode-flat');
   };

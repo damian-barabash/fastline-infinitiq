@@ -249,6 +249,20 @@ export function ensureFIQ() {
       else el.style.display = isH ? 'none' : '';
     });
 
+    // 3b. Pusty przycisk to zawsze pomyłka, a nie decyzja projektowa: redaktor
+    //     kasował tekst i na stronie zostawała goła ramka (2026-09-11, finał
+    //     /agenci-ai). Musi to iść PO kroku z `_hidden` — tamten zeruje `display`
+    //     każdemu `[data-hideable]`, więc wcześniejsze ukrycie by przepadło.
+    //     W edytorze nie chowamy: inaczej nie dałoby się wpisać tekstu z powrotem.
+    if (!ed) {
+      document.querySelectorAll('a[data-edit], button[data-edit]').forEach(el => {
+        const k = el.getAttribute('data-edit');
+        if (k[0] === '_' || !(k in content)) return;
+        if (el.style.display === 'none') return;              // już ukryty przez `_hidden`/`_removed`
+        if (!el.textContent.replace(/[\s\u00a0]+/g, '')) el.style.display = 'none';
+      });
+    }
+
     // 4. Вставленные блоки
     FIQ.ensureZones();
     const blocks = content._blocks || {};

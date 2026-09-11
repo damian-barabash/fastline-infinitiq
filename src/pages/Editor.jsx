@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LandingShell from '../components/LandingShell.jsx';
 import AgenciShell from '../components/AgenciShell.jsx';
+import KontaktShell from '../components/KontaktShell.jsx';
 import AudytPanel from '../components/AudytPanel.jsx';
 import { ensureFIQ } from '../engine/fiq.js';
 import { initEditorLayer } from '../engine/editorLayer.js';
@@ -9,6 +10,7 @@ import { sbAuth } from '../lib/supabase.js';
 import editorCss from '../styles/editor.css?inline';
 import editorUiCss from '../styles/editor-ui.css?inline';
 import agenciCss from '../styles/agenci.css?inline';
+import kontaktCss from '../styles/kontakt.css?inline';
 import audytCss from '../styles/audyt-panel.css?inline';
 
 /* Редактор обслуживает несколько страниц. Каждая = свой Shell + своя строка
@@ -18,11 +20,12 @@ import audytCss from '../styles/audyt-panel.css?inline';
 const PAGES = {
   strona: { label: 'Strona główna', id: 'index', css: editorCss },
   agenci: { label: 'Agenci AI', id: 'agenci-ai', css: agenciCss },
+  kontakt: { label: 'Kontakt', id: 'kontakt', css: kontaktCss },
 };
 
 export default function Editor() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState('strona');          // strona | agenci | audyty
+  const [tab, setTab] = useState('strona');          // strona | agenci | kontakt | audyty
   const page = PAGES[tab] ? tab : 'strona';          // вкладка «Audyt» не меняет страницу
 
   useEffect(() => {
@@ -142,7 +145,7 @@ export default function Editor() {
 
       {tab === 'audyty' && <AudytPanel />}
 
-      {page === 'strona' ? <LandingShell /> : <AgenciShell />}
+      {page === 'strona' ? <LandingShell /> : page === 'agenci' ? <AgenciShell /> : <KontaktShell />}
     </>
   );
 }
