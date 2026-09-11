@@ -2229,12 +2229,10 @@ body.fiq-edit [data-f] { pointer-events: auto; }
 
 /* wąski ekran: planeta na górze, produkty listą pod nią (linie nie mają sensu) */
 .pl-stage[data-mode="list"] { min-height: 0; }
-/* kula w DOLE sceny, karty nad nią (2026-09-11) */
-.pl-stage[data-mode="list"] .pl-canvas { height: 260px; top: auto; bottom: 0; }
+.pl-stage[data-mode="list"] .pl-canvas { height: 260px; bottom: auto; }
 .pl-stage[data-mode="list"] .pl-nodes {
   position: static;
-  padding-top: 0;
-  padding-bottom: 266px;
+  padding-top: 266px;
   display: flex;
   flex-direction: column;
   gap: 12px;
@@ -2699,8 +2697,7 @@ html.menu-open nav .nav-brand, html.menu-open nav .nav-cta, html.menu-open nav .
   #start .hero-grid { grid-template-rows: auto auto auto; }
   #start .pl-stage[data-mode="list"] { align-self: start; height: auto; min-height: 0; }
   .pl-stage[data-mode="list"] .pl-nodes {
-    padding-top: 0;
-    padding-bottom: 420px;   /* kula pod kartami + podpisy + strzałka w górę z grotem */
+    padding-top: 392px;      /* kula + strzałka w dół + zapas, żeby grot nie chował się pod kartą */
     height: auto;
     align-items: stretch;
     gap: 10px;
@@ -2805,3 +2802,40 @@ html.mode-3d .af-btn, html.mode-3d .btn-send, html.mode-3d .wh-cta {
 html.coarse .model-panel, html.coarse .ag-final, html.coarse .btn-primary,
 html.coarse .btn-send, html.coarse .nav-cta, html.coarse .menu-cta,
 html.coarse .af-btn, html.coarse .wh-cta, html.coarse .pill.on { cursor: auto; }
+
+
+/* ===== Telefon: przyciski pozostałych grup pod CTA (2026-09-11) =====
+   Kula jest mała, więc obok niej stoi jawna lista trzech grup, których teraz
+   nie widać. Styl ten sam co podpisy na kuli (`.pl-gname`): kwasowa ramka,
+   ciemna podkładka, Space Grotesk 700 — tylko na całą szerokość.
+   Blok identyczny w landing.css i editor.css. */
+.pl-groups { display: none; }
+@media (max-width: 900px) {
+  .pl-groups {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    max-width: 360px;
+    margin: 16px auto 0;
+  }
+  .pl-groups[hidden] { display: none; }
+  .pl-gbtn {
+    width: 100%;
+    display: block;
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 700;
+    font-size: 15px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    text-align: center;
+    color: rgba(184,255,0,0.82);
+    background: rgba(10,11,8,0.86);
+    border: 2px solid rgba(184,255,0,0.34);
+    border-radius: 0;
+    padding: 13px 12px;
+    cursor: pointer;
+    transition: color 0.25s, border-color 0.25s, background 0.25s;
+  }
+  .pl-gbtn:active { color: var(--green); border-color: var(--green); background: rgba(14,17,8,0.94); }
+}

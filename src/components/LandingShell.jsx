@@ -195,6 +195,9 @@ export default function LandingShell() {
               <div className="hero-actions rv rv5">
                 <a href="#audyt" className="btn-primary" data-goto="1" data-goto-id="audyt" data-edit="hero_btn_primary">Darmowy audyt AI</a>
                 <div className="hero-cta-note" data-hideable="hero:cta-note" data-hide-label="Hero — podpis pod CTA" data-edit="hero_cta_note" data-edit-type="html">Bezpłatna diagnoza · 3 minuty · konkretne rozwiązania i widełki cenowe</div>
+                {/* telefon: trzy nieotwarte grupy produktów — wypełnia je silnik kuli
+                    (heroSphere.js), na desktopie kontener jest pusty i ukryty */}
+                <div className="pl-groups" id="plGroups" hidden></div>
               </div>
              </div>
             </div>

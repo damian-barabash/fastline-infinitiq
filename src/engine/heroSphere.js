@@ -40,6 +40,15 @@ export function initHeroSphere() {
   const slide = stage.closest('.slide');
   const nodesBox = stage.querySelector('.pl-nodes');
 
+  // Telefon: pod przyciskiem CTA stoją trzy przyciski NIEOTWARTYCH grup —
+  // kula jest mała i nie każdy wpadnie na to, żeby w nią stukać (2026-09-11).
+  const groupsBox = document.getElementById('plGroups');
+  // ⚠️ Silnik startuje ponownie po przebudowie kart z katalogu, a przyciski
+  // z poprzedniego przebiegu zostają w DOM-ie z martwymi słuchaczami (ich
+  // `AbortController` już padł). Czyścimy kontener na starcie — inaczej klik
+  // w grupę nic nie robi (złapane testem `groups-check`).
+  if (groupsBox) groupsBox.innerHTML = '';
+
   const nodes = Array.from(stage.querySelectorAll('.pl-node'));
   const byGroup = GROUPS.map(g => nodes.filter(n => n.dataset.g === g));
   const nameEls = Array.from(stage.querySelectorAll('.pl-gname'));
@@ -97,13 +106,11 @@ export function initHeroSphere() {
     R = mode === 'list'
       ? Math.min(W * 0.27, 104)
       : Math.min(W * 0.15, H * 0.36, 172);
-    // Telefon: karty idą NAD kulą (2026-09-11 — właściciel), więc kula siedzi
-    // w dolnym pasie sceny (rezerwuje go `padding-bottom` w `.pl-nodes`).
-    // Zapas R*1.35 + 22 to miejsce na pierścień strzałek i podpis pod nim.
-    // R*1.45 + 34: pierścień strzałek (1,25 R) + podpis pod nim (~32 px) + zapas,
-    // żeby dolne podpisy nie schodziły pod scenę na przycisk CTA
-    cy = mode === 'list' ? H - (R * 1.45 + 34) : H / 2;
+    // Telefon: kula na górze, karty pod nią (rezerwuje je `padding-top` w `.pl-nodes`).
+    // Zapas R*1.35 + 22 to miejsce na pierścień strzałek i podpis nad nim.
+    cy = mode === 'list' ? R * 1.35 + 22 : H / 2;
     place();
+    renderGroups();
   }
 
   /* ===== podpisy wycinków ===== */
@@ -240,6 +247,34 @@ export function initHeroSphere() {
     });
   }
 
+  /* ===== telefon: przyciski pozostałych grup pod CTA =====
+     Lista pokazuje ZAWSZE trzy grupy, których teraz nie widać — po kliknięciu
+     wybrana się otwiera i znika z listy, a jej miejsce zajmuje ta, która była
+     otwarta do tej pory. Kolejność zegarowa (ORDER), żeby nie skakały. */
+  function renderGroups() {
+    if (!groupsBox) return;
+    if (mode !== 'list') { groupsBox.hidden = true; groupsBox.innerHTML = ''; return; }
+    groupsBox.hidden = false;
+    const want = ORDER.filter(g => g !== active && (byGroup[GROUPS.indexOf(g)] || []).length);
+    const have = Array.from(groupsBox.children).map(b => b.dataset.g);
+    if (have.join() === want.join()) return;          // nic się nie zmieniło — nie piszemy do DOM
+    groupsBox.innerHTML = '';
+    want.forEach(g => {
+      const b = document.createElement('button');
+      b.type = 'button';
+      b.className = 'pl-gbtn';
+      b.dataset.g = g;
+      b.textContent = names[g] || g.toUpperCase();
+      b.addEventListener('click', () => {
+        markAct();
+        // `setActive` przewija do kart tylko przy zmianie grupy — tu przewijamy
+        // zawsze, bo przycisk stoi pod nimi i inaczej nie widać, co się stało
+        if (g === active) scrollToCards(); else setActive(g);
+      }, { signal });
+      groupsBox.appendChild(b);
+    });
+  }
+
   /* ===== wybór wycinka ===== */
   function setActive(g, byUser = true) {
     userHold = byUser && !!g;
@@ -250,6 +285,7 @@ export function initHeroSphere() {
     reveal = 0;                                        // każde wejście rysuje się od nowa
     nodes.forEach(n => n.classList.remove('ready'));
     place();
+    renderGroups();
   }
 
   // kursor: ćwiartka liczona od środka kuli, z niewielkim marginesem poza obrys
@@ -455,22 +491,21 @@ export function initHeroSphere() {
   // telefon: zamiast wynośnych linii — kropkowana strzałka w dół, od kuli do kart
   function drawListArrow() {
     if (mode !== 'list' || !active) return;
-    // Strzałka biegnie W GÓRĘ — od kuli do kart, które stoją nad nią.
-    // Start nad górnymi podpisami (pierścień + wysokość podpisu + zapas).
-    const bottom = cy - R * 1.2 - 52;
-    const top = Math.max(6, bottom - 40);
+    // start pod dolnymi podpisami (pierścień + wysokość podpisu + zapas)
+    const top = cy + R * 1.2 + 52;
+    const bottom = Math.min(H - 6, top + 40);
     ctx.save();
-    for (let y = bottom; y > top + 10; y -= 7) {
-      const k = (bottom - y) / Math.max(1, bottom - top);
+    for (let y = top; y < bottom - 10; y += 7) {
+      const k = (y - top) / Math.max(1, bottom - top);
       ctx.fillStyle = `rgba(184,255,0,${(0.25 + 0.55 * k).toFixed(3)})`;
       ctx.fillRect(cx - 1.5, y, 3, 3);
     }
     ctx.strokeStyle = 'rgba(184,255,0,0.85)';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.moveTo(cx - 7, top + 9);
-    ctx.lineTo(cx, top + 1);
-    ctx.lineTo(cx + 7, top + 9);
+    ctx.moveTo(cx - 7, bottom - 9);
+    ctx.lineTo(cx, bottom - 1);
+    ctx.lineTo(cx + 7, bottom - 9);
     ctx.stroke();
     ctx.restore();
   }
