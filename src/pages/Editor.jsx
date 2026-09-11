@@ -85,6 +85,37 @@ export default function Editor() {
           </div>
         </div>
       </div>
+      {/* pływający pasek formatowania zaznaczonego tekstu (logika: editorLayer.js) */}
+      <div id="fiqFmt" role="toolbar" aria-label="Formatowanie zaznaczenia">
+        <div className="fiq-fmt-row">
+          <button type="button" className="fiq-fmt-btn fb-b" data-fmt="bold" title="Pogrubienie (Ctrl+B)">B</button>
+          <button type="button" className="fiq-fmt-btn fb-i" data-fmt="italic" title="Kursywa (Ctrl+I)">I</button>
+          <button type="button" className="fiq-fmt-btn fb-u" data-fmt="underline" title="Podkreślenie (Ctrl+U)">U</button>
+          <button type="button" className="fiq-fmt-btn fb-s" data-fmt="strike" title="Przekreślenie">S</button>
+          <span className="fiq-fmt-sep" />
+          <button type="button" className="fiq-fmt-btn fb-acid" data-fmt="acid" title="Kolor kwasowy">●</button>
+          <button type="button" className="fiq-fmt-btn fb-mark" data-fmt="mark" title="Podświetlenie">▮</button>
+          <button type="button" className="fiq-fmt-btn" data-fmt="upper" title="Wielkie litery">AA</button>
+          <button type="button" className="fiq-fmt-btn" data-fmt="small" title="Mniejszy tekst">A−</button>
+          <button type="button" className="fiq-fmt-btn" data-fmt="big" title="Większy tekst">A+</button>
+          <span className="fiq-fmt-sep" />
+          <button type="button" className="fiq-fmt-btn fb-w" data-panel="color" title="Dowolny kolor">Kolor</button>
+          <button type="button" className="fiq-fmt-btn fb-w" data-panel="size" title="Dowolny rozmiar">Rozmiar</button>
+          <button type="button" className="fiq-fmt-btn fb-w" data-panel="link" title="Link">Link</button>
+          <button type="button" className="fiq-fmt-btn fb-w" data-panel="css" title="Własny CSS dla zaznaczenia">CSS</button>
+          <span className="fiq-fmt-sep" />
+          <button type="button" className="fiq-fmt-btn del" data-fmt="clear" title="Wyczyść formatowanie">✕</button>
+        </div>
+        <div className="fiq-fmt-panel" id="fiqFmtPanel" hidden>
+          <div className="fiq-fmt-lab" id="fiqFmtLab"></div>
+          <div className="fiq-fmt-presets" id="fiqFmtPresets"></div>
+          <div className="fiq-fmt-inrow">
+            <input className="fiq-fmt-input" id="fiqFmtInput" autoComplete="off" spellCheck="false" />
+            <button type="button" className="fiq-btn primary" id="fiqFmtApply">Zastosuj</button>
+          </div>
+          <div className="fiq-fmt-hint" id="fiqFmtHint"></div>
+        </div>
+      </div>
       <div id="fiqBar" style={{ display: 'none' }}>
         <span className="fiq-brand">InfinitiQ · Edytor</span>
         <span className="fiq-tabs">

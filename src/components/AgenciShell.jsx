@@ -58,7 +58,7 @@ export default function AgenciShell() {
             <span className="hc-word" data-edit="ag_claim_3">Unique executed.</span>
           </div>
         </div>
-        <a href="/#audyt" data-wipe className="nav-cta"><span className="cta-full" data-edit="ag_nav_cta">Darmowy audyt AI</span><span className="cta-short" data-edit="ag_nav_cta_short">Audyt</span></a>
+        <a href="/#audyt" data-wipe className="nav-cta"><span className="cta-full" data-edit="ag_nav_cta">Darmowy audyt AI</span><span className="cta-short" data-edit="ag_nav_cta_short">{'Audyt\ndla Ciebie'}</span></a>
       </nav>
 
       {/* PROGRESS RAIL */}

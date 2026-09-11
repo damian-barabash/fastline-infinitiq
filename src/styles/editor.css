@@ -2747,3 +2747,39 @@ html.menu-open nav .nav-brand, html.menu-open nav .nav-cta, html.menu-open nav .
 @media (max-height: 900px) {
   #menuProducts .menu-link { font-size: 19px; padding: 6px 0; }
 }
+
+/* ===== 2026-09-11: formularz audytu — większy stepper i podpowiedź =====
+   Właściciel: „ten blok większy i wyższy, tekst pod polem większy" — PC i telefon.
+   Blok IDENTYCZNY w landing.css i editor.css. */
+.af-steps { gap: 14px; margin-bottom: 28px; }
+.af-step { gap: 10px; }
+.af-step + .af-step::before { width: 34px; margin-right: 4px; }
+.af-step-n { font-size: 14px; letter-spacing: 0.08em; padding: 7px 9px; }
+.af-step-t { font-size: 13.5px; letter-spacing: 0.14em; }
+.af-hint { font-size: 16px; line-height: 1.55; color: rgba(245,245,240,0.78); margin-top: 16px; }
+@media (max-width: 900px) {
+  .af-steps { gap: 10px; margin-bottom: 22px; }
+  .af-step { gap: 8px; }
+  .af-step + .af-step::before { width: 18px; margin-right: 2px; }
+  .af-step-n { font-size: 12.5px; padding: 6px 7px; }
+  .af-step-t { font-size: 12px; letter-spacing: 0.1em; }
+  .af-hint { font-size: 15px; }
+}
+
+/* ===== 2026-09-11: telefon — podpis pod CTA hero większy i grubszy ===== */
+@media (max-width: 900px) {
+  .hero-cta-note {
+    font-size: 13px; font-weight: 600; letter-spacing: 0.1em; line-height: 1.55;
+    color: var(--white); max-width: 100%;
+  }
+}
+
+/* ===== 2026-09-11: telefon — przycisk w nagłówku „Audyt dla Ciebie" =====
+   Dwa wiersze (znak nowej linii w tekście CMS + white-space: pre-line; stara
+   wersja strony skleja to w jedną linię), wyśrodkowane; claim pod logo
+   odrobinę węższy (1.55×), żeby nie dotykał szerszego przycisku. */
+@media (max-width: 900px) {
+  .nav-cta { padding: 7px 10px; font-size: 10px; letter-spacing: 0.08em; line-height: 1.3; text-align: center; }
+  .cta-short { display: inline-block; white-space: pre-line; }
+  .nav-brand { --nav-claim-k: 1.55; --nav-claim-w: 161px; }
+}

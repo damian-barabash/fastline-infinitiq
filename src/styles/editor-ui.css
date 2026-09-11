@@ -372,3 +372,68 @@
   }
   #fiqBar .fiq-page-select:focus { outline: 2px solid rgba(184,255,0,.5); outline-offset: 2px; }
   #fiqBar .fiq-page-select option { background: #141414; color: var(--white); }
+
+  /* ===== pasek formatowania zaznaczonego tekstu (2026-09-11) =====
+     Pojawia się nad zaznaczeniem w polu [data-edit]. Pogrubienie/kursywa idą przez
+     execCommand, reszta to <span data-fq style="…"> — czyli własny CSS dla kawałka
+     tekstu. Pole jednoliniowe dostaje `data-rich` i wchodzi do CMS jako html
+     (lista `_rich`), żeby strona wyrenderowała znaczniki, a nie ich tekst. */
+  #fiqFmt {
+    position: fixed; z-index: 7400; display: none; flex-direction: column; gap: 6px;
+    padding: 6px; background: rgba(14,14,14,0.97); border: 1px solid rgba(184,255,0,0.45);
+    border-radius: 12px; box-shadow: 0 14px 40px rgba(0,0,0,0.55), 0 0 0 1px rgba(0,0,0,0.6);
+    backdrop-filter: blur(10px); user-select: none;
+  }
+  #fiqFmt.show { display: flex; }
+  #fiqFmt::after {
+    content: ''; position: absolute; left: var(--ax, 50%); top: 100%; width: 10px; height: 10px;
+    background: rgba(14,14,14,0.97); border-right: 1px solid rgba(184,255,0,0.45); border-bottom: 1px solid rgba(184,255,0,0.45);
+    transform: translate(-50%, -5px) rotate(45deg);
+  }
+  #fiqFmt.below::after { top: auto; bottom: 100%; transform: translate(-50%, 5px) rotate(225deg); }
+  .fiq-fmt-row { display: flex; align-items: center; gap: 2px; }
+  .fiq-fmt-btn {
+    min-width: 30px; height: 30px; padding: 0 8px; display: flex; align-items: center; justify-content: center;
+    background: transparent; border: 1px solid transparent; border-radius: 7px; cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: .06em; text-transform: uppercase;
+    color: rgba(245,245,240,0.8); transition: .15s;
+  }
+  .fiq-fmt-btn:hover { background: rgba(184,255,0,0.12); color: var(--green); }
+  .fiq-fmt-btn.on { background: rgba(184,255,0,0.18); color: var(--green); border-color: rgba(184,255,0,0.4); }
+  .fiq-fmt-btn.fb-b { font-weight: 700; }
+  .fiq-fmt-btn.fb-i { font-style: italic; }
+  .fiq-fmt-btn.fb-u { text-decoration: underline; }
+  .fiq-fmt-btn.fb-s { text-decoration: line-through; }
+  .fiq-fmt-btn.fb-acid { color: var(--green); font-size: 16px; }
+  .fiq-fmt-btn.fb-mark { color: var(--black); background: var(--green); border-radius: 4px; height: 22px; min-width: 22px; margin: 0 4px; font-size: 10px; }
+  .fiq-fmt-btn.fb-mark:hover { box-shadow: 0 0 12px rgba(184,255,0,0.6); }
+  .fiq-fmt-btn.fb-w { font-size: 10.5px; letter-spacing: .1em; }
+  .fiq-fmt-btn.del { color: rgba(245,245,240,0.6); }
+  .fiq-fmt-btn.del:hover { background: rgba(255,84,112,0.16); color: #ff5470; }
+  .fiq-fmt-sep { width: 1px; height: 18px; background: rgba(245,245,240,0.14); margin: 0 4px; }
+  .fiq-fmt-panel {
+    border-top: 1px solid rgba(245,245,240,0.1); padding: 8px 4px 2px; width: 100%;
+  }
+  .fiq-fmt-panel[hidden] { display: none; }
+  .fiq-fmt-lab { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--green); margin-bottom: 8px; }
+  .fiq-fmt-presets { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+  .fiq-fmt-presets:empty { display: none; }
+  .fiq-fmt-chip {
+    display: inline-flex; align-items: center; gap: 6px; padding: 4px 9px; cursor: pointer;
+    font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: .06em;
+    color: rgba(245,245,240,0.8); background: rgba(255,255,255,0.03); border: 1px solid var(--mid); border-radius: 999px; transition: .15s;
+  }
+  .fiq-fmt-chip:hover { border-color: var(--green); color: var(--green); }
+  .fiq-fmt-chip i { width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.2); display: inline-block; }
+  .fiq-fmt-inrow { display: flex; gap: 8px; align-items: center; }
+  .fiq-fmt-input {
+    flex: 1 1 260px; min-width: 200px; padding: 8px 10px;
+    font-family: 'IBM Plex Mono', monospace; font-size: 12px; color: var(--white);
+    background: rgba(255,255,255,0.03); border: 1px solid var(--mid); border-radius: 8px; outline: none; user-select: text;
+  }
+  .fiq-fmt-input:focus { border-color: var(--green); }
+  #fiqFmt .fiq-btn { padding: 8px 14px; }
+  .fiq-fmt-hint { font-family: 'IBM Plex Mono', monospace; font-size: 10px; letter-spacing: .04em; color: var(--muted); margin-top: 6px; }
+  .fiq-fmt-hint:empty { display: none; }
+  /* podgląd znaczników w edytorze — subtelna kropkowana linia pod fragmentem z własnym stylem */
+  body.fiq-edit [data-edit] span[data-fq] { box-shadow: 0 1px 0 rgba(184,255,0,0.35); }

@@ -1430,3 +1430,10 @@ html.menu-open nav .nav-brand, html.menu-open nav .nav-cta, html.menu-open nav .
 .adv-widget .msg { margin-bottom: 6px; font-size: 12px; }
 .adv-widget .msg span { padding: 7px 11px; }
 .adv-widget .dm-chip { margin-top: 2px; padding: 6px 10px; font-size: 9px; }
+
+/* ===== 2026-09-11: telefon — przycisk w nagłówku „Audyt dla Ciebie" (jak na lądowaniu) ===== */
+@media (max-width: 900px) {
+  .nav-cta { padding: 7px 10px; font-size: 10px; letter-spacing: 0.08em; line-height: 1.3; text-align: center; }
+  .cta-short { display: inline-block; white-space: pre-line; }
+  .nav-brand { --nav-claim-k: 1.55; --nav-claim-w: 161px; }
+}

@@ -439,3 +439,16 @@
     .f-grid { grid-template-columns: 1fr; gap: 0; }
     footer { flex-direction: column; gap: 10px; padding: 24px 20px; text-align: center; }
   }
+
+  /* ===== 2026-09-11: telefon — formularz między nagłówkiem a listą kroków =====
+     `.contact-left` znika jako pudełko (display: contents), więc dzieci obu kolumn
+     leżą w jednej siatce i dostają kolejność: nagłówek → formularz → kroki → mail.
+     Odstępy siatki zerujemy, bo gap działałby też między etykietą a H1. */
+  @media (max-width: 1000px) {
+    main { gap: 0; }
+    .contact-left { display: contents; }
+    .contact-left .section-label, .contact-left h1, .contact-left .lead { order: 1; }
+    .form-card { order: 2; margin: 40px 0 0; }
+    .steps { order: 3; margin-top: 48px; }
+    .direct { order: 4; }
+  }

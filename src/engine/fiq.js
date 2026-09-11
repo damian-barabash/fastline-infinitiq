@@ -132,6 +132,60 @@ export function ensureFIQ() {
     });
   };
 
+  /* ===== Kolejność bloków `data-hideable` (`_order`) =====
+     Redaktor przesuwa bloki strzałkami; zapisujemy grupy rodzeństwa jako listy
+     kluczy w kolejności DOM: [["sec:audyt","sec:czym-jestesmy",…], ["faq:1",…]].
+     Przy odczycie wypełniamy TE SAME miejsca w rodzicu (inne dzieci, np. grań
+     `#start` bez klucza, zostają tam, gdzie były). Klucz, którego nie ma
+     w markupie, jest pomijany; nowy blok bez wpisu zostaje na swoim miejscu. */
+  FIQ.readOrder = () => {
+    const byParent = new Map();
+    document.querySelectorAll('[data-hideable]').forEach(el => {
+      const p = el.parentNode; if (!p) return;
+      if (!byParent.has(p)) byParent.set(p, []);
+      byParent.get(p).push(el.getAttribute('data-hideable'));
+    });
+    const out = [];
+    byParent.forEach(keys => { if (keys.length > 1) out.push(keys); });
+    return out;
+  };
+  const findKey = k => document.querySelector('[data-hideable="' + String(k).replace(/"/g, '\\"') + '"]');
+  FIQ.applyOrder = order => {
+    if (!Array.isArray(order)) return false;
+    let changed = false;
+    order.forEach(keys => {
+      if (!Array.isArray(keys)) return;
+      let els = keys.map(findKey).filter(Boolean);
+      if (els.length < 2) return;
+      const parent = els[0].parentNode;
+      els = els.filter(e => e.parentNode === parent);
+      if (els.length < 2) return;
+      const set = new Set(els);
+      const cur = Array.from(parent.children).filter(c => set.has(c));
+      if (cur.every((c, i) => c === els[i])) return;
+      // znaczniki trzymają „miejsca" — elementy przenosimy, znaczniki nie ruszają się
+      const marks = cur.map(c => { const m = document.createComment('fiq-order'); parent.insertBefore(m, c); return m; });
+      els.forEach((e, i) => { parent.insertBefore(e, marks[i]); });
+      marks.forEach(m => m.remove());
+      changed = true;
+    });
+    if (changed) FIQ.syncRail();
+    return changed;
+  };
+  /* Rail sekcji (ukryty, ale silnik mapuje go na granie po indeksie, a menu
+     bierze z niego podpisy): po zmianie kolejności grani ustawiamy jego
+     pozycje w tej samej kolejności. Pierwsze wywołanie zapamiętuje, która
+     pozycja należy do której grani — wtedy oba zbiory są jeszcze w kolejności z markupu. */
+  FIQ.syncRail = () => {
+    const rail = document.getElementById('rail'); if (!rail) return;
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const items = Array.from(rail.querySelectorAll('.rail-item'));
+    if (!items.length || items.length !== slides.length && !items[0].hasAttribute('data-slide')) return;
+    if (!items[0].hasAttribute('data-slide')) items.forEach((b, i) => b.setAttribute('data-slide', slides[i].id));
+    const byId = new Map(items.map(b => [b.getAttribute('data-slide'), b]));
+    slides.forEach((s, i) => { const b = byId.get(s.id); if (!b) return; rail.appendChild(b); b.dataset.i = String(i); });
+  };
+
   /* ===== Применение контента: flat-ключи + _lists + _hidden + _blocks =====
      opts.editor=true → скрытые элементы остаются видны (с классом fiq-hidden) для управления. */
   FIQ.applyContent = (content, opts) => {
@@ -139,14 +193,16 @@ export function ensureFIQ() {
     const ed = !!opts.editor;
     content = (content && typeof content === 'object') ? content : {};
 
-    // 1. Плоские ключи
+    // 1. Плоские ключи. `_rich` — pola jednoliniowe, w których redaktor użył
+    //    formatowania (pogrubienie, kolor, własny CSS): wchodzą jako html.
+    const rich = new Set(content._rich || []);
     document.querySelectorAll('[data-edit]').forEach(el => {
       const k = el.getAttribute('data-edit');
       if (k[0] === '_' || !(k in content)) return;
       const v = content[k]; if (v == null) return;
       const t = el.getAttribute('data-edit-type');
       if (t === 'image') { if (el.tagName === 'IMG' && v) el.src = v; }
-      else if (t === 'html') el.innerHTML = v;
+      else if (t === 'html' || rich.has(k)) { el.innerHTML = v; if (ed && t !== 'html') el.setAttribute('data-rich', ''); }
       else el.textContent = v;
     });
 
@@ -170,6 +226,10 @@ export function ensureFIQ() {
           if (arr[i] && arr[i].hidden) kids[i].classList.add('fiq-hidden');
       }
     });
+
+    // 3a. Kolejność bloków (przed ukrywaniem — kolejność dotyczy też ukrytych)
+    FIQ.syncRail();
+    FIQ.applyOrder(content._order);
 
     // 3. Скрываемые и удалённые одиночные элементы.
     //    Удалённые (`_removed`) в редакторе физически убираем из DOM — редактор

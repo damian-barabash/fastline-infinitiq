@@ -52,7 +52,7 @@ export default function LandingShell() {
             <span className="hc-word" data-edit="hero_claim_3">Unique executed.</span>
           </div>
         </div>
-        <a href="#audyt" data-goto="1" className="nav-cta"><span className="cta-full" data-edit="nav_cta_full">Darmowy audyt AI</span><span className="cta-short" data-edit="nav_cta_short">Audyt</span></a>
+        <a href="#audyt" data-goto="1" data-goto-id="audyt" className="nav-cta"><span className="cta-full" data-edit="nav_cta_full">Darmowy audyt AI</span><span className="cta-short" data-edit="nav_cta_short">{'Audyt\ndla Ciebie'}</span></a>
       </nav>
 
       {/* PROGRESS RAIL */}
@@ -104,37 +104,37 @@ export default function LandingShell() {
                   <div className="pl-gname" data-g="d">Operacje i zarządzanie</div>
                 </div>
                 <div className="pl-nodes" id="plNodes">
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="a" data-i="0">
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="a" data-i="0">
                     <div className="pl-top"><ProductIcon id={1} /><span className="pl-num">01</span></div>
                     <b className="pl-name">Fabryka Kontentu</b>
                     <i className="pl-desc">Copy i grafiki w tonie marki, z planem na miesiąc.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="a" data-i="1">
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="a" data-i="1">
                     <div className="pl-top"><ProductIcon id={2} /><span className="pl-num">02</span></div>
                     <b className="pl-name">SEO &amp; GEO Autopilot</b>
                     <i className="pl-desc">Auto-blog pod Google i widoczność w odpowiedziach AI.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="a" data-i="2">
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="a" data-i="2">
                     <div className="pl-top"><ProductIcon id={3} /><span className="pl-num">03</span></div>
                     <b className="pl-name">AI Reputation Guard</b>
                     <i className="pl-desc">Monitoring i obsługa opinii głosem marki.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="b" data-i="3">
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="b" data-i="3">
                     <div className="pl-top"><ProductIcon id={4} /><span className="pl-num">04</span></div>
                     <b className="pl-name">AI Łowca Leadów</b>
                     <i className="pl-desc">Autonomiczne pozyskiwanie leadów w wielu kanałach.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="b" data-i="4">
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="b" data-i="4">
                     <div className="pl-top"><ProductIcon id={5} /><span className="pl-num">05</span></div>
                     <b className="pl-name">AI CRM</b>
                     <i className="pl-desc">Więcej niż CRM: strategia relacji i kontrola 100% rozmów.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="b" data-i="5">
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="b" data-i="5">
                     <div className="pl-top"><ProductIcon id={6} /><span className="pl-num">06</span></div>
                     <b className="pl-name">AI Generator Ofert</b>
                     <i className="pl-desc">Oferta z briefu w minuty, z trackingiem i follow-upem.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="b" data-i="6">
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="b" data-i="6">
                     <div className="pl-top"><ProductIcon id={7} /><span className="pl-num">07</span></div>
                     <b className="pl-name">Loyalty Engine</b>
                     <i className="pl-desc">Własna aplikacja lojalnościowa z gamifikacją i AI push.</i>
@@ -154,22 +154,22 @@ export default function LandingShell() {
                     <b className="pl-name">AI Recepcja 24/7</b>
                     <i className="pl-desc">Odbiera telefon o każdej porze, umawia i pilnuje kalendarza.</i>
                   </a>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="d" data-i="10">
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="d" data-i="10">
                     <div className="pl-top"><ProductIcon id={11} /><span className="pl-num">11</span></div>
                     <b className="pl-name">AI Data Hub</b>
                     <i className="pl-desc">Rozmawiaj z danymi firmy: odpowiedź, wykres albo akcja.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="d" data-i="11">
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="d" data-i="11">
                     <div className="pl-top"><ProductIcon id={12} /><span className="pl-num">12</span></div>
                     <b className="pl-name">Inteligentny Magazyn</b>
                     <i className="pl-desc">AI przejmuje zakupy i stany magazynowe.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="d" data-i="12">
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="d" data-i="12">
                     <div className="pl-top"><ProductIcon id={13} /><span className="pl-num">13</span></div>
                     <b className="pl-name">Market Radar</b>
                     <i className="pl-desc">Wywiad rynkowy: konkurencja, popyt i warstwa cenowa.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="d" data-i="13">
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="d" data-i="13">
                     <div className="pl-top"><ProductIcon id={14} /><span className="pl-num">14</span></div>
                     <b className="pl-name">AI Project Manager</b>
                     <i className="pl-desc">Twój projekt manager AI.</i>
@@ -179,12 +179,12 @@ export default function LandingShell() {
                     <b className="pl-name">AI Asystent</b>
                     <i className="pl-desc">Baza wiedzy firmy: zespół pyta, asystent odpowiada.</i>
                   </a>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="d" data-i="15">
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="d" data-i="15">
                     <div className="pl-top"><ProductIcon id={16} /><span className="pl-num">16</span></div>
                     <b className="pl-name">Rekruter AI</b>
                     <i className="pl-desc">Od CV do pierwszego dnia: screening, ranking, rozmowa.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-g="d" data-i="16">
+                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="d" data-i="16">
                     <div className="pl-top"><ProductIcon id={17} /><span className="pl-num">17</span></div>
                     <b className="pl-name">AI Academy</b>
                     <i className="pl-desc">Onboarding, kursy, testy i certyfikaty z wiedzy firmy.</i>
@@ -193,7 +193,7 @@ export default function LandingShell() {
               </div>
 
               <div className="hero-actions rv rv5">
-                <a href="#audyt" className="btn-primary" data-goto="1" data-edit="hero_btn_primary">Darmowy audyt AI</a>
+                <a href="#audyt" className="btn-primary" data-goto="1" data-goto-id="audyt" data-edit="hero_btn_primary">Darmowy audyt AI</a>
                 <div className="hero-cta-note" data-hideable="hero:cta-note" data-hide-label="Hero — podpis pod CTA" data-edit="hero_cta_note" data-edit-type="html">Bezpłatna diagnoza · 3 minuty · konkretne rozwiązania i widełki cenowe</div>
               </div>
              </div>
@@ -488,7 +488,7 @@ export default function LandingShell() {
                 ile to kosztuje i co dokładnie zrobimy w pierwszym miesiącu. Bez prezentacji o transformacji cyfrowej.
               </p>
               <a href="/kontakt" data-wipe className="btn-primary rv rv4" data-edit="fin_btn">Umów briefing</a>
-              <a href="#audyt" className="cta-alt rv rv5" data-goto="1" data-hideable="fin:alt" data-hide-label="Kontakt — link do audytu" data-edit="fin_alt">Wolisz najpierw twarde dane? Odbierz darmowy audyt →</a>
+              <a href="#audyt" className="cta-alt rv rv5" data-goto="1" data-goto-id="audyt" data-hideable="fin:alt" data-hide-label="Kontakt — link do audytu" data-edit="fin_alt">Wolisz najpierw twarde dane? Odbierz darmowy audyt →</a>
               <div className="cta-note rv rv5" data-edit="fin_note">Odpowiadamy w ciągu 24 h roboczych</div>
             </div>
             <div className="footer-bar" data-hideable="fin:footer" data-hide-label="Stopka">

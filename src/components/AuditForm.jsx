@@ -200,7 +200,10 @@ export default function AuditForm() {
             />
             <button className="af-btn" type="submit">Dalej →</button>
           </div>
-          <p className="af-hint">Na ten adres wyślemy link do gotowego audytu. Bez newslettera.</p>
+          <p className="af-hint">
+            Wypełnij ten formularz, a <strong>w 3 minuty</strong> dostaniesz audyt swojej firmy: jak widzą ją
+            Google, modele AI i konkurencja. <strong>Bez newslettera</strong>, bez zobowiązań.
+          </p>
         </form>
       )}
 

@@ -33,6 +33,8 @@ export default function Agenci() {
         if (!alive) return;
         const published = rows && rows[0] && rows[0].published;
         if (published && window.FIQ) {
+          const slideIds = () => Array.from(document.querySelectorAll('.slide')).map((s) => s.id).join();
+          const before = slideIds();
           window.FIQ.applyContent(published, { editor: false });
 
           // Grań wyłączona w edytorze (`_hidden: "sec:<id>"`) dostaje display:none,
@@ -41,7 +43,8 @@ export default function Agenci() {
           // stawiamy silnik od nowa (jak na lądowaniu).
           const hiddenSlides = Array.from(document.querySelectorAll('.slide[data-hideable]'))
             .filter((el) => el.style.display === 'none');
-          if (hiddenSlides.length) {
+          // …albo gdy CMS przestawił granie (`_order`) — bęben mierzy ściany w kolejności DOM
+          if (hiddenSlides.length || slideIds() !== before) {
             destroy();
             const all = Array.from(document.querySelectorAll('.slide'));
             const rail = Array.from(document.querySelectorAll('.rail-item'));

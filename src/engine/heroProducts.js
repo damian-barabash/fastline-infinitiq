@@ -61,7 +61,7 @@ export function renderHeroProducts(rows) {
       // z kurtyną); reszta zostaje przyciskiem prowadzącym do sekcji audytu
       const open = href
         ? `<a class="pl-node has-page" href="${href}" data-wipe data-g="${g}" data-i="${i}" data-pid="${r.id}">`
-        : `<div class="pl-node" role="button" tabindex="0" data-goto="1" data-g="${g}" data-i="${i}" data-pid="${r.id}">`;
+        : `<div class="pl-node" role="button" tabindex="0" data-goto="1" data-goto-id="audyt" data-g="${g}" data-i="${i}" data-pid="${r.id}">`;
       const go = href ? '<i class="pl-go" aria-hidden="true">→</i>' : '';
       html += open
         + `<div class="pl-top">${iconSvgHtml(r.name, r.id)}<span class="pl-num">${pad(i + 1)}</span>${go}</div>`

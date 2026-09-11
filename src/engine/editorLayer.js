@@ -33,6 +33,15 @@ export function initEditorLayer({ sb, onRequireLogin, pageId = 'index' }) {
   const imgSrc = el => { const s = el.getAttribute('src') || ''; return s.indexOf('data:image/svg') === 0 ? '' : s; };
   const fromHTML = html => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
   const txt = (root, sel) => { const e = root.querySelector(sel); return e ? e.textContent.trim() : ''; };
+  // Pole html bywa jednocześnie blokiem `data-hideable` — wtedy siedzi w nim nasz
+  // tulbar (◉ ↑ ↓ ✕). Do CMS idzie treść BEZ niego, inaczej ikony lądują na stronie.
+  const cleanHtml = el => {
+    const c = el.cloneNode(true);
+    c.querySelectorAll('.fiq-tb, .fiq-add').forEach(n => n.remove());
+    // insertHTML zostawia &nbsp; przy wstawionym znaczniku — pojedynczy między
+    // słowami wraca do zwykłej spacji, inaczej tekst nie łamałby się w tym miejscu
+    return c.innerHTML.trim().replace(/(\S)&nbsp;(?=\S)/g, '$1 ');
+  };
 
   /* ===== Сбор контента: flat + _lists + _hidden + _blocks ===== */
   function readBlock(block) {
@@ -53,13 +62,21 @@ export function initEditorLayer({ sb, onRequireLogin, pageId = 'index' }) {
   }
   function collect() {
     const o = {};
+    const rich = [];
     document.querySelectorAll('[data-edit]').forEach(el => {
       if (el.closest('[data-list]') || el.closest('[data-zone]')) return; // динамику собираем отдельно
       const k = el.getAttribute('data-edit'), t = el.getAttribute('data-edit-type');
       if (t === 'image') o[k] = el.tagName === 'IMG' ? (el.getAttribute('src') || '') : '';
-      else if (t === 'html') o[k] = el.innerHTML.trim();
+      else if (t === 'html') o[k] = cleanHtml(el);
+      else if (el.hasAttribute('data-rich')) {
+        // pole jednoliniowe z formatowaniem: html + wpis w `_rich`; bez znaczników wraca do tekstu
+        const h = cleanHtml(el);
+        if (/<[a-z]/i.test(h)) { o[k] = h; rich.push(k); }
+        else { o[k] = el.textContent.trim(); el.removeAttribute('data-rich'); }
+      }
       else o[k] = el.textContent.trim();
     });
+    o._rich = rich;
     const lists = {};
     document.querySelectorAll('[data-list]').forEach(cont => {
       const name = cont.getAttribute('data-list');
@@ -76,6 +93,7 @@ export function initEditorLayer({ sb, onRequireLogin, pageId = 'index' }) {
     o._hidden = hid;
     // usunięte bloki nie istnieją już w DOM — lista pamięta je za nas
     o._removed = Array.from(removedKeys);
+    o._order = FIQ.readOrder();
     const blocks = {};
     document.querySelectorAll('[data-zone]').forEach(zone => {
       blocks[zone.getAttribute('data-zone')] = Array.from(zone.querySelectorAll(':scope > .fb')).map(readBlock);
@@ -106,8 +124,13 @@ export function initEditorLayer({ sb, onRequireLogin, pageId = 'index' }) {
     if (el.tagName === 'A') el.addEventListener('click', e => e.preventDefault());
     el.addEventListener('keydown', e => {
       if (e.key !== 'Enter') return;
-      // pola jednoliniowe: Enter kończy edycję
-      if (el.getAttribute('data-edit-type') !== 'html') { e.preventDefault(); el.blur(); return; }
+      // pola jednoliniowe: Enter kończy edycję; Shift+Enter wstawia znak nowej linii
+      // (widać go tam, gdzie CSS ma `white-space: pre-line`, np. krótki CTA w nagłówku)
+      if (el.getAttribute('data-edit-type') !== 'html') {
+        e.preventDefault();
+        if (e.shiftKey) document.execCommand('insertText', false, '\n'); else el.blur();
+        return;
+      }
       // pola wieloliniowe: łamiemy wiersz przez <br>. Domyślnie przeglądarka
       // wstawia tu <div>, co rozjeżdża odstępy i trafia do CMS jako śmieć.
       e.preventDefault();
@@ -152,9 +175,37 @@ export function initEditorLayer({ sb, onRequireLogin, pageId = 'index' }) {
     tb.appendChild(delBtn(item, (p) => renumber(p)));
     item.appendChild(tb);
   }
+  /* Blok `data-hideable` można przesuwać wśród RODZEŃSTWA tego samego rodzaju
+     (grań wśród grani, karta agenta wśród kart, pytanie FAQ wśród pytań).
+     Kolejność trafia do CMS jako `_order` (FIQ.readOrder) i wraca w applyContent —
+     markup jest statycznym snapshotem, więc bez tego strona wróciłaby do
+     kolejności z kodu po odświeżeniu. Strzałki pojawiają się tylko tam, gdzie
+     jest z czym się zamienić. */
+  function sibHideable(el, dir) {
+    let n = dir < 0 ? el.previousElementSibling : el.nextElementSibling;
+    while (n && !n.hasAttribute('data-hideable')) {
+      // pomijamy tylko nasze przyciski/strefy; obce elementy zatrzymują ruch
+      if (n.matches('.fiq-add, .fiq-blocks')) { n = dir < 0 ? n.previousElementSibling : n.nextElementSibling; continue; }
+      return null;
+    }
+    return n;
+  }
+  function moveHideable(el, dir) {
+    const other = sibHideable(el, dir);
+    if (!other) return;
+    if (dir < 0) el.parentNode.insertBefore(el, other);
+    else el.parentNode.insertBefore(other, el);
+    FIQ.syncRail && FIQ.syncRail();
+    checkDirty();
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
   function addHideTb(el) {
     if (el.querySelector(':scope > .fiq-tb')) return;
     const tb = document.createElement('span'); tb.className = 'fiq-tb';
+    if (sibHideable(el, -1) || sibHideable(el, 1)) {
+      tb.appendChild(tbi('↑', 'W górę', () => moveHideable(el, -1)));
+      tb.appendChild(tbi('↓', 'W dół', () => moveHideable(el, 1)));
+    }
     tb.appendChild(tbi('◉', 'Ukryj / pokaż', s2 => { el.classList.toggle('fiq-hidden'); s2.classList.toggle('on', el.classList.contains('fiq-hidden')); checkDirty(); }));
     tb.appendChild(delBtn(el));
     el.appendChild(tb);
@@ -284,6 +335,258 @@ export function initEditorLayer({ sb, onRequireLogin, pageId = 'index' }) {
       checkDirty();
     }, 'del');
   }
+
+  /* ===== Pasek formatowania zaznaczonego tekstu =====
+     Działa w polach [data-edit] (płaskie klucze CMS). Pola list/bloków ([data-f])
+     są celowo pominięte — ich szablony escapują html i znaczniki wyszłyby tekstem.
+     B/I/U/S → execCommand (toggle działa w obie strony); wszystko inne →
+     <span data-fq style="…"> wokół zaznaczenia (własny CSS dla kawałka tekstu). */
+  const fmt = $('fiqFmt');
+  const fmtPanel = $('fiqFmtPanel'), fmtLab = $('fiqFmtLab'), fmtPresets = $('fiqFmtPresets');
+  const fmtInput = $('fiqFmtInput'), fmtApply = $('fiqFmtApply'), fmtHint = $('fiqFmtHint');
+  let fmtRange = null;      // zaznaczenie zapamiętane, bo klik w input je zabiera
+  let fmtHost = null;       // pole [data-edit], w którym trwa formatowanie
+  let fmtPanelKind = null;
+
+  const PANELS = {
+    color: {
+      lab: 'Kolor tekstu', ph: '#B8FF00 albo rgba(245,245,240,.6)',
+      presets: [['kwas', '#B8FF00'], ['biały', '#F5F5F0'], ['przygaszony', 'rgba(245,245,240,0.6)'], ['pomarańcz', '#FF7A18'], ['czerwony', '#FF5470']],
+      apply: v => ({ color: v }),
+    },
+    size: {
+      lab: 'Rozmiar tekstu', ph: '18px, 1.2em, 120%',
+      presets: [['mały', '0.8em'], ['normalny', '1em'], ['duży', '1.25em'], ['bardzo duży', '1.6em'], ['16px', '16px'], ['24px', '24px'], ['32px', '32px']],
+      apply: v => ({ 'font-size': /^\d+(\.\d+)?$/.test(v) ? v + 'px' : v }),
+    },
+    link: {
+      lab: 'Adres linku', ph: 'https://… albo /kontakt', hint: 'Pusty adres = usuń link.',
+      presets: [['/kontakt', '/kontakt'], ['/agenci-ai', '/agenci-ai'], ['/#audyt', '/#audyt']],
+    },
+    css: {
+      lab: 'Własny CSS tego fragmentu', ph: 'letter-spacing: .12em; text-transform: uppercase; color: #B8FF00',
+      hint: 'Deklaracje CSS rozdzielone średnikiem — trafiają do atrybutu style tego kawałka tekstu.',
+      presets: [['odstępy liter', 'letter-spacing: .12em'], ['mono', "font-family: 'IBM Plex Mono', monospace"], ['display', "font-family: 'Space Grotesk', sans-serif; font-weight: 700; text-transform: uppercase"], ['poświata', 'text-shadow: 0 0 14px rgba(184,255,0,.6)'], ['obramowanie', 'border: 1px solid #B8FF00; padding: 0 .3em']],
+    },
+  };
+
+  const editHost = node => {
+    const el = node && (node.nodeType === 3 ? node.parentNode : node);
+    return el && el.closest ? el.closest('[data-edit][contenteditable="true"]') : null;
+  };
+  function currentRange() {
+    const sel = window.getSelection();
+    if (!sel || !sel.rangeCount || sel.isCollapsed) return null;
+    const r = sel.getRangeAt(0);
+    const host = editHost(r.commonAncestorContainer);
+    if (!host || editHost(r.startContainer) !== host || editHost(r.endContainer) !== host) return null;
+    return r;
+  }
+  function placeFmt(r) {
+    const rect = r.getBoundingClientRect();
+    if (!rect.width && !rect.height) return;
+    fmt.classList.add('show');
+    const w = fmt.offsetWidth, h = fmt.offsetHeight;
+    let top = rect.top - h - 12, below = false;
+    if (top < 8) { top = rect.bottom + 12; below = true; }
+    const cx = rect.left + rect.width / 2;
+    const left = Math.max(8, Math.min(cx - w / 2, innerWidth - w - 8));
+    fmt.style.left = left + 'px'; fmt.style.top = top + 'px';
+    fmt.style.setProperty('--ax', Math.max(14, Math.min(cx - left, w - 14)) + 'px');
+    fmt.classList.toggle('below', below);
+  }
+  function syncFmtState() {
+    const q = c => { try { return document.queryCommandState(c); } catch (_) { return false; } };
+    fmt.querySelector('[data-fmt="bold"]').classList.toggle('on', q('bold'));
+    fmt.querySelector('[data-fmt="italic"]').classList.toggle('on', q('italic'));
+    fmt.querySelector('[data-fmt="underline"]').classList.toggle('on', q('underline'));
+    fmt.querySelector('[data-fmt="strike"]').classList.toggle('on', q('strikeThrough'));
+  }
+  function hideFmt() { fmt.classList.remove('show'); closeFmtPanel(); fmtRange = null; fmtHost = null; }
+  function onSelection() {
+    if (fmtPanelKind) return;                 // otwarty panel: input zabiera zaznaczenie, nie chowamy
+    const r = currentRange();
+    if (!r) { if (fmt.classList.contains('show')) hideFmt(); return; }
+    fmtRange = r.cloneRange(); fmtHost = editHost(r.commonAncestorContainer);
+    placeFmt(r); syncFmtState();
+  }
+  document.addEventListener('selectionchange', onSelection, { signal });
+  addEventListener('scroll', () => { if (fmt.classList.contains('show') && fmtRange) placeFmt(fmtRange); }, { signal, passive: true });
+  addEventListener('resize', () => { if (fmt.classList.contains('show') && fmtRange) placeFmt(fmtRange); }, { signal });
+  document.addEventListener('mousedown', e => { if (fmt.classList.contains('show') && !fmt.contains(e.target) && !editHost(e.target)) hideFmt(); }, { signal });
+
+  function restoreRange() {
+    if (!fmtRange) return false;
+    const sel = window.getSelection();
+    sel.removeAllRanges(); sel.addRange(fmtRange);
+    return true;
+  }
+  function markRich() {
+    if (fmtHost && fmtHost.getAttribute('data-edit-type') !== 'html') fmtHost.setAttribute('data-rich', '');
+  }
+  const escAttr = v => String(v).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  const cleanCss = v => String(v || '').replace(/[<>"{}]/g, '').replace(/\s+/g, ' ').trim().replace(/;\s*$/, '');
+  const fragHtml = r => { const d = document.createElement('div'); d.appendChild(r.cloneContents()); d.querySelectorAll('.fiq-tb').forEach(n => n.remove()); return d.innerHTML; };
+  /** Zaznaczenie w całości = istniejący <span data-fq>? Wtedy zmieniamy jego styl zamiast zagnieżdżać. */
+  function wholeSpan(r) {
+    const el = editHost(r.commonAncestorContainer) ? (r.commonAncestorContainer.nodeType === 3 ? r.commonAncestorContainer.parentNode : r.commonAncestorContainer) : null;
+    const sp = el && el.closest('span[data-fq]');
+    return sp && fmtHost && fmtHost.contains(sp) && sp.textContent === r.toString() ? sp : null;
+  }
+  function selectNode(n) {
+    const sel = window.getSelection(); const r = document.createRange();
+    r.selectNodeContents(n); sel.removeAllRanges(); sel.addRange(r);
+    fmtRange = r.cloneRange();
+  }
+  /** Owija zaznaczenie w <span data-fq style="…"> (albo dopisuje styl do istniejącego). */
+  function styleSelection(decl) {
+    if (!restoreRange()) return;
+    const r = window.getSelection().getRangeAt(0);
+    const sp = wholeSpan(r);
+    if (sp) { Object.keys(decl).forEach(k => sp.style.setProperty(k, decl[k])); selectNode(sp); }
+    else {
+      const css = Object.keys(decl).map(k => k + ': ' + decl[k]).join('; ');
+      const id = 'fq' + Date.now();
+      document.execCommand('insertHTML', false, `<span data-fq data-fqid="${id}" style="${escAttr(css)}">${fragHtml(r)}</span>`);
+      const node = fmtHost.querySelector(`[data-fqid="${id}"]`);
+      if (node) { node.removeAttribute('data-fqid'); selectNode(node); }
+    }
+    markRich(); checkDirty();
+    if (fmtRange) { placeFmt(fmtRange); syncFmtState(); }
+  }
+  function rawStyleSelection(cssText) {
+    if (!restoreRange()) return;
+    const r = window.getSelection().getRangeAt(0);
+    const sp = wholeSpan(r);
+    if (sp) { sp.setAttribute('style', (sp.getAttribute('style') ? sp.getAttribute('style').replace(/;\s*$/, '') + '; ' : '') + cssText); selectNode(sp); }
+    else {
+      const id = 'fq' + Date.now();
+      document.execCommand('insertHTML', false, `<span data-fq data-fqid="${id}" style="${escAttr(cssText)}">${fragHtml(r)}</span>`);
+      const node = fmtHost.querySelector(`[data-fqid="${id}"]`);
+      if (node) { node.removeAttribute('data-fqid'); selectNode(node); }
+    }
+    markRich(); checkDirty();
+    if (fmtRange) { placeFmt(fmtRange); syncFmtState(); }
+  }
+  function linkSelection(href) {
+    if (!restoreRange()) return;
+    const r = window.getSelection().getRangeAt(0);
+    const el = r.commonAncestorContainer.nodeType === 3 ? r.commonAncestorContainer.parentNode : r.commonAncestorContainer;
+    const a = el.closest && el.closest('a');
+    if (a && fmtHost.contains(a) && a !== fmtHost) {
+      if (!href) { const f = document.createDocumentFragment(); while (a.firstChild) f.appendChild(a.firstChild); a.replaceWith(f); }
+      else { a.setAttribute('href', href); selectNode(a); }
+    } else if (href) {
+      const id = 'fq' + Date.now();
+      document.execCommand('insertHTML', false, `<a href="${escAttr(href)}" data-fqid="${id}">${fragHtml(r)}</a>`);
+      const node = fmtHost.querySelector(`[data-fqid="${id}"]`);
+      if (node) { node.removeAttribute('data-fqid'); node.addEventListener('click', ev => ev.preventDefault()); selectNode(node); }
+    }
+    markRich(); checkDirty();
+    if (fmtRange) { placeFmt(fmtRange); syncFmtState(); }
+  }
+  /** Czyści formatowanie: zostaje tekst i <br>. */
+  function clearSelection() {
+    if (!restoreRange()) return;
+    const r = window.getSelection().getRangeAt(0);
+    const sp = wholeSpan(r);
+    const plain = n => {
+      if (n.nodeType === 3) return n.textContent.replace(/&/g, '&amp;').replace(/</g, '&lt;');
+      if (n.nodeType !== 1) return '';
+      if (n.tagName === 'BR') return '<br>';
+      if (n.classList && n.classList.contains('fiq-tb')) return '';
+      return Array.from(n.childNodes).map(plain).join('');
+    };
+    const target = sp || r;
+    const html = sp ? Array.from(sp.childNodes).map(plain).join('') : Array.from(r.cloneContents().childNodes).map(plain).join('');
+    if (sp) selectNode(sp);
+    document.execCommand('insertHTML', false, html || ' ');
+    checkDirty();
+    hideFmt();
+  }
+  function execToggle(cmd) {
+    if (!restoreRange()) return;
+    try { document.execCommand('styleWithCSS', false, false); } catch (_) {}
+    document.execCommand(cmd, false, null);
+    const sel = window.getSelection();
+    if (sel.rangeCount) fmtRange = sel.getRangeAt(0).cloneRange();
+    markRich(); checkDirty();
+    if (fmtRange) { placeFmt(fmtRange); syncFmtState(); }
+  }
+
+  const QUICK = {
+    bold: () => execToggle('bold'), italic: () => execToggle('italic'),
+    underline: () => execToggle('underline'), strike: () => execToggle('strikeThrough'),
+    acid: () => styleSelection({ color: '#B8FF00' }),
+    mark: () => styleSelection({ background: '#B8FF00', color: '#0D0D0D', padding: '0 0.25em' }),
+    upper: () => styleSelection({ 'text-transform': 'uppercase', 'letter-spacing': '0.08em' }),
+    small: () => styleSelection({ 'font-size': '0.8em' }),
+    big: () => styleSelection({ 'font-size': '1.3em' }),
+    clear: () => clearSelection(),
+  };
+  function openFmtPanel(kind) {
+    const P = PANELS[kind]; if (!P) return;
+    fmtPanelKind = kind;
+    fmtLab.textContent = P.lab; fmtInput.placeholder = P.ph || ''; fmtInput.value = '';
+    fmtHint.textContent = P.hint || '';
+    fmtPresets.innerHTML = '';
+    (P.presets || []).forEach(([name, val]) => {
+      const c = document.createElement('span'); c.className = 'fiq-fmt-chip';
+      if (kind === 'color') { const i = document.createElement('i'); i.style.background = val; c.appendChild(i); }
+      c.appendChild(document.createTextNode(name)); c.title = val;
+      c.addEventListener('mousedown', e => e.preventDefault());
+      c.addEventListener('click', () => { fmtInput.value = val; applyFmtPanel(); });
+      fmtPresets.appendChild(c);
+    });
+    // wartość z istniejącego spana — żeby dało się poprawić, nie tylko dopisać
+    if (fmtRange) {
+      const sp = wholeSpan(fmtRange);
+      if (sp) {
+        if (kind === 'css') fmtInput.value = sp.getAttribute('style') || '';
+        if (kind === 'color') fmtInput.value = sp.style.color || '';
+        if (kind === 'size') fmtInput.value = sp.style.fontSize || '';
+      }
+      if (kind === 'link') {
+        const el = fmtRange.commonAncestorContainer.nodeType === 3 ? fmtRange.commonAncestorContainer.parentNode : fmtRange.commonAncestorContainer;
+        const a = el.closest && el.closest('a'); if (a && a !== fmtHost) fmtInput.value = a.getAttribute('href') || '';
+      }
+    }
+    fmt.querySelectorAll('[data-panel]').forEach(b => b.classList.toggle('on', b.dataset.panel === kind));
+    fmtPanel.hidden = false;
+    if (fmtRange) placeFmt(fmtRange);
+    setTimeout(() => fmtInput.focus(), 20);
+  }
+  function closeFmtPanel() {
+    fmtPanelKind = null; fmtPanel.hidden = true;
+    fmt.querySelectorAll('[data-panel]').forEach(b => b.classList.remove('on'));
+  }
+  function applyFmtPanel() {
+    const kind = fmtPanelKind; const v = fmtInput.value.trim();
+    if (!kind) return;
+    if (kind === 'link') linkSelection(v.replace(/["<>]/g, ''));
+    else if (kind === 'css') { const c = cleanCss(v); if (c) rawStyleSelection(c); }
+    else if (v) { const d = PANELS[kind].apply(v.replace(/["<>;]/g, '')); styleSelection(d); }
+    closeFmtPanel();
+    if (fmtRange) placeFmt(fmtRange);
+  }
+  fmt.addEventListener('mousedown', e => { if (e.target.closest('button, .fiq-fmt-chip')) e.preventDefault(); }, { signal }); // nie zabieraj zaznaczenia
+  fmt.addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return;
+    e.preventDefault();
+    if (b.dataset.fmt) { closeFmtPanel(); QUICK[b.dataset.fmt] && QUICK[b.dataset.fmt](); }
+    else if (b.dataset.panel) { if (fmtPanelKind === b.dataset.panel) closeFmtPanel(); else openFmtPanel(b.dataset.panel); }
+  }, { signal });
+  fmtApply.addEventListener('click', applyFmtPanel, { signal });
+  fmtInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter') { e.preventDefault(); applyFmtPanel(); }
+    if (e.key === 'Escape') { e.preventDefault(); closeFmtPanel(); restoreRange(); }
+  }, { signal });
+  // skróty w polu: Ctrl/Cmd+B/I/U — przeglądarka zrobiłaby to sama, ale bez `data-rich`
+  document.addEventListener('keydown', e => {
+    if (!(e.ctrlKey || e.metaKey) || !fmtHost) return;
+    const k = e.key.toLowerCase();
+    if (k === 'b' || k === 'i' || k === 'u') { e.preventDefault(); onSelection(); QUICK[k === 'b' ? 'bold' : k === 'i' ? 'italic' : 'underline'](); }
+  }, { signal });
 
   /* ===== Палитра блоков ===== */
   const pal = $('fiqPal'), palGrid = $('fiqPalGrid');
@@ -437,6 +740,7 @@ export function initEditorLayer({ sb, onRequireLogin, pageId = 'index' }) {
   return function destroy() {
     destroyed = true;
     ac.abort();
+    if (fmt) fmt.classList.remove('show');
     clearTimeout(showToast._t);
     document.body.classList.remove('fiq-edit');
   };

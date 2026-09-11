@@ -128,8 +128,14 @@ export function initLanding({ onNavigate }) {
   railItems.forEach(b => b.addEventListener('click', () => goTo(+b.dataset.i), { signal }));
   const closeMenu = initMenu({ signal, goTo });
   document.getElementById('navHome').addEventListener('click', e => { e.preventDefault(); goTo(0); }, { signal });
+  // `data-goto-id="audyt"` celuje w grań po id — numery (`data-goto`) przestają
+  // być prawdą, gdy CMS ukrywa albo przestawia sekcje; numer zostaje fallbackiem.
   document.querySelectorAll('[data-goto]').forEach(a => {
-    a.addEventListener('click', e => { e.preventDefault(); goTo(+a.dataset.goto); }, { signal });
+    a.addEventListener('click', e => {
+      e.preventDefault();
+      const byId = a.dataset.gotoId ? slides.findIndex(s => s.id === a.dataset.gotoId) : -1;
+      goTo(byId >= 0 ? byId : +a.dataset.goto);
+    }, { signal });
   });
 
   function setActive(idx) {
