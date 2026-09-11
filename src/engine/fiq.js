@@ -188,6 +188,21 @@ export function ensureFIQ() {
 
   /* ===== Применение контента: flat-ключи + _lists + _hidden + _blocks =====
      opts.editor=true → скрытые элементы остаются видны (с классом fiq-hidden) для управления. */
+  /* Sprzątanie wartości z CMS: w bazie siedzą wpisy zapisane starą wersją edytora,
+     w których został jego tulbar — jako znaczniki (`.fiq-tb`) albo, w polach
+     tekstowych, jako gołe „◉✕". Na stronie to wygląda jak literówka, której nie
+     da się skasować, więc czyścimy przy renderze, nie tylko przy zapisie. */
+  const TB_GLYPHS = /[\s\u00a0]*(?:[◉✕][\s\u00a0]*)+$/;
+  const cleanCmsText = v => String(v).replace(TB_GLYPHS, '');
+  const cleanCmsHtml = v => {
+    const str = String(v);
+    if (str.indexOf('fiq-tb') < 0 && str.indexOf('fiq-add') < 0 && !TB_GLYPHS.test(str)) return str;
+    const t = document.createElement('div');
+    t.innerHTML = str;
+    t.querySelectorAll('.fiq-tb, .fiq-add').forEach(n => n.remove());
+    return t.innerHTML.replace(TB_GLYPHS, '');
+  };
+
   FIQ.applyContent = (content, opts) => {
     opts = opts || {};
     const ed = !!opts.editor;
@@ -202,12 +217,22 @@ export function ensureFIQ() {
       const v = content[k]; if (v == null) return;
       const t = el.getAttribute('data-edit-type');
       if (t === 'image') { if (el.tagName === 'IMG' && v) el.src = v; }
-      else if (t === 'html' || rich.has(k)) { el.innerHTML = v; if (ed && t !== 'html') el.setAttribute('data-rich', ''); }
-      else el.textContent = v;
+      else if (t === 'html' || rich.has(k)) { el.innerHTML = cleanCmsHtml(v); if (ed && t !== 'html') el.setAttribute('data-rich', ''); }
+      else el.textContent = cleanCmsText(v);
     });
 
     // 2. Повторяемые списки
-    const lists = content._lists || {};
+    // listy i bloki lecą do szablonów, które escapują html — tam wystarczy tekst
+    const scrub = o => {
+      if (!o || typeof o !== 'object') return o;
+      const out = Array.isArray(o) ? [] : {};
+      Object.keys(o).forEach(k2 => {
+        const val = o[k2];
+        out[k2] = typeof val === 'string' ? cleanCmsHtml(val) : (val && typeof val === 'object' ? scrub(val) : val);
+      });
+      return out;
+    };
+    const lists = scrub(content._lists || {});
     document.querySelectorAll('[data-list]').forEach(cont => {
       const name = cont.getAttribute('data-list');
       const arr = lists[name];
@@ -265,7 +290,7 @@ export function ensureFIQ() {
 
     // 4. Вставленные блоки
     FIQ.ensureZones();
-    const blocks = content._blocks || {};
+    const blocks = scrub(content._blocks || {});
     document.querySelectorAll('[data-zone]').forEach(zone => {
       const arr = blocks[zone.getAttribute('data-zone')];
       if (!Array.isArray(arr)) { zone.innerHTML = ''; return; }

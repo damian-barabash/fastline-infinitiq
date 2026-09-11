@@ -47,8 +47,18 @@ export function initAgenci({ onNavigate }) {
   const ring = document.getElementById('cursorRing');
   let rx = vw / 2, ry = vh / 2;
   const CLICKABLE = 'a, button, summary, .team-card, .dm-tab, .rail-item';
+  /* Kursor na kwasowym tle: kwasowa kropka i pierścień na zieleni znikają,
+     więc nad takimi blokami przełączamy je na czarne (2026-09-11, właściciel).
+     Jedna lista selektorów dla wszystkich stron — te same klasy wracają. */
+  const ACID = '.model-panel, .ag-final, .btn-primary, .btn-send, .nav-cta, .menu-cta,'
+    + ' .af-btn, .af-btn-a, .wh-cta, .fb-cta-btn, .pill.on, .cta-slide-inner .btn-primary';
+  const markAcid = (el) => {
+    const on = !!(el && el.closest && el.closest(ACID));
+    dot.classList.toggle('acid', on); ring.classList.toggle('acid', on);
+  };
   if (!COARSE) {
     document.addEventListener('mouseover', (e) => {
+      markAcid(e.target);
       if (e.target.closest(CLICKABLE)) { ring.classList.add('link'); dot.classList.add('link'); }
     }, { signal });
     document.addEventListener('mouseout', (e) => {

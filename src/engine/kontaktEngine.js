@@ -52,7 +52,17 @@ export function initKontakt({ onNavigate }) {
   const ring = document.getElementById('cursorRing');
   let rx = vw / 2, ry = vh / 2;
   if (!FLAT) {
+  /* Kursor na kwasowym tle: kwasowa kropka i pierścień na zieleni znikają,
+     więc nad takimi blokami przełączamy je na czarne (2026-09-11, właściciel).
+     Jedna lista selektorów dla wszystkich stron — te same klasy wracają. */
+  const ACID = '.model-panel, .ag-final, .btn-primary, .btn-send, .nav-cta, .menu-cta,'
+    + ' .af-btn, .af-btn-a, .wh-cta, .fb-cta-btn, .pill.on, .cta-slide-inner .btn-primary';
+  const markAcid = (el) => {
+    const on = !!(el && el.closest && el.closest(ACID));
+    dot.classList.toggle('acid', on); ring.classList.toggle('acid', on);
+  };
     document.addEventListener('mouseover', e => {
+      markAcid(e.target);
       if (e.target.closest('a, button, input, textarea, [contenteditable="true"]')) ring.classList.add('link');
     }, { signal });
     document.addEventListener('mouseout', e => {

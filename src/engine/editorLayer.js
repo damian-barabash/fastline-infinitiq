@@ -32,27 +32,29 @@ export function initEditorLayer({ sb, onRequireLogin, pageId = 'index' }) {
   // src плейсхолдера → пустая строка (чтобы не сохранять data-uri как картинку)
   const imgSrc = el => { const s = el.getAttribute('src') || ''; return s.indexOf('data:image/svg') === 0 ? '' : s; };
   const fromHTML = html => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
-  const txt = (root, sel) => { const e = root.querySelector(sel); return e ? e.textContent.trim() : ''; };
+  const txt = (root, sel) => { const e = root.querySelector(sel); return e ? bare(e).textContent.trim() : ''; };
   // Pole html bywa jednocześnie blokiem `data-hideable` — wtedy siedzi w nim nasz
   // tulbar (◉ ↑ ↓ ✕). Do CMS idzie treść BEZ niego, inaczej ikony lądują na stronie.
-  const cleanHtml = el => {
-    const c = el.cloneNode(true);
-    c.querySelectorAll('.fiq-tb, .fiq-add').forEach(n => n.remove());
+  // ⚠️ Klon BEZ tulbara — i dla html, i dla zwykłego tekstu. `textContent` bloku,
+  // który jest jednocześnie `data-hideable`, zawiera „◉✕" z naszych przycisków;
+  // tak właśnie ikony trafiały do CMS i wychodziły na stronę (2026-09-11).
+  const bare = el => { const c = el.cloneNode(true); c.querySelectorAll('.fiq-tb, .fiq-add, .pl-cmshint').forEach(n => n.remove()); return c; };
+  const cleanHtml = el =>
     // insertHTML zostawia &nbsp; przy wstawionym znaczniku — pojedynczy między
     // słowami wraca do zwykłej spacji, inaczej tekst nie łamałby się w tym miejscu
-    return c.innerHTML.trim().replace(/(\S)&nbsp;(?=\S)/g, '$1 ');
-  };
+    bare(el).innerHTML.trim().replace(/(\S)&nbsp;(?=\S)/g, '$1 ');
+  const cleanText = el => bare(el).textContent.trim();
 
   /* ===== Сбор контента: flat + _lists + _hidden + _blocks ===== */
   function readBlock(block) {
     const type = block.getAttribute('data-block-type');
     const data = {};
-    block.querySelectorAll('[data-f]').forEach(e => { if (!e.closest('.fb-item')) data[e.getAttribute('data-f')] = e.textContent.trim(); });
+    block.querySelectorAll('[data-f]').forEach(e => { if (!e.closest('.fb-item')) data[e.getAttribute('data-f')] = cleanText(e); });
     block.querySelectorAll('[data-fimg]').forEach(e => { if (!e.closest('.fb-item')) data[e.getAttribute('data-fimg')] = imgSrc(e); });
     block.querySelectorAll('[data-items]').forEach(listEl => {
       data[listEl.getAttribute('data-items')] = Array.from(listEl.querySelectorAll(':scope > .fb-item')).map(it => {
         const o = {};
-        it.querySelectorAll('[data-f]').forEach(e => o[e.getAttribute('data-f')] = e.textContent.trim());
+        it.querySelectorAll('[data-f]').forEach(e => o[e.getAttribute('data-f')] = cleanText(e));
         it.querySelectorAll('[data-fimg]').forEach(e => o[e.getAttribute('data-fimg')] = imgSrc(e));
         return o;
       });
@@ -72,9 +74,9 @@ export function initEditorLayer({ sb, onRequireLogin, pageId = 'index' }) {
         // pole jednoliniowe z formatowaniem: html + wpis w `_rich`; bez znaczników wraca do tekstu
         const h = cleanHtml(el);
         if (/<[a-z]/i.test(h)) { o[k] = h; rich.push(k); }
-        else { o[k] = el.textContent.trim(); el.removeAttribute('data-rich'); }
+        else { o[k] = cleanText(el); el.removeAttribute('data-rich'); }
       }
-      else o[k] = el.textContent.trim();
+      else o[k] = cleanText(el);
     });
     o._rich = rich;
     const lists = {};
@@ -82,7 +84,7 @@ export function initEditorLayer({ sb, onRequireLogin, pageId = 'index' }) {
       const name = cont.getAttribute('data-list');
       lists[name] = Array.from(cont.querySelectorAll(':scope > [data-litem]')).map(item => {
         const o2 = { hidden: item.classList.contains('fiq-hidden') };
-        item.querySelectorAll('[data-f]').forEach(e => o2[e.getAttribute('data-f')] = e.textContent.trim());
+        item.querySelectorAll('[data-f]').forEach(e => o2[e.getAttribute('data-f')] = cleanText(e));
         if (name === 'svc') o2.demo = item.getAttribute('data-demo') || '';
         return o2;
       });
