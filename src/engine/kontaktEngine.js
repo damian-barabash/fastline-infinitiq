@@ -55,7 +55,7 @@ export function initKontakt({ onNavigate }) {
   /* Kursor na kwasowym tle: kwasowa kropka i pierścień na zieleni znikają,
      więc nad takimi blokami przełączamy je na czarne (2026-09-11, właściciel).
      Jedna lista selektorów dla wszystkich stron — te same klasy wracają. */
-  const ACID = '.model-panel, .ag-final, .btn-primary, .btn-send, .nav-cta, .menu-cta,'
+  const ACID = '.model-panel, .ag-final, .btn-primary, .btn-send, .bf-btn, .bf-pill.on, .bf-slot.on, .nav-cta, .menu-cta,'
     + ' .af-btn, .af-btn-a, .wh-cta, .fb-cta-btn, .pill.on, .cta-slide-inner .btn-primary';
   const markAcid = (el) => {
     const on = !!(el && el.closest && el.closest(ACID));
@@ -212,62 +212,8 @@ export function initKontakt({ onNavigate }) {
   }
   rafId = requestAnimationFrame(frame);
 
-  /* ===== form ===== */
-  const pillsBox = document.getElementById('pills');
-  pillsBox.addEventListener('click', e => {
-    const pill = e.target.closest('.pill');
-    if (pill) pill.classList.toggle('on');
-  }, { signal });
-
-  const form = document.getElementById('briefForm');
-  const sentOk = document.getElementById('sentOk');
-
-  function shake(el) {
-    el.closest('.f-row').classList.add('err');
-    el.animate(
-      [{ transform: 'translateX(0)' }, { transform: 'translateX(-7px)' },
-       { transform: 'translateX(7px)' }, { transform: 'translateX(-4px)' },
-       { transform: 'translateX(0)' }],
-      { duration: 320, easing: 'ease-out' }
-    );
-  }
-
-  ['fName', 'fEmail', 'fMsg'].forEach(id => {
-    document.getElementById(id).addEventListener('input', e => {
-      e.target.closest('.f-row').classList.remove('err');
-    }, { signal });
-  });
-
-  form.addEventListener('submit', e => {
-    e.preventDefault();
-    const name = document.getElementById('fName');
-    const company = document.getElementById('fCompany');
-    const email = document.getElementById('fEmail');
-    const msg = document.getElementById('fMsg');
-
-    let bad = false;
-    if (!name.value.trim()) { shake(name); bad = true; }
-    if (!email.value.trim() || !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.value.trim())) { shake(email); bad = true; }
-    if (!msg.value.trim()) { shake(msg); bad = true; }
-    if (bad) return;
-
-    const topics = Array.from(pillsBox.querySelectorAll('.pill.on'))
-      .map(p => p.dataset.topic);
-
-    const subject = `Briefing strategiczny — ${company.value.trim() || name.value.trim()}`;
-    const body = [
-      `Imię i nazwisko: ${name.value.trim()}`,
-      `Firma: ${company.value.trim() || '—'}`,
-      `E-mail: ${email.value.trim()}`,
-      `Obszary: ${topics.length ? topics.join(', ') : '—'}`,
-      '',
-      'O marce:',
-      msg.value.trim()
-    ].join('\n');
-
-    location.href = `mailto:infinitiq@fastline.pl?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    sentOk.classList.add('show');
-  }, { signal });
+  /* Stary formularz (pilulki + mailto) zastąpił React `BriefForm.jsx` —
+     dwa kroki, analiza strony i kalendarz. Silnik nie dotyka już jego pól. */
 
   return function destroy() {
     destroyed = true;

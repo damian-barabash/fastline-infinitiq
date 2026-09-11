@@ -1,4 +1,5 @@
 import React from 'react';
+import BriefForm from './BriefForm.jsx';
 
 /* Разметка страницы /kontakt — как LandingShell и AgenciShell: один и тот же DOM
    рендерят страница и редактор (вкладка „Kontakt").
@@ -123,49 +124,11 @@ export default function KontaktShell() {
           data-hide-label="Kontakt — formularz briefingu"
         >
           <div className="form-title" data-edit="kt_form_title">★ Formularz briefingu</div>
-          <form id="briefForm" noValidate>
-            <div className="f-grid">
-              <div className="f-row">
-                <label htmlFor="fName"><span data-edit="kt_f_name">Imię i nazwisko</span> <em>*</em></label>
-                <input id="fName" name="name" type="text" placeholder="Jan Kowalski" autoComplete="name" />
-              </div>
-              <div className="f-row">
-                <label htmlFor="fCompany"><span data-edit="kt_f_company">Firma</span></label>
-                <input id="fCompany" name="company" type="text" placeholder="Nazwa firmy" autoComplete="organization" />
-              </div>
-            </div>
-            <div className="f-row">
-              <label htmlFor="fEmail"><span data-edit="kt_f_email">E-mail</span> <em>*</em></label>
-              <input id="fEmail" name="email" type="email" placeholder="jan@firma.pl" autoComplete="email" />
-            </div>
-            <div className="f-row">
-              <label><span data-edit="kt_f_topics">Które rozwiązania Cię interesują?</span></label>
-              {/* snapshot dla SSG i fallback — na żywo listę przebudowuje kontaktPills.js z katalogu */}
-              <div className="pills" id="pills">
-                <button type="button" className="pill" data-topic="AI Sprzedawca">AI Sprzedawca</button>
-                <button type="button" className="pill" data-topic="AI Doradca">AI Doradca</button>
-                <button type="button" className="pill" data-topic="AI Recepcja 24/7">AI Recepcja 24/7</button>
-                <button type="button" className="pill" data-topic="AI Asystent">AI Asystent</button>
-                <button type="button" className="pill" data-topic="AI Łowca Leadów">AI Łowca Leadów</button>
-                <button type="button" className="pill" data-topic="AI CRM">AI CRM</button>
-                <button type="button" className="pill" data-topic="AI Generator Ofert">AI Generator Ofert</button>
-                <button type="button" className="pill" data-topic="Fabryka Kontentu">Fabryka Kontentu</button>
-                <button type="button" className="pill" data-topic="SEO &amp; GEO Autopilot">SEO &amp; GEO Autopilot</button>
-                <button type="button" className="pill" data-topic="AI Reputation Guard">AI Reputation Guard</button>
-                <button type="button" className="pill" data-topic="Nie wiem jeszcze">Nie wiem jeszcze</button>
-              </div>
-              <p className="pills-hint" data-edit="kt_f_pills_hint">Zaznacz dowolnie wiele — albo nic, jeśli chcesz najpierw porozmawiać.</p>
-            </div>
-            <div className="f-row">
-              <label htmlFor="fMsg"><span data-edit="kt_f_msg">Kilka słów o Twojej marce</span> <em>*</em></label>
-              <textarea id="fMsg" name="message" rows="3" placeholder="Czym się zajmujecie, jaka skala, co chcecie osiągnąć…"></textarea>
-            </div>
-            <div className="f-submit">
-              <button type="submit" className="btn-send" data-edit="kt_btn">Wyślij brief →</button>
-              <p className="send-note" data-edit="kt_send_note" data-edit-type="html">Formularz otworzy Twój program pocztowy z gotową wiadomością</p>
-            </div>
-            <p className="sent-ok" id="sentOk" data-edit="kt_sent_ok">★ Wiadomość przygotowana — sprawdź swój program pocztowy.</p>
-          </form>
+          <p className="form-lead" data-edit="kt_form_lead" data-edit-type="html">
+            Zostaw dane i adres strony — przeczytamy ją, powiemy, co u Was przejmie AI,
+            a potem sam wybierzesz termin rozmowy.
+          </p>
+          <BriefForm />
         </div>
       </main>
 

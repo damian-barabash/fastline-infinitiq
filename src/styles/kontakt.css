@@ -760,12 +760,187 @@ body.fiq-edit #neural { display: none; }
 .cursor-dot.acid { background: #0D0D0D; }
 .cursor-ring.acid { border-color: rgba(13,13,13,0.55); background: rgba(13,13,13,0.06); }
 .cursor-ring.acid.link { border-color: #0D0D0D; background: rgba(13,13,13,0.10); }
-.model-panel, .ag-final, .btn-primary, .btn-send, .nav-cta, .menu-cta,
+.model-panel, .ag-final, .btn-primary, .btn-send, .bf-btn, .bf-pill.on, .bf-slot.on, .nav-cta, .menu-cta,
 .af-btn, .af-btn-a, .wh-cta, .fb-cta-btn, .pill.on,
 html.mode-3d .btn-primary, html.mode-3d .nav-cta, html.mode-3d .menu-cta,
-html.mode-3d .af-btn, html.mode-3d .btn-send, html.mode-3d .wh-cta {
+html.mode-3d .af-btn, html.mode-3d .btn-send, html.mode-3d .bf-btn, html.mode-3d .wh-cta {
   cursor: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 24 24' fill='%230D0D0D' stroke='%23F5F5F0' stroke-width='1.4' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M10 13V5.1a1.55 1.55 0 013.1 0v6.2a1.4 1.4 0 012.8.2v.6a1.4 1.4 0 012.8.2v.6a1.4 1.4 0 012.7.3v2.5c0 2.9-2.3 5.3-5.2 5.3h-2.1c-1.6 0-3.1-.8-4-2.1l-2.7-3.9a1.6 1.6 0 012.6-1.9z'/%3E%3C/svg%3E") 16 5, pointer;
 }
 html.coarse .model-panel, html.coarse .ag-final, html.coarse .btn-primary,
 html.coarse .btn-send, html.coarse .nav-cta, html.coarse .menu-cta,
 html.coarse .af-btn, html.coarse .wh-cta, html.coarse .pill.on { cursor: auto; }
+
+
+/* ===== Formularz briefingu v2 (2026-09-11) =====
+   Dwa kroki: dane + strona → analiza i kalendarz. Między nimi zielona sieć
+   wciąga pola (canvas, `briefFx.js`). Stare pilulki `.pill` i textarea „kilka
+   słów o marce" zniknęły — to, czym firma się zajmuje, czytamy ze strony. */
+.form-lead {
+  margin: 0 0 26px;
+  font-family: 'Schibsted Grotesk', sans-serif;
+  font-size: 16px; line-height: 1.6;
+  color: rgba(245,245,240,0.62);
+}
+.bf { position: relative; }
+.bf-head { display: flex; align-items: center; gap: 10px; margin-bottom: 22px; }
+.bf-step-n {
+  font-family: 'IBM Plex Mono', monospace; font-size: 14px; letter-spacing: 0.08em;
+  color: var(--black); background: var(--green); padding: 5px 8px; line-height: 1;
+}
+.bf-step-t {
+  font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: rgba(245,245,240,0.7);
+}
+.bf-body { display: block; }
+.bf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 28px; }
+.bf-field { display: block; margin-bottom: 22px; }
+.bf-lab {
+  display: block;
+  font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.16em;
+  text-transform: uppercase; color: rgba(245,245,240,0.62); margin-bottom: 10px;
+}
+.bf-lab em { font-style: normal; color: var(--green); }
+.bf-field input {
+  width: 100%;
+  background: transparent; border: none; border-bottom: 1px solid rgba(245,245,240,0.18);
+  color: var(--white); font-family: 'Schibsted Grotesk', sans-serif; font-size: 18px;
+  padding: 10px 0 14px; outline: none; border-radius: 0;
+  transition: border-color 0.3s;
+}
+.bf-field input::placeholder { color: rgba(245,245,240,0.32); }
+.bf-field input:focus { border-bottom-color: var(--green); }
+.bf-field input.good { border-bottom-color: rgba(184,255,0,0.65); }
+.bf-field input.bad { border-bottom-color: #ff6b4a; }
+
+.bf-probe {
+  margin-top: 10px; display: flex; align-items: center; gap: 8px;
+  font-family: 'Schibsted Grotesk', sans-serif; font-size: 14px; line-height: 1.5;
+  color: rgba(245,245,240,0.5); min-height: 20px;
+}
+.bf-probe.s-ok { color: rgba(245,245,240,0.85); }
+.bf-probe.s-bad { color: #ff8a6a; }
+.bf-dot, .bf-ok, .bf-no { flex: 0 0 auto; display: inline-block; }
+.bf-dot { width: 7px; height: 7px; background: var(--green); animation: bfPulse 1s ease-in-out infinite; }
+.bf-ok { width: 12px; height: 7px; border-left: 2px solid var(--green); border-bottom: 2px solid var(--green); transform: rotate(-45deg) translate(1px, -2px); }
+.bf-ok.big { width: 17px; height: 10px; border-width: 3px; }
+.bf-no { width: 9px; height: 9px; border: 2px solid #ff6b4a; border-radius: 50%; }
+@keyframes bfPulse { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+
+.bf-picks { margin-bottom: 26px; }
+.bf-pills { display: flex; flex-wrap: wrap; gap: 9px; }
+.bf-pill {
+  font-family: 'Schibsted Grotesk', sans-serif; font-size: 14px;
+  color: rgba(245,245,240,0.72);
+  background: rgba(255,255,255,0.02);
+  border: 1px solid rgba(245,245,240,0.16);
+  padding: 9px 15px; cursor: pointer;
+  transition: color 0.25s, border-color 0.25s, background 0.25s;
+}
+.bf-pill:hover { border-color: rgba(184,255,0,0.5); color: var(--white); }
+.bf-pill.on { color: var(--black); background: var(--green); border-color: var(--green); }
+.bf-hint {
+  margin-top: 12px;
+  font-family: 'Schibsted Grotesk', sans-serif; font-size: 14px; line-height: 1.6;
+  color: rgba(245,245,240,0.5);
+}
+.bf-hint strong { color: var(--white); font-weight: 600; }
+
+.bf-actions { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; margin-top: 8px; }
+.bf-btn {
+  font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.14em;
+  text-transform: uppercase; color: var(--black); background: var(--green);
+  border: none; padding: 17px 40px; cursor: pointer;
+  transition: transform 0.25s, box-shadow 0.25s, opacity 0.25s;
+}
+.bf-btn:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 0 32px rgba(184,255,0,0.4); }
+.bf-btn:disabled { opacity: 0.45; cursor: default; }
+.bf-note {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: rgba(245,245,240,0.42); max-width: 240px; line-height: 1.7;
+}
+.bf-err { margin-top: 16px; font-family: 'Schibsted Grotesk', sans-serif; font-size: 14px; color: #ff8a6a; }
+
+/* ---- krok 2: analiza ---- */
+.bf-analysis { margin-bottom: 30px; }
+.bf-an-block { margin-bottom: 20px; padding-left: 16px; border-left: 2px solid rgba(184,255,0,0.45); }
+.bf-cap {
+  display: block; font-family: 'IBM Plex Mono', monospace; font-size: 11px;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--green); margin-bottom: 8px;
+}
+.bf-an-block p {
+  font-family: 'Schibsted Grotesk', sans-serif; font-size: 16.5px; line-height: 1.65;
+  color: rgba(245,245,240,0.88);
+}
+.bf-chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.bf-chip {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: 0.1em;
+  text-transform: uppercase; color: rgba(245,245,240,0.8);
+  border: 1px solid rgba(184,255,0,0.38); padding: 7px 12px;
+}
+.bf-chip b { color: var(--green); font-weight: 500; }
+
+/* ---- krok 2: kalendarz ---- */
+.bf-days { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+.bf-day {
+  font-family: 'IBM Plex Mono', monospace; font-size: 12.5px; letter-spacing: 0.06em;
+  text-transform: uppercase; color: rgba(245,245,240,0.7);
+  background: rgba(255,255,255,0.02); border: 1px solid rgba(245,245,240,0.16);
+  padding: 10px 13px; cursor: pointer; transition: 0.25s;
+}
+.bf-day:hover { border-color: rgba(184,255,0,0.5); color: var(--white); }
+.bf-day.on { color: var(--green); border-color: var(--green); background: rgba(184,255,0,0.08); }
+.bf-slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(88px, 1fr)); gap: 8px; margin-bottom: 22px; }
+.bf-slot {
+  font-family: 'IBM Plex Mono', monospace; font-size: 14px;
+  color: rgba(245,245,240,0.78);
+  background: rgba(255,255,255,0.02); border: 1px solid rgba(245,245,240,0.16);
+  padding: 12px 6px; cursor: pointer; transition: 0.2s;
+}
+.bf-slot:hover { border-color: rgba(184,255,0,0.55); color: var(--white); }
+.bf-slot.on { color: var(--black); background: var(--green); border-color: var(--green); }
+
+/* ---- krok 3 ---- */
+.bf-done-h {
+  display: flex; align-items: center; gap: 12px;
+  font-family: 'Space Grotesk', sans-serif; font-weight: 700; text-transform: uppercase;
+  font-size: 22px; color: var(--white); margin-bottom: 10px;
+}
+.bf-done-when {
+  font-family: 'Schibsted Grotesk', sans-serif; font-size: 19px; color: var(--green);
+  margin-bottom: 14px; text-transform: capitalize;
+}
+
+/* ---- warstwa przejścia ---- */
+.bf-fx {
+  position: absolute; inset: -14px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 18px; z-index: 4;
+  background: rgba(12,13,11,0.86);
+  backdrop-filter: blur(3px);
+  opacity: 0; pointer-events: none;
+  transition: opacity 0.4s ease;
+}
+.bf-fx.on { opacity: 1; pointer-events: auto; }
+.bf-fx-c { position: absolute; inset: 0; width: 100%; height: 100%; }
+.bf-fx-txt { position: relative; text-align: center; display: grid; justify-items: center; gap: 8px; }
+.bf-fx-txt b {
+  font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 19px;
+  text-transform: uppercase; letter-spacing: 0.04em; color: var(--white);
+}
+.bf-fx-txt i {
+  font-style: normal; font-family: 'IBM Plex Mono', monospace; font-size: 11.5px;
+  letter-spacing: 0.12em; text-transform: uppercase; color: rgba(245,245,240,0.55);
+}
+.bf-fx-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--green); animation: bfPulse 1.3s ease-in-out infinite; }
+/* pola gasną, kiedy sieć je „wciąga" */
+.bf-busy .bf-body { opacity: 0.12; filter: blur(2px); transition: opacity 0.5s ease, filter 0.5s ease; }
+
+@media (max-width: 1000px) {
+  .bf-grid { grid-template-columns: 1fr; gap: 0; }
+  .bf-field input { font-size: 17px; }
+  .bf-pill { font-size: 13.5px; padding: 8px 13px; }
+  .bf-btn { width: 100%; }
+  .bf-note { max-width: 100%; }
+  .bf-slots { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); }
+  .bf-an-block p { font-size: 15.5px; }
+}

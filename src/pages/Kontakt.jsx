@@ -3,15 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import KontaktShell from '../components/KontaktShell.jsx';
 import { ensureFIQ } from '../engine/fiq.js';
 import { initKontakt } from '../engine/kontaktEngine.js';
-import { renderKontaktPills } from '../engine/kontaktPills.js';
-import { LANDING_PRODUCTS_QUERY } from '../engine/heroProducts.js';
 import { wipeTo } from '../engine/wipe.js';
 import { SB_URL, SB_KEY } from '../lib/supabase-config.js';
 import kontaktCss from '../styles/kontakt.css?inline';
 
 /* Strona /kontakt. Treść edytuje się w /editor (zakładka „Kontakt") — CMS trzyma
    ją w wierszu `site_content` o id `kontakt`, a markup zostaje snapshotem dla SSG.
-   Pilulki formularza biorą się z katalogu produktów, tak jak lista w menu. */
+   Sam formularz to `BriefForm.jsx` — dwa kroki, analiza strony i kalendarz
+   (edge `brief-lead`); lista produktów w nim pochodzi z katalogu, jak w menu. */
 
 export default function Kontakt() {
   const navigate = useNavigate();
@@ -29,14 +28,11 @@ export default function Kontakt() {
       signal: ac.signal,
     }).then((r) => (r.ok ? r.json() : null)).catch(() => null);
 
-    Promise.all([get('site_content?id=eq.kontakt&select=published'), get(LANDING_PRODUCTS_QUERY)])
-      .then(([rows, products]) => {
+    get('site_content?id=eq.kontakt&select=published')
+      .then((rows) => {
         if (!alive) return;
         const published = rows && rows[0] && rows[0].published;
         if (published && window.FIQ) window.FIQ.applyContent(published, { editor: false });
-        // pilulki przebudowujemy PO treści z CMS — inaczej applyContent nic by w nich
-        // nie zmienił, ale kolejność zdarzeń zostaje ta sama co na lądowaniu
-        renderKontaktPills(products);
       })
       .catch(() => {})
       .finally(() => {

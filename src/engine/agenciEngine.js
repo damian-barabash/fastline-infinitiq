@@ -50,7 +50,7 @@ export function initAgenci({ onNavigate }) {
   /* Kursor na kwasowym tle: kwasowa kropka i pierścień na zieleni znikają,
      więc nad takimi blokami przełączamy je na czarne (2026-09-11, właściciel).
      Jedna lista selektorów dla wszystkich stron — te same klasy wracają. */
-  const ACID = '.model-panel, .ag-final, .btn-primary, .btn-send, .nav-cta, .menu-cta,'
+  const ACID = '.model-panel, .ag-final, .btn-primary, .btn-send, .bf-btn, .bf-pill.on, .bf-slot.on, .nav-cta, .menu-cta,'
     + ' .af-btn, .af-btn-a, .wh-cta, .fb-cta-btn, .pill.on, .cta-slide-inner .btn-primary';
   const markAcid = (el) => {
     const on = !!(el && el.closest && el.closest(ACID));

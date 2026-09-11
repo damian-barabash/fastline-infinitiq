@@ -134,3 +134,33 @@ body.fiq-edit .ap-wrap a { pointer-events: auto; }
 .ap-lead { color: var(--green); }
 .ap-lead a { color: inherit; text-decoration: none; border-bottom: 1px solid rgba(184,255,0,0.35); }
 .ap-lead a:hover { border-color: var(--green); }
+
+
+/* ===== Briefingi (2026-09-11) — zgłoszenia z formularza /kontakt ===== */
+.bp-filters { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+.bp-count { color: rgba(245,245,240,0.4); margin-left: 6px; }
+.ap-btn.on .bp-count { color: var(--green); }
+.bp-slot { color: var(--green); font-weight: 500; letter-spacing: 0.04em; }
+.bp-card.st-new { border-color: rgba(245,245,240,0.18); }
+.bp-card.st-canceled { opacity: 0.55; }
+.bp-tags { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 6px; }
+.bp-tag {
+  font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em;
+  text-transform: uppercase; color: rgba(245,245,240,0.6);
+  border: 1px solid rgba(245,245,240,0.14); padding: 4px 8px;
+}
+.bp-tag.rec { color: var(--green); border-color: rgba(184,255,0,0.4); }
+.bp-detail { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--mid); }
+.bp-block { margin-bottom: 16px; }
+.bp-cap {
+  display: block; font-family: 'IBM Plex Mono', monospace; font-size: 10px;
+  letter-spacing: 0.18em; text-transform: uppercase; color: var(--green); margin-bottom: 6px;
+}
+.bp-block p { font-size: 15px; line-height: 1.6; color: rgba(245,245,240,0.85); max-width: 720px; }
+.bp-notes {
+  width: 100%; max-width: 720px; resize: vertical;
+  background: rgba(255,255,255,0.02); border: 1px solid var(--mid); color: var(--white);
+  font-family: 'Schibsted Grotesk', sans-serif; font-size: 14px; line-height: 1.5;
+  padding: 10px 12px; border-radius: 0; outline: none;
+}
+.bp-notes:focus { border-color: var(--green); }

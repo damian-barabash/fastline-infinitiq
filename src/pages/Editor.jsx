@@ -4,6 +4,7 @@ import LandingShell from '../components/LandingShell.jsx';
 import AgenciShell from '../components/AgenciShell.jsx';
 import KontaktShell from '../components/KontaktShell.jsx';
 import AudytPanel from '../components/AudytPanel.jsx';
+import BriefPanel from '../components/BriefPanel.jsx';
 import { ensureFIQ } from '../engine/fiq.js';
 import { initEditorLayer } from '../engine/editorLayer.js';
 import { sbAuth } from '../lib/supabase.js';
@@ -25,8 +26,8 @@ const PAGES = {
 
 export default function Editor() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState('strona');          // strona | agenci | kontakt | audyty
-  const page = PAGES[tab] ? tab : 'strona';          // вкладка «Audyt» не меняет страницу
+  const [tab, setTab] = useState('strona');          // strona | agenci | kontakt | audyty | briefy
+  const page = PAGES[tab] ? tab : 'strona';          // вкладки «Audyt»/«Briefingi» не меняют страницу
 
   useEffect(() => {
     document.title = 'Edytor — Fastline InfinitiQ';
@@ -134,6 +135,7 @@ export default function Editor() {
             ))}
           </select>
           <button className={'fiq-tab-btn' + (tab === 'audyty' ? ' on' : '')} onClick={() => setTab(tab === 'audyty' ? page : 'audyty')}>Audyt</button>
+          <button className={'fiq-tab-btn' + (tab === 'briefy' ? ' on' : '')} onClick={() => setTab(tab === 'briefy' ? page : 'briefy')}>Briefingi</button>
         </span>
         <span id="fiqStatus" className="saved"><span className="dot"></span><span id="fiqStatusText">Zapisano</span></span>
         <span className="fiq-spacer"></span>
@@ -144,6 +146,7 @@ export default function Editor() {
       </div>
 
       {tab === 'audyty' && <AudytPanel />}
+      {tab === 'briefy' && <BriefPanel />}
 
       {page === 'strona' ? <LandingShell /> : page === 'agenci' ? <AgenciShell /> : <KontaktShell />}
     </>
