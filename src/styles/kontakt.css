@@ -944,3 +944,123 @@ html.coarse .af-btn, html.coarse .wh-cta, html.coarse .pill.on { cursor: auto; }
   .bf-slots { grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); }
   .bf-an-block p { font-size: 15.5px; }
 }
+
+
+/* ===== 2026-09-11: karta briefingu ma się mieścić w oknie =====
+   Właściciel: „ten blok niżej, żeby mieścił się na całą wysokość okna".
+   Trzy oszczędności: ciaśniejsze pola, e-mail i strona w jednym rzędzie,
+   a lista produktów dostaje własne przewijanie zamiast rosnąć w nieskończoność
+   (katalog będzie się powiększał — bez tego karta rośnie razem z nim). */
+@media (min-width: 1001px) {
+  main { padding-top: 118px; padding-bottom: 56px; }
+  .form-card { padding: 26px 30px 28px; }
+  .form-title { margin-bottom: 14px; font-size: 12.5px; }
+  .form-lead { margin-bottom: 16px; font-size: 15px; line-height: 1.55; }
+}
+.bf-head { margin-bottom: 14px; }
+.bf-field { margin-bottom: 15px; }
+.bf-lab { margin-bottom: 6px; font-size: 11.5px; }
+.bf-field input { font-size: 16.5px; padding: 7px 0 10px; }
+.bf-probe { margin-top: 7px; font-size: 13px; min-height: 18px; }
+.bf-picks { margin-bottom: 16px; }
+.bf-pills {
+  gap: 7px;
+  /* trzy rzędy widać od razu, reszta na przewijaniu — z kwasowym paskiem,
+     żeby było widać, że lista idzie dalej */
+  max-height: 124px;
+  overflow-y: auto;
+  padding-right: 6px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(184,255,0,0.45) transparent;
+}
+.bf-pills::-webkit-scrollbar { width: 6px; }
+.bf-pills::-webkit-scrollbar-thumb { background: rgba(184,255,0,0.4); }
+.bf-pills::-webkit-scrollbar-track { background: rgba(245,245,240,0.06); }
+.bf-pill { font-size: 13px; padding: 7px 12px; }
+.bf-hint { margin-top: 9px; font-size: 13px; }
+.bf-actions { margin-top: 4px; gap: 18px; }
+.bf-btn { padding: 14px 34px; font-size: 12.5px; }
+.bf-note { font-size: 11px; }
+
+/* krok 2 też ma się mieścić: analiza zwarta, godziny na przewijaniu */
+.bf-analysis { margin-bottom: 20px; }
+.bf-an-block { margin-bottom: 14px; }
+.bf-an-block p { font-size: 15.5px; line-height: 1.55; }
+.bf-days { margin-bottom: 10px; }
+.bf-slots { max-height: 150px; overflow-y: auto; margin-bottom: 16px; padding-right: 6px; scrollbar-width: thin; scrollbar-color: rgba(184,255,0,0.45) transparent; }
+.bf-slots::-webkit-scrollbar { width: 6px; }
+.bf-slots::-webkit-scrollbar-thumb { background: rgba(184,255,0,0.4); }
+.bf-slot { padding: 10px 6px; font-size: 13.5px; }
+
+@media (max-width: 1000px) {
+  .bf-pills { max-height: 156px; }
+  .bf-slots { max-height: 170px; }
+}
+
+/* niskie ekrany (laptopy 720-800 px): karta ma się mieścić z zapasem */
+@media (min-width: 1001px) and (max-height: 820px) {
+  main { padding-top: 104px; padding-bottom: 40px; }
+  .form-card { padding: 22px 26px 24px; }
+  .form-lead { font-size: 14.5px; margin-bottom: 12px; }
+  .bf-field { margin-bottom: 12px; }
+  .bf-field input { font-size: 16px; padding: 6px 0 9px; }
+  .bf-pills { max-height: 96px; }
+  .bf-slots { max-height: 120px; }
+  .bf-hint { margin-top: 7px; font-size: 12.5px; }
+}
+
+/* Krok 2 (analiza + kalendarz) też ma się zmieścić: dni w jednym rzędzie
+   z przewijaniem w bok, godziny niżej, a sama karta ma twardy sufit równy
+   wysokości okna — cokolwiek dopiszemy w treści, blok nie wyjdzie poza ekran. */
+@media (min-width: 1001px) {
+  .form-card {
+    max-height: calc(100vh - 146px);
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(184,255,0,0.4) transparent;
+  }
+  .form-card::-webkit-scrollbar { width: 7px; }
+  .form-card::-webkit-scrollbar-thumb { background: rgba(184,255,0,0.35); }
+  .bf-days {
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(184,255,0,0.4) transparent;
+  }
+  .bf-days::-webkit-scrollbar { height: 5px; }
+  .bf-days::-webkit-scrollbar-thumb { background: rgba(184,255,0,0.35); }
+  .bf-day { flex: 0 0 auto; }
+}
+@media (min-width: 1001px) and (max-height: 820px) {
+  .form-card { max-height: calc(100vh - 128px); }
+  .bf-analysis { margin-bottom: 14px; }
+  .bf-an-block { margin-bottom: 10px; }
+  .bf-an-block p { font-size: 15px; line-height: 1.5; }
+  .bf-slots { max-height: 92px; }
+  .bf-day { padding: 8px 11px; font-size: 12px; }
+}
+
+/* delikatne ścięcie na dole listy produktów — widać, że jest czym przewijać
+   (maska zamiast cienia: lista ma przezroczyste tło) */
+.bf-picks { position: relative; }
+.bf-picks::after {
+  content: '';
+  position: absolute; left: 0; right: 6px; bottom: 34px; height: 26px;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(22,23,26,0), rgba(22,23,26,0.92));
+}
+@media (max-width: 1000px) { .bf-picks::after { bottom: 40px; } }
+
+/* Gdy treść nie mieści się w suficie karty, przewija się ona sama — wtedy
+   przycisk musi zostać na widoku, inaczej na niskim ekranie ktoś go nie znajdzie. */
+@media (min-width: 1001px) {
+  .bf-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+    margin-top: 0;
+    padding: 10px 0 2px;
+    background: linear-gradient(180deg, rgba(22,23,26,0) 0%, #16171A 34%, #16171A 100%);
+  }
+}

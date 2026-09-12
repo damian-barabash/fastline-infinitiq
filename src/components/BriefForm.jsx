@@ -213,6 +213,7 @@ export default function BriefForm() {
               <input type="text" value={form.company} onChange={set('company')} placeholder="Nazwa firmy" autoComplete="organization" />
             </label>
           </div>
+          <div className="bf-grid">
           <label className="bf-field">
             <span className="bf-lab">E-mail <em>*</em></span>
             <input type="email" value={form.email} onChange={set('email')} placeholder="jan@firma.pl" autoComplete="email" inputMode="email" />
@@ -228,9 +229,10 @@ export default function BriefForm() {
               {siteState.s === 'checking' && <><i className="bf-dot" />Sprawdzam, czy strona odpowiada…</>}
               {siteState.s === 'ok' && <><i className="bf-ok" />Strona działa{siteState.title ? ` — „${siteState.title}”` : ''}</>}
               {siteState.s === 'bad' && <><i className="bf-no" />{siteState.reason}</>}
-              {siteState.s === 'idle' && 'Przeczytamy ją, zanim porozmawiamy — dzięki temu nie zaczynamy od zera.'}
+              {siteState.s === 'idle' && 'Przeczytamy ją, zanim porozmawiamy.'}
             </span>
           </label>
+          </div>
 
           <div className="bf-picks">
             <span className="bf-lab">Które rozwiązania Cię interesują?</span>
