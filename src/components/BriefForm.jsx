@@ -12,20 +12,17 @@
 // poprawianie treści zakładałoby prawdziwe terminy w kalendarzu.
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { SB_URL, SB_KEY } from '../lib/supabase-config.js';
-import { LANDING_PRODUCTS_QUERY } from '../engine/heroProducts.js';
 import { runBriefFx } from '../engine/briefFx.js';
+import { PAINS, UNSURE as UNSURE_PAIN } from '../engine/briefPains.js';
 
 const FN = `${SB_URL}/functions/v1/brief-lead`;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
 const LOOKS_LIKE_SITE = /^(https?:\/\/)?[a-z0-9][a-z0-9.-]*\.[a-z]{2,}(\/.*)?$/i;
-const UNSURE = 'Nie wiem jeszcze';
+const UNSURE = UNSURE_PAIN.label;
 
-// snapshot dla SSG i sytuacji „baza milczy" — na żywo listę zastępuje katalog
-const FALLBACK_PRODUCTS = [
-  'AI Sprzedawca', 'AI Doradca', 'AI Recepcja 24/7', 'AI Asystent',
-  'AI Łowca Leadów', 'AI CRM', 'AI Generator Ofert', 'Fabryka Kontentu',
-  'SEO & GEO Autopilot', 'AI Reputation Guard',
-];
+// Klient wybiera PROBLEM, nie nazwę produktu — dobranie produktu to nasza robota
+// (lista i mapa problem → produkty: `src/engine/briefPains.js`).
+const PAIN_LABELS = PAINS.map((p) => p.label);
 
 async function call(action, payload) {
   const r = await fetch(FN, {
@@ -53,7 +50,6 @@ export default function BriefForm() {
   const [step, setStep] = useState(1);            // 1 dane · 2 analiza + kalendarz · 3 gotowe
   const [form, setForm] = useState({ name: '', company: '', email: '', site: '' });
   const [picked, setPicked] = useState([]);       // wybrane produkty
-  const [products, setProducts] = useState(FALLBACK_PRODUCTS);
   const [siteState, setSiteState] = useState({ s: 'idle' });
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
@@ -68,31 +64,6 @@ export default function BriefForm() {
   const fxRef = useRef(null);
   const checkSeq = useRef(0);
   const pending = useRef(null);
-
-  /* ---- katalog produktów: ta sama lista, co w menu i w kuli ---- */
-  useEffect(() => {
-    if (isEditor()) return undefined;
-    let alive = true;
-    const ac = new AbortController();
-    fetch(`${SB_URL}/rest/v1/${LANDING_PRODUCTS_QUERY}`, {
-      headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` },
-      signal: ac.signal,
-    })
-      .then((r) => (r.ok ? r.json() : null))
-      .then((rows) => {
-        if (!alive || !rows || !rows.length) return;
-        const seen = new Set();
-        const names = [];
-        rows.forEach((r) => {
-          const k = String(r.name || '').toLowerCase().replace(/\s+/g, ' ').trim();
-          if (!k || seen.has(k)) return;
-          seen.add(k); names.push(r.name);
-        });
-        if (names.length) setProducts(names);
-      })
-      .catch(() => {});
-    return () => { alive = false; ac.abort(); };
-  }, []);
 
   /* ---- adres strony sprawdzany w locie ---- */
   const checkSite = useCallback(async (value) => {
@@ -147,7 +118,7 @@ export default function BriefForm() {
       ? Promise.resolve({ ok: true, ...DEMO, lead_id: 'demo' })
       : call('analyze', {
         name: form.name.trim(), company: form.company.trim(), email: form.email.trim(),
-        site: form.site.trim(), products: picked.filter((p) => p !== UNSURE),
+        site: form.site.trim(), pains: picked.filter((p) => p !== UNSURE),
       });
 
     requestAnimationFrame(() => {
@@ -235,9 +206,9 @@ export default function BriefForm() {
           </div>
 
           <div className="bf-picks">
-            <span className="bf-lab">Które rozwiązania Cię interesują?</span>
+            <span className="bf-lab">Co u Was najbardziej uwiera?</span>
             <div className="bf-pills">
-              {products.concat(UNSURE).map((name) => (
+              {PAIN_LABELS.concat(UNSURE).map((name) => (
                 <button
                   key={name} type="button"
                   className={`bf-pill${picked.includes(name) ? ' on' : ''}`}
@@ -245,7 +216,7 @@ export default function BriefForm() {
                 >{name}</button>
               ))}
             </div>
-            <p className="bf-hint">Zaznacz dowolnie wiele — albo nic, wtedy sami zaproponujemy, od czego zacząć.</p>
+            <p className="bf-hint">Zaznacz, co Was boli — dobranie rozwiązania zostaw nam. Możesz też nic nie zaznaczać.</p>
           </div>
 
           <div className="bf-actions">

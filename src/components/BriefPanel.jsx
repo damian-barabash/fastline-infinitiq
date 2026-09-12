@@ -124,6 +124,9 @@ export default function BriefPanel() {
                   <span className="ap-dot">·</span><span>zgłoszenie {fmtDate(r.created_at)}</span>
                   {r.remind_mail_at && <><span className="ap-dot">·</span><span>przypomnienie wysłane</span></>}
                 </div>
+                {!!(r.pains && r.pains.length) && (
+                  <div className="bp-tags">{r.pains.map(p => <span className="bp-tag pain" key={p}>{p}</span>)}</div>
+                )}
                 {!!(r.products && r.products.length) && (
                   <div className="bp-tags">{r.products.map(p => <span className="bp-tag" key={p}>{p}</span>)}</div>
                 )}

@@ -150,6 +150,8 @@ body.fiq-edit .ap-wrap a { pointer-events: auto; }
   border: 1px solid rgba(245,245,240,0.14); padding: 4px 8px;
 }
 .bp-tag.rec { color: var(--green); border-color: rgba(184,255,0,0.4); }
+/* to, co klient sam wskazał jako problem — ważniejsze niż dobrane produkty */
+.bp-tag.pain { color: rgba(245,245,240,0.92); border-color: rgba(245,245,240,0.34); text-transform: none; letter-spacing: 0.02em; font-family: 'Schibsted Grotesk', sans-serif; font-size: 12.5px; }
 .bp-detail { margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--mid); }
 .bp-block { margin-bottom: 16px; }
 .bp-cap {

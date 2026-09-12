@@ -43,6 +43,38 @@ const esc = (s: string) =>
 const EMAIL_RE = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
 const UA = "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
 
+/* Klient wybiera PROBLEM, nie nazwę produktu (2026-09-11). Ta mapa mówi
+   modelowi, o których produktach ma pisać. ⚠️ Bliźniacza lista siedzi w
+   `src/engine/briefPains.js` — zmiana w jednym miejscu wymaga drugiego. */
+const PAINS: { label: string; products: string[] }[] = [
+  { label: "Zapytania czekają do rana", products: ["AI Sprzedawca", "AI Recepcja 24/7"] },
+  { label: "Telefon dzwoni, gdy nie ma kto odebrać", products: ["AI Recepcja 24/7"] },
+  { label: "Klient nie wie, który wariant wybrać", products: ["AI Doradca"] },
+  { label: "Oferta powstaje zbyt wolno", products: ["AI Generator Ofert"] },
+  { label: "Brakuje nowych leadów", products: ["AI Łowca Leadów"] },
+  { label: "Nie wiadomo, kogo ruszyć pierwszego", products: ["AI CRM"] },
+  { label: "Reklamy palą budżet bez wyniku", products: ["AI Kampanie Reklamowe"] },
+  { label: "Nie ma kto prowadzić treści", products: ["AI Fabryka Kontentu"] },
+  { label: "Nie widać nas w Google i w AI", products: ["AI Pilot Widoczności"] },
+  { label: "Opinie zostają bez odpowiedzi", products: ["AI Strażnik Reputacji"] },
+  { label: "Klient kupuje raz i znika", products: ["AI Fabryka Lojalności"] },
+  { label: "Te same pytania wracają w kółko", products: ["AI Asystent", "AI Academy"] },
+  { label: "Dane rozrzucone po arkuszach", products: ["AI  Centrum Danych"] },
+  { label: "Terminy i zadania się gubią", products: ["AI Project Manager"] },
+  { label: "Braki albo zator w magazynie", products: ["Inteligentny Magazyn"] },
+  { label: "Rekrutacja zjada tygodnie", products: ["Rekruter AI"] },
+  { label: "Nie wiemy, co robi konkurencja", products: ["AI Market Radar"] },
+];
+const norm = (s: string) => s.toLowerCase().replace(/\s+/g, " ").trim();
+function productsForPains(labels: string[]): string[] {
+  const out: string[] = [];
+  labels.forEach(l => {
+    const hit = PAINS.find(p => norm(p.label) === norm(l));
+    (hit?.products ?? []).forEach(n => { if (!out.includes(n)) out.push(n); });
+  });
+  return out;
+}
+
 // ─────────────────────────────────────────────────────────── strona klienta
 
 function normalizeUrl(raw: string): string | null {
@@ -294,7 +326,8 @@ function mailUs(lead: Record<string, unknown>, when: Date) {
       ${row("Firma", String(lead.company ?? ""))}
       ${row("E-mail", String(lead.email ?? ""))}
       ${row("Strona", String(lead.site_url ?? ""))}
-      ${row("Wybrane produkty", ((lead.products as string[]) ?? []).join(", "))}
+      ${row("Co go boli", ((lead.pains as string[]) ?? []).join(" · "))}
+      ${row("Pasujące produkty", ((lead.products as string[]) ?? []).join(", "))}
       ${row("Dobrany produkt", String(lead.rec_product ?? ""))}
       ${lead.profil ? para(`<strong style="color:#F5F5F0;">Profil:</strong> ${esc(String(lead.profil))}`) : ""}
       ${lead.pomoc ? para(`<strong style="color:#F5F5F0;">Jak pomożemy:</strong> ${esc(String(lead.pomoc))}`) : ""}
@@ -348,7 +381,12 @@ Deno.serve(async (req) => {
       const name = String(body.name ?? "").trim().slice(0, 120);
       const company = String(body.company ?? "").trim().slice(0, 160);
       const email = String(body.email ?? "").trim().toLowerCase().slice(0, 160);
-      const products = Array.isArray(body.products) ? (body.products as unknown[]).map(p => String(p).slice(0, 80)).slice(0, 12) : [];
+      // `pains` to nowy format (klient wybiera problem); `products` zostaje dla
+      // zgodności ze starą wersją strony, która mogła jeszcze wisieć w przeglądarce
+      const pains = Array.isArray(body.pains) ? (body.pains as unknown[]).map(p => String(p).slice(0, 120)).slice(0, 12) : [];
+      const products = pains.length
+        ? productsForPains(pains)
+        : (Array.isArray(body.products) ? (body.products as unknown[]).map(p => String(p).slice(0, 80)).slice(0, 12) : []);
       if (!EMAIL_RE.test(email)) return json({ ok: false, reason: "Ten adres e-mail wygląda na niepoprawny", field: "email" }, 400);
 
       const { count } = await db.from("brief_leads")
@@ -359,7 +397,7 @@ Deno.serve(async (req) => {
 
       // strona i katalog równolegle — oba są nam potrzebne do tekstu
       const [probe, cat] = await Promise.all([
-        probeSite(String(body.site ?? ""), 2600),
+        probeSite(String(body.site ?? ""), 2300),
         db.from("audit_catalog").select("name, tagline, problem, effect, group_name").eq("hidden", false).order("sort").limit(30),
       ]);
       if (!probe.ok) return json({ ok: false, reason: probe.reason, field: "site" }, 400);
@@ -370,7 +408,10 @@ Deno.serve(async (req) => {
 
       const text = visibleText(probe.html ?? "");
       const desc = metaDesc(probe.html ?? "");
-      const listForAi = catalog.map(c => `- ${c.name}: ${c.tagline}`).join("\n").slice(0, 900);
+      // Gdy klient wskazał problemy, model nie potrzebuje CAŁEGO katalogu — tylko
+      // pasujących produktów. Krótszy prompt = szybsza odpowiedź (budżet 7 s).
+      const forPrompt = (known.length ? known : catalog);
+      const listForAi = forPrompt.map(c => `- ${c.name}: ${c.tagline}`).join("\n").slice(0, 900);
 
       const prompt = `Strona firmy ${probe.host}:
 ${probe.title ?? ""} | ${desc}
@@ -379,23 +420,34 @@ ${text}
 Produkty Fastline InfinitiQ:
 ${listForAi}
 
-${known.length
-  ? `Klient wybrał: ${known.map(k => k.name).join(", ")}.`
-  : "Klient nic nie wybrał — dobierz JEDEN produkt z listy."}
+${pains.length
+  ? `Klient wskazał problemy: ${pains.join("; ")}. Rozwiązują je: ${(known.length ? known.map(k => k.name) : products).join(", ")}. Pisz o TYCH produktach, w języku jego problemu.`
+  : known.length
+    ? `Klient wybrał: ${known.map(k => k.name).join(", ")}.`
+    : "Klient nic nie wybrał — dobierz JEDEN produkt z listy."}
 
 Po polsku, konkretnie, bez lania wody. Odpowiedz samym JSON-em:
 {"profil":"1-2 zdania czym ta firma się zajmuje i dla kogo","pomoc":"2 zdania co u nich zrobi ${known.length ? "wybrany produkt" : "dobrany produkt"} i co to zmieni","produkt":"${known.length ? "" : "nazwa produktu"}"}`;
 
       const aiT0 = Date.now();
-      const raw = await askAI(prompt, Math.min(5200, Math.max(0, left() - 350)), 200);
+      let raw = await askAI(prompt, Math.min(5200, Math.max(0, left() - 350)), 200);
+      // Pusta odpowiedź po ułamku sekundy to nie timeout, tylko 429 z bramki
+      // (klucz `fiq-audit` dzielimy z audytami) — jedna szybka druga próba,
+      // ale tylko jeśli w budżecie zostało realne miejsce.
+      if (!raw && left() > 2000) {
+        await new Promise(r => setTimeout(r, 350));
+        raw = await askAI(prompt, Math.min(4200, Math.max(0, left() - 300)), 200);
+      }
       const got = parseJson(raw);
       const aiMs = Date.now() - aiT0;
 
       // tekst zapasowy — gdy model nie zdążył: i tak mówimy coś prawdziwego
       const fallbackProfile = desc || probe.title || `Firma ze strony ${probe.host}`;
       const pick = known[0] ?? catalog.find(c => /doradca|sprzedawca/i.test(c.name)) ?? catalog[0];
+      // Tekst zapasowy ma się czytać jak zdanie, a nie jak wklejka z katalogu
+      const cap = (t: string) => (t ? t.charAt(0).toUpperCase() + t.slice(1) : "");
       const fallbackHelp = pick
-        ? `${pick.name}: ${pick.tagline}${pick.effect ? ` ${pick.effect}` : ""}`
+        ? `Zaczniemy od jednego ruchu: ${pick.name}. ${cap(pick.tagline ?? "")}${pick.effect ? ` ${cap(pick.effect)}` : ""}`.replace(/\s+/g, " ").trim()
         : "Pokażemy, który proces u Was pierwszy przejmie AI i ile to kosztuje.";
 
       const profil = String(got.profil ?? "").trim().slice(0, 700) || String(fallbackProfile).slice(0, 700);
@@ -405,14 +457,14 @@ Po polsku, konkretnie, bez lania wody. Odpowiedz samym JSON-em:
       const { data: lead, error } = await db.from("brief_leads").insert({
         name, company, email,
         site_url: probe.url, site_host: probe.host, site_title: probe.title,
-        products: chosen, profil, pomoc, rec_product: recProduct,
+        products: chosen, pains, profil, pomoc, rec_product: recProduct,
         status: "new", ip, ua,
       }).select("id").single();
       if (error) return json({ ok: false, reason: "Nie udało się zapisać zgłoszenia. Spróbuj jeszcze raz." }, 500);
 
       return json({
         ok: true, lead_id: lead.id, host: probe.host,
-        profil, pomoc, produkt: recProduct, products: chosen,
+        profil, pomoc, produkt: recProduct, products: chosen, pains,
         days: await freeSlots(db),
         ms: Date.now() - t0, ai_ms: aiMs, ai: !!got.profil,   // podgląd dla nas, front tego nie pokazuje
       });
