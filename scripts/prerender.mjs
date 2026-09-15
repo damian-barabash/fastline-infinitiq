@@ -54,6 +54,27 @@ const AGENCI_HEAD = `<!--head-->
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Product","@id":"https://fastlineinfinitiq.pl/agenci-ai#product","name":"Agenci AI — zespół agentów Fastline InfinitiQ","url":"https://fastlineinfinitiq.pl/agenci-ai","description":"Zespół agentów AI: AI Sprzedawca, AI Doradca, AI Recepcjonistka i AI Asystent. Wytrenowani na ofercie, procesach i języku marki klienta.","brand":{"@type":"Organization","@id":"https://fastlineinfinitiq.pl/#org","name":"Fastline InfinitiQ"},"category":"Agenci AI dla firm","hasVariant":[{"@type":"Product","name":"AI Sprzedawca","description":"Kwalifikuje leady, odpowiada z cennika i wpisuje spotkanie do kalendarza."},{"@type":"Product","name":"AI Doradca","description":"Na stronie identyfikuje potrzebę klienta i wskazuje jedno rozwiązanie z uzasadnieniem."},{"@type":"Product","name":"AI Recepcjonistka","description":"Odbiera telefon 24/7, informuje o cenach i godzinach, umawia wizyty."},{"@type":"Product","name":"AI Asystent","description":"Odpowiada zespołowi na pytania operacyjne ze wskazaniem źródła w dokumentach firmy."}]},{"@type":"FAQPage","@id":"https://fastlineinfinitiq.pl/agenci-ai#faq","mainEntity":[{"@type":"Question","name":"Muszę wdrażać wszystkich czterech?","acceptedAnswer":{"@type":"Answer","text":"Nie. Każdy działa samodzielnie. Zaczynasz od jednego i dokładasz kolejnych, kiedy chcesz."}},{"@type":"Question","name":"Czy klient pozna, że rozmawia z AI?","acceptedAnswer":{"@type":"Answer","text":"Agent przedstawia się jako asystent i oddaje rozmowę człowiekowi, tylko kiedy trzeba."}},{"@type":"Question","name":"Co, jeśli agent nie zna odpowiedzi?","acceptedAnswer":{"@type":"Answer","text":"Nie zmyśla. Przekazuje sprawę człowiekowi razem z całym kontekstem rozmowy."}},{"@type":"Question","name":"Podłączycie nasze narzędzia?","acceptedAnswer":{"@type":"Answer","text":"Tak — CRM, kalendarz, telefonię i kanały, z których już korzystacie."}}]}]}</script>
 <!--/head-->`;
 
+// dokumenty prawne — tytuł/description z treści, canonical, bez JSON-LD
+const LEGAL_META = {
+  'polityka-prywatnosci': ['Polityka prywatności — Fastline InfinitiQ', 'Jakie dane przetwarzamy, po co i jak długo — strona, panel klienta i agenci AI. Administrator, podwykonawcy, prawa użytkownika.'],
+  'polityka-cookies': ['Polityka cookies — Fastline InfinitiQ', 'Nie używamy cookies reklamowych ani analitycznych. Co zapisujemy w przeglądarce i jak tym zarządzać.'],
+  regulamin: ['Regulamin serwisu — Fastline InfinitiQ', 'Zasady korzystania ze strony, formularzy i bezpłatnego audytu AI.'],
+  'usuwanie-danych': ['Usuwanie danych — Fastline InfinitiQ', 'Jak usunąć dane przetwarzane przez aplikację Infinitiq (Messenger, Instagram) i agentów AI. Żądanie e-mailem, realizacja do 30 dni.'],
+};
+const legalHead = (slug) => `<!--head-->
+<title>${LEGAL_META[slug][0]}</title>
+<meta name="description" content="${LEGAL_META[slug][1]}">
+<link rel="canonical" href="https://fastlineinfinitiq.pl/${slug}">
+<meta name="theme-color" content="#0D0D0D">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Fastline InfinitiQ">
+<meta property="og:title" content="${LEGAL_META[slug][0]}">
+<meta property="og:description" content="${LEGAL_META[slug][1]}">
+<meta property="og:url" content="https://fastlineinfinitiq.pl/${slug}">
+<meta property="og:image" content="https://fastlineinfinitiq.pl/assets/og/og.jpg">
+<meta property="og:locale" content="pl_PL">
+<!--/head-->`;
+
 const FALLBACK_HEAD = `<!--head-->
 <title>Fastline InfinitiQ — AI-Native Agency</title>
 <meta name="robots" content="noindex">
@@ -76,7 +97,13 @@ writeFileSync(resolve(dist, 'kontakt', 'index.html'), page('/kontakt', KONTAKT_H
 mkdirSync(resolve(dist, 'agenci-ai'), { recursive: true });
 writeFileSync(resolve(dist, 'agenci-ai', 'index.html'), page('/agenci-ai', AGENCI_HEAD));
 
+// dokumenty prawne
+for (const slug of Object.keys(LEGAL_META)) {
+  mkdirSync(resolve(dist, slug), { recursive: true });
+  writeFileSync(resolve(dist, slug, 'index.html'), page(`/${slug}`, legalHead(slug)));
+}
+
 // 404.html — SPA fallback (editor/login/audyt и любые прямые заходы), noindex
 writeFileSync(resolve(dist, '404.html'), template.replace(HEAD_RE, FALLBACK_HEAD));
 
-console.log('prerender done: /, /kontakt, /agenci-ai, 404.html');
+console.log('prerender done: /, /kontakt, /agenci-ai, 4 dokumenty prawne, 404.html');

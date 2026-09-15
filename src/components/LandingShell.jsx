@@ -497,6 +497,7 @@ export default function LandingShell() {
             <div className="footer-bar" data-hideable="fin:footer" data-hide-label="Stopka">
               <p data-edit="footer_left" data-edit-type="html">© 2026 Fastline InfinitiQ — <a href="https://greywolfgroup.pl/" target="_blank" rel="noopener">Greywolf Group</a></p>
               <p data-edit="footer_right" data-edit-type="html">Data driven. Mind created. <span style={{ color: 'var(--green)' }}>AI executed.</span></p>
+              <p className="footer-legal"><a href="/polityka-prywatnosci" data-wipe>Polityka prywatności</a><a href="/polityka-cookies" data-wipe>Cookies</a><a href="/regulamin" data-wipe>Regulamin</a><a href="/usuwanie-danych" data-wipe>Usuwanie danych</a></p>
             </div>
           </section>
 

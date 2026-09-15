@@ -481,6 +481,7 @@ export default function AgenciShell() {
               <footer className="ag-footer rv rv2" data-hideable="ag:footer" data-hide-label="Stopka">
                 <span data-edit="ag_foot_l">© 2026 Fastline InfinitiQ · Zespół agentów AI · część Greywolf Group</span>
                 <a href="/" data-wipe data-edit="ag_foot_r">fastlineinfinitiq.pl</a>
+                <span className="footer-legal"><a href="/polityka-prywatnosci" data-wipe>Polityka prywatności</a><a href="/polityka-cookies" data-wipe>Cookies</a><a href="/regulamin" data-wipe>Regulamin</a></span>
               </footer>
             </div>
           </section>

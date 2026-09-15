@@ -1064,3 +1064,8 @@ html.coarse .af-btn, html.coarse .wh-cta, html.coarse .pill.on { cursor: auto; }
     background: linear-gradient(180deg, rgba(22,23,26,0) 0%, #16171A 34%, #16171A 100%);
   }
 }
+
+  /* linki prawne w stopce (poza CMS) */
+  .footer-legal { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+  .footer-legal a { color: rgba(245,245,240,0.55); text-decoration: none; font-size: 11px; letter-spacing: 0.06em; }
+  .footer-legal a:hover { color: var(--green); }

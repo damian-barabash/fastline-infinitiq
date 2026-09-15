@@ -1471,3 +1471,8 @@ html.mode-3d .af-btn, html.mode-3d .btn-send, html.mode-3d .bf-btn, html.mode-3d
 html.coarse .model-panel, html.coarse .ag-final, html.coarse .btn-primary,
 html.coarse .btn-send, html.coarse .nav-cta, html.coarse .menu-cta,
 html.coarse .af-btn, html.coarse .wh-cta, html.coarse .pill.on { cursor: auto; }
+
+  /* linki prawne w stopce (poza CMS) */
+  .footer-legal { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+  .footer-legal a { color: rgba(245,245,240,0.55); text-decoration: none; font-size: 11px; letter-spacing: 0.06em; }
+  .footer-legal a:hover { color: var(--green); }

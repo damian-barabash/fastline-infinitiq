@@ -2917,3 +2917,8 @@ html.coarse .af-btn, html.coarse .wh-cta, html.coarse .pill.on { cursor: auto; }
   }
   .pl-gbtn:active { color: var(--green); border-color: var(--green); background: rgba(14,17,8,0.94); }
 }
+
+  /* linki prawne w stopce (poza CMS) */
+  .footer-legal { display: flex; flex-wrap: wrap; gap: 6px 16px; }
+  .footer-legal a { color: rgba(245,245,240,0.55); text-decoration: none; font-size: 11px; letter-spacing: 0.06em; }
+  .footer-legal a:hover { color: var(--green); }
