@@ -101,7 +101,7 @@ export const LEGAL = {
       {
         h: 'Co zapisujemy',
         p: [
-          'Strona fastlineinfinitiq.pl nie zapisuje cookies. Nie ma na niej narzędzi analitycznych, pikseli reklamowych ani śledzenia między witrynami.',
+          'Strona fastlineinfinitiq.pl nie zapisuje cookies. Nie ma na niej narzędzi analitycznych, pikseli reklamowych ani śledzenia między witrynami. Jedyny wpis w localStorage to informacja, że komunikat o cookies został już wyświetlony (klucz fiq_cookie_ack) — dzięki temu nie pokazujemy go przy każdej wizycie.',
           'Panel edycji treści i panele klienta zapisują w localStorage token sesji po zalogowaniu oraz wybrane ustawienia (motyw, ostatnio wybrany projekt). To dane niezbędne do działania usługi (art. 173 ust. 3 Prawa telekomunikacyjnego) — nie wymagają zgody i nie służą do śledzenia.',
           'Widget czatu osadzony na stronie klienta zapisuje w przeglądarce identyfikator rozmowy, żeby historia nie ginęła po odświeżeniu. Identyfikator jest losowy i nie łączy się z Twoją tożsamością.',
         ],

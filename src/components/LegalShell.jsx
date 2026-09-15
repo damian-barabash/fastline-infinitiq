@@ -73,11 +73,11 @@ export default function LegalShell({ doc, slug }) {
             </section>
           ))}
 
-          <nav className="legal-links in in2" aria-label="Dokumenty">
+          <div className="legal-links in in2" role="navigation" aria-label="Dokumenty">
             {LEGAL_LINKS.map(([href, name]) => (
               <a key={href} href={href} data-wipe className={href === `/${slug}` ? 'on' : ''}>{name}</a>
             ))}
-          </nav>
+          </div>
         </article>
       </main>
 

@@ -4,6 +4,7 @@ import Home from './pages/Home.jsx';
 import Kontakt from './pages/Kontakt.jsx';
 import Agenci from './pages/Agenci.jsx';
 import Legal from './pages/Legal.jsx';
+import CookieNotice from './components/CookieNotice.jsx';
 
 // Не-пререндеренные роуты — lazy: supabase-js + редакторский код не попадают
 // в основной бандл лендинга. В SSG рендерятся только / и /kontakt (eager).
@@ -47,10 +48,18 @@ function WipeController() {
   return <div id="wipe" className="cover w-in noanim"></div>;
 }
 
+// komunikat o cookies tylko na stronach publicznych (nie w edytorze, logowaniu, audycie, katalogu)
+function CookieGate() {
+  const { pathname } = useLocation();
+  if (/^\/(editor|login|audyt|katalog)/.test(pathname)) return null;
+  return <CookieNotice />;
+}
+
 export default function App() {
   return (
     <>
       <WipeController />
+      <CookieGate />
       <Suspense fallback={null}>
       <Routes>
         <Route path="/" element={<Home />} />
