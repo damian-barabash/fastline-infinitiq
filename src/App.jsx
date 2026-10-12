@@ -3,6 +3,7 @@ import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import Home from './pages/Home.jsx';
 import Kontakt from './pages/Kontakt.jsx';
 import Agenci from './pages/Agenci.jsx';
+import Doradca from './pages/Doradca.jsx';
 import Legal from './pages/Legal.jsx';
 import CookieNotice from './components/CookieNotice.jsx';
 
@@ -65,6 +66,7 @@ export default function App() {
         <Route path="/" element={<Home />} />
         <Route path="/kontakt" element={<Kontakt />} />
         <Route path="/agenci-ai" element={<Agenci />} />
+        <Route path="/ai-doradca" element={<Doradca />} />
         {/* dokumenty prawne — statyczne, pełne w SSG; /usuwanie-danych wymaga Meta (aplikacja „Infinitiq") */}
         <Route path="/polityka-prywatnosci" element={<Legal slug="polityka-prywatnosci" />} />
         <Route path="/polityka-cookies" element={<Legal slug="polityka-cookies" />} />

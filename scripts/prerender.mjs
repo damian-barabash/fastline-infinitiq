@@ -54,6 +54,27 @@ const AGENCI_HEAD = `<!--head-->
 <script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Product","@id":"https://fastlineinfinitiq.pl/agenci-ai#product","name":"Agenci AI — zespół agentów Fastline InfinitiQ","url":"https://fastlineinfinitiq.pl/agenci-ai","description":"Zespół agentów AI: AI Sprzedawca, AI Doradca, AI Recepcjonistka i AI Asystent. Wytrenowani na ofercie, procesach i języku marki klienta.","brand":{"@type":"Organization","@id":"https://fastlineinfinitiq.pl/#org","name":"Fastline InfinitiQ"},"category":"Agenci AI dla firm","hasVariant":[{"@type":"Product","name":"AI Sprzedawca","description":"Kwalifikuje leady, odpowiada z cennika i wpisuje spotkanie do kalendarza."},{"@type":"Product","name":"AI Doradca","description":"Na stronie identyfikuje potrzebę klienta i wskazuje jedno rozwiązanie z uzasadnieniem."},{"@type":"Product","name":"AI Recepcjonistka","description":"Odbiera telefon 24/7, informuje o cenach i godzinach, umawia wizyty."},{"@type":"Product","name":"AI Asystent","description":"Odpowiada zespołowi na pytania operacyjne ze wskazaniem źródła w dokumentach firmy."}]},{"@type":"FAQPage","@id":"https://fastlineinfinitiq.pl/agenci-ai#faq","mainEntity":[{"@type":"Question","name":"Muszę wdrażać wszystkich czterech?","acceptedAnswer":{"@type":"Answer","text":"Nie. Każdy działa samodzielnie. Zaczynasz od jednego i dokładasz kolejnych, kiedy chcesz."}},{"@type":"Question","name":"Czy klient pozna, że rozmawia z AI?","acceptedAnswer":{"@type":"Answer","text":"Agent przedstawia się jako asystent i oddaje rozmowę człowiekowi, tylko kiedy trzeba."}},{"@type":"Question","name":"Co, jeśli agent nie zna odpowiedzi?","acceptedAnswer":{"@type":"Answer","text":"Nie zmyśla. Przekazuje sprawę człowiekowi razem z całym kontekstem rozmowy."}},{"@type":"Question","name":"Podłączycie nasze narzędzia?","acceptedAnswer":{"@type":"Answer","text":"Tak — CRM, kalendarz, telefonię i kanały, z których już korzystacie."}}]}]}</script>
 <!--/head-->`;
 
+const DORADCA_HEAD = `<!--head-->
+<title>AI Doradca — doradza klientom na Twojej stronie 24/7 | Fastline InfinitiQ</title>
+<meta name="description" content="AI Doradca zagaduje klienta na stronie, dobiera wariant oferty i zostawia Ci kontakt. 490 zł/mies. netto, start tego samego dnia, umowa na miesiąc, bez programowania.">
+<link rel="canonical" href="https://fastlineinfinitiq.pl/ai-doradca">
+<meta name="theme-color" content="#0D0D0D">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Fastline InfinitiQ">
+<meta property="og:title" content="AI Doradca — doradza klientom na Twojej stronie 24/7">
+<meta property="og:description" content="Agent AI, który doradza jak dobry sprzedawca: pyta, rekomenduje wariant, przekazuje kontakt. 490 zł/mies., umowa na miesiąc.">
+<meta property="og:url" content="https://fastlineinfinitiq.pl/ai-doradca">
+<meta property="og:image" content="https://fastlineinfinitiq.pl/assets/og/og.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="pl_PL">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="AI Doradca — doradza klientom na Twojej stronie 24/7">
+<meta name="twitter:description" content="Agent AI, który doradza jak dobry sprzedawca: pyta, rekomenduje wariant, przekazuje kontakt. 490 zł/mies., umowa na miesiąc.">
+<meta name="twitter:image" content="https://fastlineinfinitiq.pl/assets/og/og.jpg">
+<script type="application/ld+json">{"@context":"https://schema.org","@graph":[{"@type":"Product","@id":"https://fastlineinfinitiq.pl/ai-doradca#product","name":"AI Doradca — Fastline InfinitiQ","url":"https://fastlineinfinitiq.pl/ai-doradca","description":"Agent AI na stronie internetowej: zagaduje klienta, dobiera wariant oferty i przekazuje kontakt. 500 rozmów miesięcznie, katalog do 200 pozycji, raport miesięczny.","brand":{"@type":"Organization","@id":"https://fastlineinfinitiq.pl/#org","name":"Fastline InfinitiQ"},"category":"Agenci AI dla firm","offers":{"@type":"Offer","price":"490","priceCurrency":"PLN","url":"https://fastlineinfinitiq.pl/ai-doradca","availability":"https://schema.org/InStock","priceSpecification":{"@type":"UnitPriceSpecification","price":"490","priceCurrency":"PLN","valueAddedTaxIncluded":false,"billingDuration":"P1M"}}},{"@type":"FAQPage","@id":"https://fastlineinfinitiq.pl/ai-doradca#faq","mainEntity":[{"@type":"Question","name":"Skąd będzie znał moją ofertę?","acceptedAnswer":{"@type":"Answer","text":"Z materiałów, które nam dasz: strony, cennika, PDF-ów. Odpowiada wyłącznie z tej bazy."}},{"@type":"Question","name":"Czy zmyśli cenę albo termin?","acceptedAnswer":{"@type":"Answer","text":"Nie. Zakres tego, co wolno mu obiecać, ustalasz Ty na starcie."}},{"@type":"Question","name":"Czy muszę coś programować?","acceptedAnswer":{"@type":"Answer","text":"Jedna linijka kodu na stronie. Albo wybierasz wariant z podłączeniem i robimy to za Ciebie."}},{"@type":"Question","name":"Co z danymi?","acceptedAnswer":{"@type":"Answer","text":"Serwery w Unii Europejskiej, umowa powierzenia. Rozmowy należą do Ciebie."}},{"@type":"Question","name":"Co, jeśli nie zadziała?","acceptedAnswer":{"@type":"Answer","text":"Umowa na miesiąc. Rezygnujesz z końcem opłaconego okresu, bez kar."}},{"@type":"Question","name":"Czym to się różni od czatu, który już mam?","acceptedAnswer":{"@type":"Answer","text":"Czat zbiera adresy. Doradca rekomenduje wariant i doprowadza do zakupu albo do kalendarza."}}]}]}</script>
+<!--/head-->`;
+
 // dokumenty prawne — tytuł/description z treści, canonical, bez JSON-LD
 const LEGAL_META = {
   'polityka-prywatnosci': ['Polityka prywatności — Fastline InfinitiQ', 'Jakie dane przetwarzamy, po co i jak długo — strona, panel klienta i agenci AI. Administrator, podwykonawcy, prawa użytkownika.'],
@@ -97,6 +118,10 @@ writeFileSync(resolve(dist, 'kontakt', 'index.html'), page('/kontakt', KONTAKT_H
 mkdirSync(resolve(dist, 'agenci-ai'), { recursive: true });
 writeFileSync(resolve(dist, 'agenci-ai', 'index.html'), page('/agenci-ai', AGENCI_HEAD));
 
+// /ai-doradca/ — LP produktu AI Doradca
+mkdirSync(resolve(dist, 'ai-doradca'), { recursive: true });
+writeFileSync(resolve(dist, 'ai-doradca', 'index.html'), page('/ai-doradca', DORADCA_HEAD));
+
 // dokumenty prawne
 for (const slug of Object.keys(LEGAL_META)) {
   mkdirSync(resolve(dist, slug), { recursive: true });
@@ -106,4 +131,4 @@ for (const slug of Object.keys(LEGAL_META)) {
 // 404.html — SPA fallback (editor/login/audyt и любые прямые заходы), noindex
 writeFileSync(resolve(dist, '404.html'), template.replace(HEAD_RE, FALLBACK_HEAD));
 
-console.log('prerender done: /, /kontakt, /agenci-ai, 4 dokumenty prawne, 404.html');
+console.log('prerender done: /, /kontakt, /agenci-ai, /ai-doradca, 4 dokumenty prawne, 404.html');

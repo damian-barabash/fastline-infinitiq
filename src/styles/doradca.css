@@ -1,0 +1,219 @@
+/* Strona produktu /ai-doradca — tylko sekcje tej strony.
+   Baza (kursor, nav, menu, bęben, sceny rozmów, FAQ, kwasowa płyta) idzie
+   z `agenci.css`; ten arkusz wstrzykuje się ZA nim. */
+
+/* ===== HERO: tekst po lewej, scena po prawej ===== */
+.ad-hero { display: grid; grid-template-columns: minmax(0, 1.16fr) minmax(0, 0.84fr); gap: clamp(28px, 4vw, 64px); align-items: center; }
+#start .ag-h1 { font-size: clamp(30px, 3.5vw, 54px); max-width: 17ch; }
+#start .ag-lead { margin-top: 20px; font-size: 18px; line-height: 1.55; max-width: 34em; }
+#start .ag-actions { margin-top: 30px; }
+.ad-actions { gap: 10px; }
+.ad-actions .btn-primary, .ad-actions .btn-ghost { padding: 15px 16px; letter-spacing: 0.1em; font-size: 11.5px; white-space: nowrap; }
+.ad-checks { margin-top: 24px; gap: 10px 20px; }
+.ad-checks li { font-size: 10.5px; letter-spacing: 0.08em; gap: 7px; white-space: nowrap; }
+.ad-hero-vis .dm { height: auto; }
+.ad-hero-vis .dm-screen { height: 408px; min-height: 408px; }
+.ad-hero-vis .adv-widget { margin-top: 12px; padding: 14px 14px 12px; }
+.ad-hero-vis .adv-widget .msg { font-size: 13.5px; margin-bottom: 8px; }
+.ad-hero-vis .adv-widget .msg span { padding: 9px 13px; }
+.ad-hero-vis .adv-widget .msg.out span { background: #EEF6DC; }
+/* w oknie doradcy agent pisze z lewej, klient z prawej (jak w prawdziwym widgecie) */
+.ad-hero-vis .msg.out { margin-left: 0; text-align: left; }
+.ad-hero-vis .msg.in { margin-left: auto; width: fit-content; }
+.ad-hero-vis .adv-widget .msg.in span { background: #14161A; color: #F5F5F0; }
+.ad-hero-vis .msg { max-width: 88%; }
+.ad-hero-vis .adv-rec b { font-size: 14.5px; }
+.ad-hero-vis .adv-rec span { font-size: 13px; }
+.ad-hero-vis .adv-widget .dm-chip { font-size: 10px; padding: 8px 12px; }
+
+/* ===== PROBLEM: cztery „wycieki" ===== */
+.ad-leaks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
+.ad-leak {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto 1fr;
+  column-gap: 22px;
+  align-content: start;
+  padding: 26px 28px 28px;
+  border: 1px solid rgba(245,245,240,0.12);
+  background: linear-gradient(158deg, rgba(28,31,22,0.6) 0%, rgba(14,15,11,0.7) 100%);
+  transition: border-color 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ad-leak:hover { border-color: rgba(184,255,0,0.35); transform: translateY(-3px); }
+.ad-leak-num {
+  grid-row: 1 / span 2;
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: 44px;
+  line-height: 0.9;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(184,255,0,0.75);
+}
+.ad-leak h3 { font-family: 'Schibsted Grotesk', sans-serif; font-weight: 600; font-size: 21px; line-height: 1.3; color: #F5F5F0; }
+.ad-leak p { margin-top: 10px; font-size: 16.5px; line-height: 1.5; color: var(--green); }
+
+/* ===== JAK DZIAŁA: cztery zasady ===== */
+.ad-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
+.ad-steps .step { padding: 26px 22px 30px; }
+.ad-steps .step h3 { font-size: 19px; line-height: 1.15; }
+.ad-steps .step p { font-size: 15.5px; }
+
+/* ===== DEMO ===== */
+.ad-demo { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(28px, 4vw, 60px); align-items: center; }
+.ad-h2 {
+  font-family: 'Space Grotesk', sans-serif;
+  font-weight: 700;
+  font-size: clamp(30px, 4vw, 56px);
+  line-height: 1.04;
+  text-transform: uppercase;
+}
+.ad-demo-lead { margin-top: 18px; font-size: 17px; line-height: 1.6; color: rgba(245,245,240,0.88); max-width: 30em; }
+.ad-ask { margin-top: 26px; display: flex; flex-direction: column; align-items: flex-start; gap: 9px; }
+.ad-ask-cap {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--green); margin-bottom: 2px;
+}
+.ad-ask-q {
+  font-size: 14.5px; line-height: 1.35; color: #F5F5F0;
+  padding: 9px 14px; border: 1px solid rgba(245,245,240,0.16); border-radius: 18px 18px 18px 4px;
+  background: rgba(255,255,255,0.03);
+}
+.ad-demo-win {
+  border: 1px solid rgba(184,255,0,0.35);
+  background: #101109;
+  box-shadow: 0 30px 80px -40px rgba(184,255,0,0.35), 0 22px 60px -34px rgba(0,0,0,0.9);
+  overflow: hidden;
+}
+.ad-win-bar {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 10px 14px; background: #14161A; border-bottom: 1px solid rgba(245,245,240,0.09);
+}
+.ad-win-dots { display: inline-flex; gap: 6px; }
+.ad-win-dots i { width: 9px; height: 9px; border-radius: 50%; background: rgba(245,245,240,0.18); display: block; }
+.ad-win-title {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.12em;
+  text-transform: uppercase; color: rgba(245,245,240,0.8);
+}
+.ad-win-bar .dm-live { color: rgba(245,245,240,0.72); }
+.ad-win-bar .dm-live i { background: var(--green); }
+.ad-win-body { height: min(520px, calc(100vh - 300px)); min-height: 400px; position: relative; background: #FFFFFF; }
+.ad-win-body iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; }
+.ad-win-body.live .ad-script { display: none; }
+.ad-script.dm { border: 0; box-shadow: none; background: none; height: 100%; }
+.ad-script .dm-screen { height: 100%; min-height: 0; padding: 20px 20px; }
+.ad-script .msg { font-size: 15px; margin-bottom: 10px; max-width: 82%; }
+.ad-script .msg span { padding: 11px 15px; }
+.ad-script .msg.out span { background: #EEF6DC; }
+.ad-script .msg.in { margin-left: auto; width: fit-content; }
+.ad-script .msg.in span { background: #14161A; color: #F5F5F0; }
+.ad-script .msg.out { margin-left: 0; text-align: left; }
+.ad-script .dm-chip { align-self: flex-start; font-size: 10.5px; }
+
+/* ===== TRZY DROGI ===== */
+.ad-ways { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; align-items: stretch; }
+.ad-way {
+  display: flex; flex-direction: column; align-items: flex-start;
+  padding: 28px 26px 26px;
+  border: 1px solid rgba(245,245,240,0.14);
+  background: linear-gradient(158deg, rgba(28,31,22,0.6) 0%, rgba(14,15,11,0.7) 100%);
+  transition: border-color 0.35s ease, transform 0.35s cubic-bezier(0.22, 1, 0.36, 1);
+}
+.ad-way:hover { transform: translateY(-4px); border-color: rgba(184,255,0,0.4); }
+.ad-way.hot { border-color: var(--green); background: linear-gradient(158deg, rgba(184,255,0,0.11) 0%, rgba(14,15,11,0.75) 70%); box-shadow: 0 30px 70px -44px rgba(184,255,0,0.5); }
+.ad-way-tag {
+  font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.2em;
+  text-transform: uppercase; color: var(--green);
+}
+.ad-way h3 { margin-top: 12px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 25px; line-height: 1.08; text-transform: uppercase; }
+.ad-way-price { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; min-height: 3.4em; align-content: flex-start; }
+.ad-way-price b { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 38px; line-height: 1; color: #F5F5F0; }
+.ad-way.hot .ad-way-price b { color: var(--green); }
+.ad-way-price span { font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.04em; color: rgba(245,245,240,0.72); }
+.ad-way p { margin-top: 8px; font-size: 16px; line-height: 1.55; color: rgba(245,245,240,0.88); }
+.ad-way-when {
+  margin-top: 16px; margin-bottom: 24px; display: inline-flex; align-items: center; gap: 9px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: 0.1em; text-transform: uppercase;
+  color: #F5F5F0;
+}
+.ad-way-when svg { width: 16px; height: 16px; color: var(--green); flex: 0 0 auto; }
+.ad-way .btn-primary, .ad-way .btn-ghost { margin-top: auto; align-self: stretch; justify-content: center; text-align: center; }
+
+/* ===== CENNIK ===== */
+.ad-price { display: grid; grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr); gap: 22px; align-items: stretch; }
+.ad-price-main {
+  display: flex; flex-direction: column; align-items: flex-start;
+  padding: 30px 30px 28px;
+  border: 1px solid var(--green);
+  background: linear-gradient(158deg, rgba(184,255,0,0.11) 0%, rgba(14,15,11,0.75) 70%);
+}
+.ad-price-big { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; }
+.ad-price-big b { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(48px, 6vw, 84px); line-height: 0.95; color: var(--green); }
+.ad-price-big span { font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.06em; color: rgba(245,245,240,0.8); }
+.ad-incl { list-style: none; margin: 24px 0 26px; display: grid; gap: 12px; }
+.ad-incl li { display: flex; align-items: flex-start; gap: 12px; font-size: 17px; line-height: 1.35; color: #F5F5F0; }
+.ad-incl svg { color: var(--green); flex: 0 0 auto; margin-top: 3px; }
+.ad-price-main .btn-primary { margin-top: auto; padding: 16px 34px; }
+.ad-price-side { display: flex; flex-direction: column; gap: 22px; }
+.ad-terms { border: 1px solid rgba(245,245,240,0.12); background: rgba(255,255,255,0.02); padding: 6px 24px; }
+.ad-terms > div { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 16px; padding: 15px 0; border-bottom: 1px solid rgba(245,245,240,0.08); }
+.ad-terms > div:last-child { border-bottom: 0; }
+.ad-terms dt { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1.5; color: rgba(245,245,240,0.66); }
+.ad-terms dd { font-size: 15.5px; line-height: 1.45; color: #F5F5F0; }
+.ad-vs { border: 1px solid rgba(245,245,240,0.12); background: rgba(255,255,255,0.02); padding: 20px 24px 22px; flex: 1 1 auto; }
+.ad-vs-cap { font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--green); }
+.ad-vs p { margin-top: 10px; font-size: 16.5px; line-height: 1.5; color: rgba(245,245,240,0.9); }
+.ad-vs p b { color: #F5F5F0; font-weight: 600; }
+.ad-vs-bars { margin-top: 16px; display: grid; gap: 9px; }
+.ad-vs-row { display: grid; grid-template-columns: 96px 1fr; align-items: center; gap: 12px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(245,245,240,0.66); }
+.ad-vs-row i { display: block; height: 8px; background: rgba(245,245,240,0.3); }
+.ad-vs-row.acid { color: var(--green); }
+.ad-vs-row.acid i { background: var(--green); }
+
+/* ===== FAQ: sześć pytań w trzech kolumnach ===== */
+.ad-faq { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 18px; }
+.ad-faq .faq-item { padding: 22px 22px 22px 26px; }
+.ad-faq .faq-item h3 { font-size: 17.5px; }
+
+/* ===== finał: trzy przyciski ===== */
+#kontakt .ag-final h2 { max-width: 18ch; margin: 0 auto; }
+#kontakt .ag-final-note { font-size: 16.5px; }
+
+/* ===== Breakpointy ===== */
+@media (max-width: 1200px) {
+  .ad-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ad-faq { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 1100px) {
+  .ad-ways { grid-template-columns: 1fr; }
+  .ad-way-price { min-height: 0; }
+  .ad-price { grid-template-columns: 1fr; }
+}
+@media (max-width: 900px) {
+  .ad-hero, .ad-demo { grid-template-columns: 1fr; gap: 30px; }
+  #start .ag-h1 { font-size: clamp(28px, 8vw, 40px); max-width: none; }
+  #start .ag-lead { font-size: 16.5px; }
+  .ad-checks { flex-direction: column; gap: 9px; }
+  .ad-actions .btn-primary, .ad-actions .btn-ghost { white-space: normal; font-size: 12px; }
+  .ad-hero-vis .dm-screen { height: 440px; min-height: 440px; }
+  .ad-leaks, .ad-steps, .ad-faq { grid-template-columns: 1fr; }
+  .ad-leak { padding: 20px 20px 22px; column-gap: 16px; }
+  .ad-leak-num { font-size: 34px; }
+  .ad-leak h3 { font-size: 18.5px; }
+  .ad-leak p { font-size: 15.5px; }
+  .ad-win-body { height: 500px; }
+  .ad-win-title span { display: none; }
+  .ad-script .msg { font-size: 14px; max-width: 90%; }
+  .ad-way { padding: 24px 20px 22px; }
+  .ad-price-main { padding: 24px 20px; }
+  .ad-incl li { font-size: 16px; }
+  .ad-terms { padding: 4px 18px; }
+  .ad-terms > div { grid-template-columns: 1fr; gap: 4px; }
+  .ad-vs { padding: 18px 18px 20px; }
+  .ag-final-row { flex-direction: column; }
+  .btn-dark { justify-content: center; text-align: center; }
+}
+
+/* ===== Edytor ===== */
+body.fiq-edit .ad-win-body { height: auto; min-height: 0; }
+body.fiq-edit .ad-hero-vis .dm-screen, body.fiq-edit .ad-script .dm-screen { height: auto; min-height: 0; }

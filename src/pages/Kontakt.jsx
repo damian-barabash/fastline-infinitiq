@@ -12,6 +12,11 @@ import kontaktCss from '../styles/kontakt.css?inline';
    Sam formularz to `BriefForm.jsx` — dwa kroki, analiza strony i kalendarz
    (edge `brief-lead`); lista produktów w nim pochodzi z katalogu, jak w menu. */
 
+const PLANS = {
+  start: ['Zamawiasz: AI Doradca · 490 zł/mies. netto', 'Zostaw dane i wybierz termin. Na krótkiej rozmowie zakładamy konto i uruchamiamy agenta.'],
+  wdrozenie: ['Zamawiasz: AI Doradca z podłączeniem · 490 zł/mies. + 1 490 zł', 'Zostaw dane i wybierz termin. Na rozmowie ustalamy zakres i startujemy z wdrożeniem.'],
+};
+
 export default function Kontakt() {
   const navigate = useNavigate();
 
@@ -19,6 +24,20 @@ export default function Kontakt() {
     document.title = 'Kontakt — Fastline InfinitiQ';
     ensureFIQ();
     const destroy = initKontakt({ onNavigate: (to) => wipeTo(navigate, to) });
+
+    // Wejście z przycisku zakupu na stronie produktu (`?plan=…`): koszyka jeszcze
+    // nie ma, więc nad formularzem mówimy wprost, co klient zamawia i co będzie dalej.
+    const plan = PLANS[new URLSearchParams(window.location.search).get('plan')];
+    const card = document.querySelector('.form-card');
+    let note = null;
+    if (plan && card && !document.body.classList.contains('fiq-edit')) {
+      note = document.createElement('div');
+      note.className = 'plan-note';
+      const b = document.createElement('b'); b.textContent = plan[0];
+      const t = document.createElement('span'); t.textContent = plan[1];
+      note.append(b, t);
+      card.prepend(note);
+    }
 
     // CMS + katalog: czysty REST, bez supabase-js (ta sama zasada co na lądowaniu)
     let alive = true;
@@ -39,7 +58,7 @@ export default function Kontakt() {
         if (alive) window.dispatchEvent(new Event('fiq:content-ready'));
       });
 
-    return () => { alive = false; ac.abort(); destroy(); };
+    return () => { alive = false; ac.abort(); if (note) note.remove(); destroy(); };
   }, [navigate]);
 
   return (

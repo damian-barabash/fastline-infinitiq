@@ -363,7 +363,7 @@ export function initEditorLayer({ sb, onRequireLogin, pageId = 'index' }) {
     },
     link: {
       lab: 'Adres linku', ph: 'https://… albo /kontakt', hint: 'Pusty adres = usuń link.',
-      presets: [['/kontakt', '/kontakt'], ['/agenci-ai', '/agenci-ai'], ['/#audyt', '/#audyt']],
+      presets: [['/kontakt', '/kontakt'], ['/agenci-ai', '/agenci-ai'], ['/ai-doradca', '/ai-doradca'], ['/#audyt', '/#audyt']],
     },
     css: {
       lab: 'Własny CSS tego fragmentu', ph: 'letter-spacing: .12em; text-transform: uppercase; color: #B8FF00',

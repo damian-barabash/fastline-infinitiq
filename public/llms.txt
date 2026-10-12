@@ -15,6 +15,7 @@
 ## Strony
 - [Strona główna](https://fastlineinfinitiq.pl/): pełna oferta, model współpracy (briefing → diagnoza i roadmapa → retainer), dla kogo pracujemy
 - [Agenci AI](https://fastlineinfinitiq.pl/agenci-ai): zbiorcza strona produktu — AI Sprzedawca (zapytania i spotkania), AI Doradca (rekomendacja na stronie), AI Recepcjonistka (telefon 24/7, zapisy), AI Asystent (wiedza firmy dla zespołu). Jeden agent albo cały zespół, trening na ofercie i procesach klienta.
+- [AI Doradca](https://fastlineinfinitiq.pl/ai-doradca): strona produktu — agent AI na stronie internetowej klienta: pyta o sytuację, rekomenduje wariant oferty, nie zmyśla, przekazuje kontakt. 490 zł/mies. netto (500 rozmów, katalog do 200 pozycji, raport miesięczny), rozmowy ponad limit 0,49 zł, wdrożenie po naszej stronie 1 490 zł jednorazowo (opcjonalne), umowa na miesiąc.
 - [Kontakt](https://fastlineinfinitiq.pl/kontakt): umów briefing strategiczny — bez umów i zobowiązań
 
 ## Kontakt

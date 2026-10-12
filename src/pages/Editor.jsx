@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import LandingShell from '../components/LandingShell.jsx';
 import AgenciShell from '../components/AgenciShell.jsx';
+import DoradcaShell from '../components/DoradcaShell.jsx';
 import KontaktShell from '../components/KontaktShell.jsx';
 import AudytPanel from '../components/AudytPanel.jsx';
 import BriefPanel from '../components/BriefPanel.jsx';
@@ -11,6 +12,7 @@ import { sbAuth } from '../lib/supabase.js';
 import editorCss from '../styles/editor.css?inline';
 import editorUiCss from '../styles/editor-ui.css?inline';
 import agenciCss from '../styles/agenci.css?inline';
+import doradcaCss from '../styles/doradca.css?inline';
 import kontaktCss from '../styles/kontakt.css?inline';
 import audytCss from '../styles/audyt-panel.css?inline';
 
@@ -21,12 +23,13 @@ import audytCss from '../styles/audyt-panel.css?inline';
 const PAGES = {
   strona: { label: 'Strona główna', id: 'index', css: editorCss },
   agenci: { label: 'Agenci AI', id: 'agenci-ai', css: agenciCss },
+  doradca: { label: 'AI Doradca', id: 'ai-doradca', css: agenciCss + '\n' + doradcaCss },
   kontakt: { label: 'Kontakt', id: 'kontakt', css: kontaktCss },
 };
 
 export default function Editor() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState('strona');          // strona | agenci | kontakt | audyty | briefy
+  const [tab, setTab] = useState('strona');          // strona | agenci | doradca | kontakt | audyty | briefy
   const page = PAGES[tab] ? tab : 'strona';          // вкладки «Audyt»/«Briefingi» не меняют страницу
 
   useEffect(() => {
@@ -148,7 +151,7 @@ export default function Editor() {
       {tab === 'audyty' && <AudytPanel />}
       {tab === 'briefy' && <BriefPanel />}
 
-      {page === 'strona' ? <LandingShell /> : page === 'agenci' ? <AgenciShell /> : <KontaktShell />}
+      {page === 'strona' ? <LandingShell /> : page === 'agenci' ? <AgenciShell /> : page === 'doradca' ? <DoradcaShell /> : <KontaktShell />}
     </>
   );
 }

@@ -30,6 +30,7 @@ export default function KontaktShell() {
           <div className="menu-col">
             <div className="menu-cap">{'// produkty'}</div>
             <div className="menu-list" id="menuProducts">
+              <a className="menu-link" href="/ai-doradca" data-wipe><span className="menu-num">→</span><span>AI Doradca</span></a>
               <a className="menu-link" href="/agenci-ai" data-wipe><span className="menu-num">→</span><span>Agenci AI</span></a>
             </div>
             <a className="menu-cta" href="/#audyt" data-wipe>Darmowy audyt AI</a>

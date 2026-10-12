@@ -24,6 +24,7 @@ export default function LandingShell() {
             {/* lista z katalogu (`landing_products`): produkt ze swoją stroną jest
                 linkiem, pozostałe stoją na szaro — widać całą ofertę i to, co gotowe */}
             <div className="menu-list" id="menuProducts">
+              <a className="menu-link" href="/ai-doradca" data-wipe><span className="menu-num">→</span><span>AI Doradca</span></a>
               <a className="menu-link" href="/agenci-ai" data-wipe><span className="menu-num">→</span><span>Agenci AI</span></a>
             </div>
             <a className="menu-cta" href="/#audyt" data-wipe>Darmowy audyt AI</a>
@@ -144,7 +145,7 @@ export default function LandingShell() {
                     <b className="pl-name">AI Sprzedawca</b>
                     <i className="pl-desc">Pierwsza linia: łapie zapytanie w sekundę i domyka.</i>
                   </a>
-                  <a className="pl-node has-page" href="/agenci-ai" data-wipe data-g="c" data-i="8">
+                  <a className="pl-node has-page" href="/ai-doradca" data-wipe data-g="c" data-i="8">
                     <div className="pl-top"><ProductIcon id={9} /><span className="pl-num">09</span><i className="pl-go" aria-hidden="true">→</i></div>
                     <b className="pl-name">AI Doradca</b>
                     <i className="pl-desc">Dobiera wariant, rozbraja wątpliwości, prowadzi do zakupu.</i>

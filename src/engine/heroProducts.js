@@ -12,10 +12,11 @@ const GROUPS = ['a', 'b', 'c', 'd'];
 
 /* Produkty, które mają własną stronę (LP). Dopasowanie PO NAZWIE — numery
    katalogowe zmieniają się przy każdej rewizji oferty. Pierwsza taka strona
-   jest zbiorcza: czterej agenci prowadzą na jeden adres. */
+   jest zbiorcza: agenci bez własnej LP prowadzą na jeden adres; AI Doradca ma
+   już swoją (/ai-doradca, 2026-10-12). */
 const PRODUCT_PAGES = [
   { re: /sprzedawc/i, href: '/agenci-ai' },
-  { re: /doradc/i, href: '/agenci-ai' },
+  { re: /doradc/i, href: '/ai-doradca' },
   { re: /asystent/i, href: '/agenci-ai' },
   { re: /recepcj/i, href: '/agenci-ai' },
 ];
