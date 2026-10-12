@@ -1,5 +1,5 @@
 import React from 'react';
-import { IcGlobe, IcCheck, IcUsers, IcCalendar, IcClock } from './agentIcons.jsx';
+import { IcGlobe, IcCheck, IcUsers, IcCalendar, IcClock, IcDoc, IcSpark, IcArrow } from './agentIcons.jsx';
 
 /* Разметка страницы /ai-doradca — первая отдельная LP продукта (AI Doradca).
    Тот же каркас, что у /agenci-ai: шапка, меню, барабан граней, движок
@@ -107,33 +107,33 @@ export default function DoradcaShell() {
                   </ul>
                 </div>
 
-                {/* scena: doradca na stronie klienta (ten sam silnik scen co na /agenci-ai) */}
-                <div className="ad-hero-vis rv rv2" data-hideable="ad:hero-scene" data-hide-label="Hero — scena rozmowy">
-                  <div className="ag-demo dm" data-demo="advisor">
-                    <div className="dm-bar">
-                      <span className="dm-url"><IcGlobe /><span data-edit="ad_h_url">twojafirma.pl/oferta</span></span>
-                      <span className="dm-live"><i></i><span data-edit="ad_h_live">23:04 · doradca aktywny</span></span>
-                    </div>
-                    <div className="dm-screen dm-site">
-                      <div className="site-skel" aria-hidden="true">
-                        <span className="sk sk-h"></span>
-                        <span className="sk sk-t"></span>
-                        <span className="sk sk-t short"></span>
+                {/* karta agenta jak na /agenci-ai: zdjęcie, po najechaniu chmura punktów
+                    (silnik `team.js` szuka kart po `#teamGrid`); obok „żywe" dymki rozmowy */}
+                <div className="ad-hero-vis rv rv2">
+                  <canvas className="ad-neuro" data-n="34" aria-hidden="true"></canvas>
+                  <div className="team-grid ad-team" id="teamGrid">
+                    <article className="team-card" tabIndex={0} data-team="2">
+                      <div className="tm-visual">
+                        <canvas className="tm-canvas" aria-hidden="true"></canvas>
+                        <img className="tm-photo" src="/assets/team/maja.webp" fetchpriority="high" decoding="async" alt="AI Doradca — Fastline InfinitiQ" data-edit="ad_card_photo" data-edit-type="image" />
+                        <span className="tm-frame" aria-hidden="true"></span>
+                        <span className="tm-badge" data-edit="ad_card_tag">● doradztwo</span>
                       </div>
-                      <div className="adv-widget">
-                        <div className="adv-head"><img className="adv-fav" src="/assets/favicon/favicon-192.png" alt="" aria-hidden="true" /><span data-edit="ad_h_head">Doradca AI</span></div>
-                        <div className="msg out" data-s="1"><span data-edit="ad_h_m1">Dobry wieczór! Widzę, że porównujesz warianty. Do czego ma służyć na co dzień?</span></div>
-                        <div className="msg in" data-s="2"><span data-edit="ad_h_m2">Dla zespołu 6 osób, zaczynamy od stycznia.</span></div>
-                        <div className="msg typing" data-s="3"><span className="dots"><i></i><i></i><i></i></span></div>
-                        <div className="adv-rec" data-s="4">
-                          <b data-edit="ad_h_rec_h">Polecam wariant Standard</b>
-                          <span data-edit="ad_h_rec_p">Mieści 6 osób i startuje w tydzień. Premium opłaci się dopiero powyżej 10.</span>
-                        </div>
-                        <div className="msg in" data-s="5"><span data-edit="ad_h_m3">Brzmi dobrze. Proszę o kontakt jutro rano.</span></div>
-                        <div className="dm-chip" data-s="6"><IcUsers /><span data-edit="ad_h_chip">Kontakt i cała rozmowa w Twojej skrzynce</span></div>
+                      <div className="tm-body">
+                        <div className="ag-role" data-edit="ad_card_role" data-edit-type="html">Doradca klienta —<br />wybór i oferta</div>
+                        <h3 data-edit="ad_card_name">AI Doradca</h3>
+                        <p data-edit="ad_card_desc" data-edit-type="html">
+                          Pracuje na stronie, tam gdzie klient się waha. Identyfikuje faktyczną potrzebę klienta
+                          i wskazuje jedno rozwiązanie z uzasadnieniem. Handlowiec dostaje gotowy kontekst.
+                        </p>
+                        <div className="ag-chan" data-edit="ad_card_chan">strona · rekomendacja · lead</div>
                       </div>
-                    </div>
-                    <div className="dm-foot"><IcClock /><span data-edit="ad_h_foot">klient o 23:04 dostał odpowiedź, a Ty rano gotowy kontakt</span></div>
+                    </article>
+                  </div>
+                  <div className="ad-float" data-hideable="ad:hero-float" data-hide-label="Hero — dymki przy karcie">
+                    <span className="hb hb-q" data-edit="ad_hb1">Który wariant dla 6 osób?</span>
+                    <span className="hb hb-a" data-edit="ad_hb2">Polecam Standard. Start w tydzień.</span>
+                    <span className="hb hb-c"><IcUsers /><span data-edit="ad_hb3">Kontakt w Twojej skrzynce</span></span>
                   </div>
                 </div>
               </div>
@@ -150,21 +150,25 @@ export default function DoradcaShell() {
 
               <div className="ad-leaks rv rv2">
                 <div className="ad-leak" data-hideable="leak:1" data-hide-label="Problem 01">
+                  <div className="lk-vis lk-variants" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><b>×</b></div>
                   <span className="ad-leak-num" aria-hidden="true">01</span>
                   <h3 data-edit="ad_p1_h" data-edit-type="html">Wchodzi na ofertę, widzi pięć wariantów, zamyka kartę.</h3>
                   <p data-edit="ad_p1_p" data-edit-type="html">Nie odpadł przez cenę, tylko przez wybór.</p>
                 </div>
                 <div className="ad-leak" data-hideable="leak:2" data-hide-label="Problem 02">
+                  <div className="lk-vis lk-repeat" aria-hidden="true"><i></i><i></i><i></i><b>×100</b></div>
                   <span className="ad-leak-num" aria-hidden="true">02</span>
                   <h3 data-edit="ad_p2_h" data-edit-type="html">Te same trzy pytania wracają codziennie.</h3>
                   <p data-edit="ad_p2_p" data-edit-type="html">Ktoś z zespołu odpowiada na nie po raz setny.</p>
                 </div>
                 <div className="ad-leak" data-hideable="leak:3" data-hide-label="Problem 03">
+                  <div className="lk-vis lk-clock" aria-hidden="true"><em>21:00</em><span><i></i></span><em>9:30</em></div>
                   <span className="ad-leak-num" aria-hidden="true">03</span>
                   <h3 data-edit="ad_p3_h" data-edit-type="html">Pytanie o 21:00, odpowiedź o 9:30.</h3>
                   <p data-edit="ad_p3_p" data-edit-type="html">O 9:30 klient czyta już ofertę konkurencji.</p>
                 </div>
                 <div className="ad-leak" data-hideable="leak:4" data-hide-label="Problem 04">
+                  <div className="lk-vis lk-funnel" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
                   <span className="ad-leak-num" aria-hidden="true">04</span>
                   <h3 data-edit="ad_p4_h" data-edit-type="html">Formularz wypełnia garstka.</h3>
                   <p data-edit="ad_p4_p" data-edit-type="html">Reszta chciała zapytać o jedną rzecz.</p>
@@ -181,7 +185,10 @@ export default function DoradcaShell() {
                 <h2 data-edit="ad_s_h2" data-edit-type="html">Doradza tak, jak zrobiłby to dobry sprzedawca</h2>
               </div>
 
-              <div className="steps ad-steps rv rv2">
+              <div className="ad-how rv rv2">
+              <div className="ad-how-steps">
+              <canvas className="ad-synapse" id="adSynapse" aria-hidden="true"></canvas>
+              <div className="steps ad-steps">
                 <div className="step" data-hideable="how:1" data-hide-label="Jak działa 01">
                   <span className="step-num" data-edit="ad_s1_num">01</span>
                   <h3 data-edit="ad_s1_h">Pyta, zanim zarekomenduje</h3>
@@ -202,6 +209,37 @@ export default function DoradcaShell() {
                   <h3 data-edit="ad_s4_h">Domyka albo przekazuje</h3>
                   <p data-edit="ad_s4_p" data-edit-type="html">Prowadzi do koszyka, formularza albo kalendarza. Rozmowa trafia do Twojej skrzynki.</p>
                 </div>
+              </div>
+              </div>
+              {/* scena: doradca na stronie klienta (ten sam silnik scen co na /agenci-ai) */}
+              <div className="ad-scene rv rv2" data-hideable="ad:scene" data-hide-label="Jak działa — scena rozmowy">
+                <div className="ag-demo dm" data-demo="advisor">
+                  <div className="dm-bar">
+                    <span className="dm-url"><IcGlobe /><span data-edit="ad_h_url">twojafirma.pl/oferta</span></span>
+                    <span className="dm-live"><i></i><span data-edit="ad_h_live">23:04 · doradca aktywny</span></span>
+                  </div>
+                  <div className="dm-screen dm-site">
+                    <div className="site-skel" aria-hidden="true">
+                      <span className="sk sk-h"></span>
+                      <span className="sk sk-t"></span>
+                      <span className="sk sk-t short"></span>
+                    </div>
+                    <div className="adv-widget">
+                      <div className="adv-head"><img className="adv-fav" src="/assets/favicon/favicon-192.png" alt="" aria-hidden="true" /><span data-edit="ad_h_head">Doradca AI</span></div>
+                      <div className="msg out" data-s="1"><span data-edit="ad_h_m1">Dobry wieczór! Widzę, że porównujesz warianty. Do czego ma służyć na co dzień?</span></div>
+                      <div className="msg in" data-s="2"><span data-edit="ad_h_m2">Dla zespołu 6 osób, zaczynamy od stycznia.</span></div>
+                      <div className="msg typing" data-s="3"><span className="dots"><i></i><i></i><i></i></span></div>
+                      <div className="adv-rec" data-s="4">
+                        <b data-edit="ad_h_rec_h">Polecam wariant Standard</b>
+                        <span data-edit="ad_h_rec_p">Mieści 6 osób i startuje w tydzień. Premium opłaci się dopiero powyżej 10.</span>
+                      </div>
+                      <div className="msg in" data-s="5"><span data-edit="ad_h_m3">Brzmi dobrze. Proszę o kontakt jutro rano.</span></div>
+                      <div className="dm-chip" data-s="6"><IcUsers /><span data-edit="ad_h_chip">Kontakt i cała rozmowa w Twojej skrzynce</span></div>
+                    </div>
+                  </div>
+                  <div className="dm-foot"><IcClock /><span data-edit="ad_h_foot">klient o 23:04 dostał odpowiedź, a Ty rano gotowy kontakt</span></div>
+                </div>
+              </div>
               </div>
             </div>
           </section>
@@ -228,7 +266,9 @@ export default function DoradcaShell() {
                 {/* Okno demo. `data-live` = miejsce na żywy czat (iframe z Brain, gdy
                     w Doradca.jsx jest ustawiony klucz kanału); bez klucza i w edytorze
                     zostaje odgrywana scena poniżej. */}
-                <div className="ad-demo-win rv rv2" id="adDemo">
+                <div className="ad-demo-wrap rv rv2">
+                <canvas className="ad-neuro" data-n="40" aria-hidden="true"></canvas>
+                <div className="ad-demo-win" id="adDemo">
                   <div className="ad-win-bar">
                     <span className="ad-win-dots" aria-hidden="true"><i></i><i></i><i></i></span>
                     <span className="ad-win-title"><img className="adv-fav" src="/assets/favicon/favicon-192.png" alt="" aria-hidden="true" /><span data-edit="ad_d_win">AI Doradca · Fastline InfinitiQ</span></span>
@@ -248,6 +288,7 @@ export default function DoradcaShell() {
                     </div>
                   </div>
                 </div>
+                </div>
               </div>
             </div>
           </section>
@@ -262,6 +303,7 @@ export default function DoradcaShell() {
 
               <div className="ad-ways rv rv2">
                 <article className="ad-way hot" data-hideable="way:1" data-hide-label="Droga — Kup teraz">
+                  <div className="way-vis way-code" aria-hidden="true"><code>&lt;script src="doradca.js"&gt;</code><i></i></div>
                   <span className="ad-way-tag" data-edit="ad_w1_tag">Sam, dziś</span>
                   <h3 data-edit="ad_w1_h">Kup teraz</h3>
                   <div className="ad-way-price"><b data-edit="ad_w1_price">490 zł</b><span data-edit="ad_w1_unit">/ mies. netto</span></div>
@@ -271,6 +313,7 @@ export default function DoradcaShell() {
                 </article>
 
                 <article className="ad-way" data-hideable="way:2" data-hide-label="Droga — Kup z podłączeniem">
+                  <div className="way-vis way-list" aria-hidden="true"><span><IcCheck />Katalog</span><span><IcCheck />Ton marki</span><span><IcCheck />Osadzenie</span></div>
                   <span className="ad-way-tag" data-edit="ad_w2_tag">Robimy za Ciebie</span>
                   <h3 data-edit="ad_w2_h">Kup z podłączeniem</h3>
                   <div className="ad-way-price"><b data-edit="ad_w2_price">490 zł</b><span data-edit="ad_w2_unit">/ mies. + 1 490 zł jednorazowo</span></div>
@@ -280,6 +323,7 @@ export default function DoradcaShell() {
                 </article>
 
                 <article className="ad-way" data-hideable="way:3" data-hide-label="Droga — Umów 30 minut">
+                  <div className="way-vis way-cal" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><b>30 min</b></div>
                   <span className="ad-way-tag" data-edit="ad_w3_tag">Najpierw zobacz</span>
                   <h3 data-edit="ad_w3_h">Umów 30 minut</h3>
                   <div className="ad-way-price"><b data-edit="ad_w3_price">Bezpłatnie</b><span data-edit="ad_w3_unit"></span></div>
@@ -301,6 +345,7 @@ export default function DoradcaShell() {
 
               <div className="ad-price rv rv2">
                 <div className="ad-price-main">
+                  <canvas className="ad-neuro" data-n="30" aria-hidden="true"></canvas>
                   <div className="ad-price-big"><b data-edit="ad_c_price">490 zł</b><span data-edit="ad_c_unit">/ mies. netto</span></div>
                   <ul className="ad-incl">
                     <li data-hideable="incl:1" data-hide-label="W cenie 1"><IcCheck /><span data-edit="ad_c_i1">500 rozmów miesięcznie</span></li>
@@ -343,32 +388,32 @@ export default function DoradcaShell() {
 
               <div className="faq-grid ad-faq rv rv2">
                 <div className="faq-item" data-hideable="faq:1" data-hide-label="Pytanie 01">
-                  <span className="faq-num" aria-hidden="true">01</span>
+                  <span className="faq-num" aria-hidden="true"><IcDoc />01</span>
                   <h3 data-edit="ad_f1_q">Skąd będzie znał moją ofertę?</h3>
                   <p data-edit="ad_f1_a" data-edit-type="html">Z materiałów, które nam dasz: strony, cennika, PDF-ów. Odpowiada wyłącznie z tej bazy.</p>
                 </div>
                 <div className="faq-item" data-hideable="faq:2" data-hide-label="Pytanie 02">
-                  <span className="faq-num" aria-hidden="true">02</span>
+                  <span className="faq-num" aria-hidden="true"><IcCheck />02</span>
                   <h3 data-edit="ad_f2_q">Czy zmyśli cenę albo termin?</h3>
                   <p data-edit="ad_f2_a" data-edit-type="html">Nie. Zakres tego, co wolno mu obiecać, ustalasz Ty na starcie.</p>
                 </div>
                 <div className="faq-item" data-hideable="faq:3" data-hide-label="Pytanie 03">
-                  <span className="faq-num" aria-hidden="true">03</span>
+                  <span className="faq-num" aria-hidden="true"><IcSpark />03</span>
                   <h3 data-edit="ad_f3_q">Czy muszę coś programować?</h3>
                   <p data-edit="ad_f3_a" data-edit-type="html">Jedna linijka kodu na stronie. Albo wybierasz wariant z podłączeniem i robimy to za Ciebie.</p>
                 </div>
                 <div className="faq-item" data-hideable="faq:4" data-hide-label="Pytanie 04">
-                  <span className="faq-num" aria-hidden="true">04</span>
+                  <span className="faq-num" aria-hidden="true"><IcGlobe />04</span>
                   <h3 data-edit="ad_f4_q">Co z danymi?</h3>
                   <p data-edit="ad_f4_a" data-edit-type="html">Serwery w Unii Europejskiej, umowa powierzenia. Rozmowy należą do Ciebie.</p>
                 </div>
                 <div className="faq-item" data-hideable="faq:5" data-hide-label="Pytanie 05">
-                  <span className="faq-num" aria-hidden="true">05</span>
+                  <span className="faq-num" aria-hidden="true"><IcCalendar />05</span>
                   <h3 data-edit="ad_f5_q">Co, jeśli nie zadziała?</h3>
                   <p data-edit="ad_f5_a" data-edit-type="html">Umowa na miesiąc. Rezygnujesz z końcem opłaconego okresu, bez kar.</p>
                 </div>
                 <div className="faq-item" data-hideable="faq:6" data-hide-label="Pytanie 06">
-                  <span className="faq-num" aria-hidden="true">06</span>
+                  <span className="faq-num" aria-hidden="true"><IcArrow />06</span>
                   <h3 data-edit="ad_f6_q">Czym to się różni od czatu, który już mam?</h3>
                   <p data-edit="ad_f6_a" data-edit-type="html">Czat zbiera adresy. Doradca rekomenduje wariant i doprowadza do zakupu albo do kalendarza.</p>
                 </div>
@@ -380,6 +425,7 @@ export default function DoradcaShell() {
           <section className="slide" id="kontakt" data-hideable="sec:kontakt" data-hide-label="Sekcja — CTA końcowy">
             <div className="slide-inner ag-wrap">
               <div className="ag-final rv rv1">
+                <canvas className="ad-neuro" data-n="46" data-ink="dark" aria-hidden="true"></canvas>
                 <h2 data-edit="ad_final_h2" data-edit-type="html">Trzydzieści minut albo jedno kliknięcie</h2>
                 <p className="ag-final-note" data-edit="ad_final_note" data-edit-type="html">
                   Umów brief i zobacz agenta na swojej ofercie. Albo pomiń rozmowę i uruchom go dziś —

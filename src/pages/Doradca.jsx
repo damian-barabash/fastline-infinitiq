@@ -3,13 +3,16 @@ import { useNavigate } from 'react-router-dom';
 import DoradcaShell from '../components/DoradcaShell.jsx';
 import { ensureFIQ } from '../engine/fiq.js';
 import { initAgenci } from '../engine/agenciEngine.js';
+import { initDoradcaFx } from '../engine/doradcaFx.js';
 import { wipeTo } from '../engine/wipe.js';
 import { SB_URL, SB_KEY } from '../lib/supabase-config.js';
 import agenciCss from '../styles/agenci.css?inline';
 import doradcaCss from '../styles/doradca.css?inline';
 
 /* LP produktu AI Doradca (/ai-doradca). Rama i silnik wspólne z /agenci-ai
-   (`initAgenci`: bęben, menu, kursor, sceny rozmów); treść edytuje się w /editor
+   (`initAgenci`: menu, kursor, sceny rozmów), ale BEZ bębna 3D (`drum: false`,
+   2026-10-12 — właściciel: przewijanie „jak w prezentacji" spowalnia stronę);
+   sekcje to zwykły przewijany dokument. Treść edytuje się w /editor
    (zakładka „AI Doradca") — wiersz `site_content` o id `ai-doradca`.
 
    DEMO_KEY = publiczny klucz kanału widget w Brain (projekt z ofertą FIQ).
@@ -35,8 +38,11 @@ export default function Doradca() {
   useEffect(() => {
     document.title = 'AI Doradca — doradza klientom na Twojej stronie 24/7 | Fastline InfinitiQ';
     ensureFIQ();
-    let destroy = initAgenci({ onNavigate: (to) => wipeTo(navigate, to) });
+    let destroy = initAgenci({ onNavigate: (to) => wipeTo(navigate, to), drum: false });
     mountLiveDemo();
+    // po `initAgenci`: tryb (mode-flat / mode-3d) jest już ustawiony na <html>
+    const fxAc = new AbortController();
+    const stopFx = initDoradcaFx({ signal: fxAc.signal });
 
     let alive = true;
     const ac = new AbortController();
@@ -53,7 +59,7 @@ export default function Doradca() {
           const before = slideIds();
           window.FIQ.applyContent(published, { editor: false });
 
-          // ukryta albo przestawiona grań: bęben mierzy ściany w kolejności DOM,
+          // ukryta albo przestawiona sekcja: silnik trzyma listę sekcji z chwili startu,
           // więc usuwamy ją fizycznie i stawiamy silnik od nowa (jak na /agenci-ai)
           const hiddenSlides = Array.from(document.querySelectorAll('.slide[data-hideable]'))
             .filter((el) => el.style.display === 'none');
@@ -70,7 +76,7 @@ export default function Doradca() {
             const total = document.querySelectorAll('.slide').length;
             const cntTotal = document.querySelector('#counter span:last-child');
             if (cntTotal) cntTotal.textContent = '/ ' + String(total).padStart(2, '0');
-            destroy = initAgenci({ onNavigate: (to) => wipeTo(navigate, to) });
+            destroy = initAgenci({ onNavigate: (to) => wipeTo(navigate, to), drum: false });
           }
         }
       })
@@ -79,7 +85,7 @@ export default function Doradca() {
         if (alive) window.dispatchEvent(new Event('fiq:content-ready'));
       });
 
-    return () => { alive = false; ac.abort(); destroy(); };
+    return () => { alive = false; ac.abort(); fxAc.abort(); stopFx(); destroy(); };
   }, [navigate]);
 
   return (

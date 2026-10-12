@@ -10,7 +10,7 @@ import { initTeam } from './team.js';
 import { watchNavClaim, initClaimScramble } from './navClaim.js';
 import { initMenu } from './menu.js';
 
-export function initAgenci({ onNavigate }) {
+export function initAgenci({ onNavigate, drum: useDrum = true }) {
   const ac = new AbortController();
   const signal = ac.signal;
   let rafId = 0;
@@ -18,8 +18,15 @@ export function initAgenci({ onNavigate }) {
 
   /* prefers-reduced-motion игнорируем сознательно (урок HORIN) */
   const COARSE = matchMedia('(hover: none), (pointer: coarse)').matches;
-  const FLAT = COARSE || matchMedia('(max-width: 900px)').matches;
+  // SMALL = telefon/dotyk (mniej punktów tła, sieć na środku).
+  // FLAT  = bez bębna 3D: telefon ALBO strona, która go wyłączyła (`drum: false`,
+  //         np. /ai-doradca — zwykłe przewijanie, na desktopie wygląd bez zmian:
+  //         klasa `mode-desk` zostawia własny kursor, licznik i układ grani).
+  const SMALL = COARSE || matchMedia('(max-width: 900px)').matches;
+  const FLAT = SMALL || !useDrum;
+  const DESK = FLAT && !SMALL;
   document.documentElement.classList.add(FLAT ? 'mode-flat' : 'mode-3d');
+  if (DESK) document.documentElement.classList.add('mode-desk');
   if (COARSE) document.documentElement.classList.add('coarse');
 
   const lerp = (a, b, t) => a + (b - a) * t;
@@ -173,10 +180,24 @@ export function initAgenci({ onNavigate }) {
   }
 
   // flat-режим (телефон): барабана нет — активной считаем ближайшую к центру грань
+  // Prostokąty czytamy tylko po przewinięciu / zmianie układu, nie co klatkę.
+  let flatDirty = true;
+  if (FLAT) {
+    const dirty = () => { flatDirty = true; };
+    addEventListener('scroll', dirty, { passive: true, signal });
+    addEventListener('resize', dirty, { signal });
+    addEventListener('fiq:content-ready', dirty, { signal });
+  }
   function updateFlat() {
+    if (!flatDirty) return;
+    flatDirty = false;
+    if (hint) hint.classList.toggle('gone', scrollY > innerHeight * 0.3);
     let best = 0, bestD = Infinity;
     slides.forEach((s, i) => {
       const r = s.getBoundingClientRect();
+      // sekcja, która weszła w okno, zostaje oznaczona na stałe (`seen`) — strona
+      // może dzięki temu pokazać treść raz, zamiast gasić ją po zejściu ze środka
+      if (r.top < innerHeight * 0.86 && !s.classList.contains('seen')) s.classList.add('seen');
       const d = Math.abs(r.top + r.height / 2 - innerHeight / 2);
       if (d < bestD) { bestD = d; best = i; }
     });
@@ -205,7 +226,7 @@ export function initAgenci({ onNavigate }) {
   const canvas = document.getElementById('neural');
   const ctx = canvas.getContext('2d');
   const DPR = Math.min(devicePixelRatio || 1, WEAK ? 1.5 : 2);
-  const COUNT = FLAT ? (WEAK ? 46 : 64) : (WEAK ? 90 : 120);
+  const COUNT = SMALL ? (WEAK ? 46 : 64) : (WEAK ? 90 : 120);
   const nodes = [];
   for (let i = 0; i < COUNT; i++) {
     nodes.push({
@@ -231,9 +252,9 @@ export function initAgenci({ onNavigate }) {
   function drawNeural(time) {
     const H0 = innerHeight;
     ctx.clearRect(0, 0, vw, H0);
-    const cx = vw * (FLAT ? 0.5 : 0.78);
+    const cx = vw * (SMALL ? 0.5 : 0.78);
     const cy = H0 * 0.5;
-    const baseR = Math.min(vw, H0) * (FLAT ? 0.36 : 0.28);
+    const baseR = Math.min(vw, H0) * (SMALL ? 0.36 : 0.28);
     const H = H0 * 1.5;
     const f = 900;
     const rot = scrollY / Math.max(1, H0) * 0.7 + time * 0.00004;
@@ -246,7 +267,7 @@ export function initAgenci({ onNavigate }) {
       const s = f / (f + z3 + baseR * 1.4);
       const sx = cx + x3 * s;
       const sy = cy + n.y * H * s;
-      if (!FLAT && mouse.active) {
+      if (!SMALL && mouse.active) {
         const dx = sx + n.ox - mouse.x, dy = sy + n.oy - mouse.y;
         const d2 = dx * dx + dy * dy;
         const RAD = 150;
@@ -279,7 +300,7 @@ export function initAgenci({ onNavigate }) {
         ctx.moveTo(a.sx, a.sy);
         ctx.lineTo(b.sx, b.sy);
         ctx.stroke();
-        if (!FLAT && pulses.length < 10 && Math.random() < 0.001) {
+        if (!SMALL && pulses.length < 10 && Math.random() < 0.001) {
           pulses.push({ i, j, t: 0, sp: 0.018 + Math.random() * 0.02 });
         }
       }
@@ -309,6 +330,7 @@ export function initAgenci({ onNavigate }) {
     }
   }
 
+  let teamNear = true;
   function frame(time) {
     if (destroyed) return;
     mouse.ix = lerp(mouse.ix, mouse.x, 0.2);
@@ -324,16 +346,18 @@ export function initAgenci({ onNavigate }) {
     if (team && ZESPOL >= 0) {
       if (FLAT) {
         // grań z kartami rysujemy, gdy jest w oknie (z zapasem ekranu w każdą stronę)
-        const r = slides[ZESPOL].getBoundingClientRect();
-        const near = r.bottom > -innerHeight && r.top < innerHeight * 2;
-        team.tick(time, near, Math.round(scrollY), near);
+        if (flatDirty) {
+          const r = slides[ZESPOL].getBoundingClientRect();
+          teamNear = r.bottom > -innerHeight && r.top < innerHeight * 2;
+        }
+        team.tick(time, teamNear, Math.round(scrollY), teamNear);
       } else {
         const d = Math.abs(pSmooth - ZESPOL);
         team.tick(time, d < 1.15, Math.round(ySmooth), d < 0.45);
       }
     }
     if (FLAT) updateFlat(); else updateDrum();
-    drawNeural(time);
+    if (!document.hidden) drawNeural(time);
     rafId = requestAnimationFrame(frame);
   }
   rafId = requestAnimationFrame(frame);
@@ -447,6 +471,6 @@ export function initAgenci({ onNavigate }) {
     if (closeMenu) closeMenu();
     unwatchClaim();
     ac.abort();
-    document.documentElement.classList.remove('mode-3d', 'mode-flat', 'coarse');
+    document.documentElement.classList.remove('mode-3d', 'mode-flat', 'mode-desk', 'coarse');
   };
 }

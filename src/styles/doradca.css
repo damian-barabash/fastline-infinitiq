@@ -3,7 +3,7 @@
    z `agenci.css`; ten arkusz wstrzykuje się ZA nim. */
 
 /* ===== HERO: tekst po lewej, scena po prawej ===== */
-.ad-hero { display: grid; grid-template-columns: minmax(0, 1.16fr) minmax(0, 0.84fr); gap: clamp(28px, 4vw, 64px); align-items: center; }
+.ad-hero { display: grid; grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr); gap: clamp(28px, 4vw, 64px); align-items: center; }
 #start .ag-h1 { font-size: clamp(30px, 3.5vw, 54px); max-width: 17ch; }
 #start .ag-lead { margin-top: 20px; font-size: 18px; line-height: 1.55; max-width: 34em; }
 #start .ag-actions { margin-top: 30px; }
@@ -11,20 +11,20 @@
 .ad-actions .btn-primary, .ad-actions .btn-ghost { padding: 15px 16px; letter-spacing: 0.1em; font-size: 11.5px; white-space: nowrap; }
 .ad-checks { margin-top: 24px; gap: 10px 20px; }
 .ad-checks li { font-size: 10.5px; letter-spacing: 0.08em; gap: 7px; white-space: nowrap; }
-.ad-hero-vis .dm { height: auto; }
-.ad-hero-vis .dm-screen { height: 408px; min-height: 408px; }
-.ad-hero-vis .adv-widget { margin-top: 12px; padding: 14px 14px 12px; }
-.ad-hero-vis .adv-widget .msg { font-size: 13.5px; margin-bottom: 8px; }
-.ad-hero-vis .adv-widget .msg span { padding: 9px 13px; }
-.ad-hero-vis .adv-widget .msg.out span { background: #EEF6DC; }
+.ad-scene .dm { height: auto; }
+.ad-scene .dm-screen { height: 408px; min-height: 408px; }
+.ad-scene .adv-widget { margin-top: 12px; padding: 14px 14px 12px; }
+.ad-scene .adv-widget .msg { font-size: 13.5px; margin-bottom: 8px; }
+.ad-scene .adv-widget .msg span { padding: 9px 13px; }
+.ad-scene .adv-widget .msg.out span { background: #EEF6DC; }
 /* w oknie doradcy agent pisze z lewej, klient z prawej (jak w prawdziwym widgecie) */
-.ad-hero-vis .msg.out { margin-left: 0; text-align: left; }
-.ad-hero-vis .msg.in { margin-left: auto; width: fit-content; }
-.ad-hero-vis .adv-widget .msg.in span { background: #14161A; color: #F5F5F0; }
-.ad-hero-vis .msg { max-width: 88%; }
-.ad-hero-vis .adv-rec b { font-size: 14.5px; }
-.ad-hero-vis .adv-rec span { font-size: 13px; }
-.ad-hero-vis .adv-widget .dm-chip { font-size: 10px; padding: 8px 12px; }
+.ad-scene .msg.out { margin-left: 0; text-align: left; }
+.ad-scene .msg.in { margin-left: auto; width: fit-content; }
+.ad-scene .adv-widget .msg.in span { background: #14161A; color: #F5F5F0; }
+.ad-scene .msg { max-width: 88%; }
+.ad-scene .adv-rec b { font-size: 14.5px; }
+.ad-scene .adv-rec span { font-size: 13px; }
+.ad-scene .adv-widget .dm-chip { font-size: 10px; padding: 8px 12px; }
 
 /* ===== PROBLEM: cztery „wycieki" ===== */
 .ad-leaks { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 20px; }
@@ -52,11 +52,18 @@
 .ad-leak h3 { font-family: 'Schibsted Grotesk', sans-serif; font-weight: 600; font-size: 21px; line-height: 1.3; color: #F5F5F0; }
 .ad-leak p { margin-top: 10px; font-size: 16.5px; line-height: 1.5; color: var(--green); }
 
-/* ===== JAK DZIAŁA: cztery zasady ===== */
-.ad-steps { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 18px; }
-.ad-steps .step { padding: 26px 22px 30px; }
-.ad-steps .step h3 { font-size: 19px; line-height: 1.15; }
+/* ===== JAK DZIAŁA: cztery zasady + scena rozmowy, przez zasady biegnie impuls ===== */
+.ad-how { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 0.92fr); gap: clamp(22px, 3vw, 44px); align-items: stretch; }
+.ad-how-steps { position: relative; display: flex; }
+.ad-synapse { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 2; }
+.ad-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; width: 100%; }
+.ad-steps .step { padding: 30px 22px 26px 30px; transition: border-color 0.5s ease, background 0.5s ease, box-shadow 0.5s ease; }
+.ad-steps .step h3 { font-size: 18.5px; line-height: 1.15; transition: color 0.5s ease; }
 .ad-steps .step p { font-size: 15.5px; }
+.ad-steps .step.lit { border-color: rgba(184,255,0,0.6); background: rgba(184,255,0,0.07); box-shadow: 0 24px 60px -40px rgba(184,255,0,0.6); }
+.ad-steps .step.lit h3 { color: var(--green); }
+.ad-steps .step.lit::after { width: 100%; }
+.ad-scene .dm { height: 100%; }
 
 /* ===== DEMO ===== */
 .ad-demo { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(28px, 4vw, 60px); align-items: center; }
@@ -179,9 +186,130 @@
 #kontakt .ag-final h2 { max-width: 18ch; margin: 0 auto; }
 #kontakt .ag-final-note { font-size: 16.5px; }
 
+/* ===== Sieci „neuronów" w tle bloków (rysuje `doradcaFx.js`) ===== */
+.ad-neuro { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; }
+.ad-hero-vis, .ad-demo-wrap, .ad-price-main, #kontakt .ag-final { position: relative; }
+.ad-hero-vis > :not(.ad-neuro), .ad-demo-wrap > :not(.ad-neuro), .ad-price-main > :not(.ad-neuro), #kontakt .ag-final > :not(.ad-neuro) { position: relative; z-index: 1; }
+.ad-hero-vis > .ad-neuro { inset: -46px -40px; width: calc(100% + 80px); height: calc(100% + 92px); }
+.ad-demo-wrap > .ad-neuro { inset: -40px; width: calc(100% + 80px); height: calc(100% + 80px); }
+#kontakt .ag-final { overflow: hidden; }
+#kontakt .ag-final > .ad-neuro { opacity: 0.55; }
+
+/* ===== HERO: karta agenta + dymki ===== */
+.ad-hero-vis { display: flex; justify-content: flex-end; padding-left: 104px; }
+#start .ad-team { display: block; margin-top: 0; width: 100%; max-width: 380px; }
+#start .ad-team .tm-visual { aspect-ratio: 8 / 5.4; }
+#start .ad-team .tm-body { padding: 18px 22px 22px; }
+#start .ad-team .ag-role { font-size: 11.5px; }
+#start .ad-team .team-card h3 { font-size: 26px; margin-top: 10px; }
+#start .ad-team .team-card p { font-size: 15px; line-height: 1.55; margin-top: 12px; }
+#start .ad-team .ag-chan { font-size: 11px; margin-top: 18px; padding-top: 13px; }
+.ad-float { position: absolute !important; left: 0; top: 9%; z-index: 3 !important; display: flex; flex-direction: column; align-items: flex-start; gap: 10px; pointer-events: none; }
+.hb {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 10px 14px; font-size: 13.5px; line-height: 1.3; max-width: 220px;
+  box-shadow: 0 16px 34px -18px rgba(0,0,0,0.9);
+  opacity: 0; transform: translateY(10px) scale(0.96);
+  animation: hbIn 11s ease infinite;
+}
+.hb-q { background: #F5F5F0; color: #14161A; border-radius: 18px 18px 18px 4px; }
+.hb-a { background: var(--green); color: #0D0D0D; font-weight: 600; border-radius: 18px 18px 4px 18px; margin-left: 26px; animation-name: hbIn2; }
+.hb-c { background: #14161A; color: var(--green); border: 1px solid rgba(184,255,0,0.45); border-radius: 999px; font-family: 'IBM Plex Mono', monospace; font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase; white-space: nowrap; max-width: none; animation-name: hbIn3; }
+.hb-c svg { width: 15px; height: 15px; flex: 0 0 auto; }
+@keyframes hbIn  { 0%, 6% { opacity: 0; transform: translateY(10px) scale(0.96); } 11%, 90% { opacity: 1; transform: none; } 96%, 100% { opacity: 0; transform: translateY(-6px); } }
+@keyframes hbIn2 { 0%, 28% { opacity: 0; transform: translateY(10px) scale(0.96); } 33%, 90% { opacity: 1; transform: none; } 96%, 100% { opacity: 0; transform: translateY(-6px); } }
+@keyframes hbIn3 { 0%, 50% { opacity: 0; transform: translateY(10px) scale(0.96); } 55%, 90% { opacity: 1; transform: none; } 96%, 100% { opacity: 0; transform: translateY(-6px); } }
+
+/* ===== PROBLEM: mini-sceny nad tekstem karty ===== */
+.ad-leak { grid-template-rows: auto auto auto; }
+.lk-vis {
+  grid-column: 1 / -1; height: 62px; margin-bottom: 20px; position: relative;
+  display: flex; align-items: center; gap: 8px;
+  border-bottom: 1px dashed rgba(245,245,240,0.14); padding-bottom: 16px;
+}
+.ad-leak-num { grid-row: 2 / span 2; }
+/* 01: pięć wariantów, wzrok skacze, karta się zamyka */
+.lk-variants i { flex: 1 1 0; max-width: 74px; height: 44px; border: 1px solid rgba(245,245,240,0.22); background: rgba(245,245,240,0.04); animation: lkPick 5s linear infinite; }
+.lk-variants i:nth-child(2) { animation-delay: 0.5s; } .lk-variants i:nth-child(3) { animation-delay: 1s; }
+.lk-variants i:nth-child(4) { animation-delay: 1.5s; } .lk-variants i:nth-child(5) { animation-delay: 2s; }
+.lk-variants b { margin-left: auto; width: 34px; height: 34px; display: grid; place-items: center; border: 1px solid #FF5A4D; color: #FF5A4D; font: 500 18px/1 'IBM Plex Mono', monospace; animation: lkClose 5s ease infinite; }
+@keyframes lkPick { 0%, 9% { border-color: var(--green); background: rgba(184,255,0,0.16); } 10%, 100% { border-color: rgba(245,245,240,0.22); background: rgba(245,245,240,0.04); } }
+@keyframes lkClose { 0%, 52% { opacity: 0.25; transform: scale(1); } 60% { opacity: 1; transform: scale(1.25); background: rgba(255,90,77,0.2); } 68%, 92% { opacity: 1; transform: scale(1); } 100% { opacity: 0.25; } }
+/* 02: te same trzy pytania, w kółko */
+.lk-repeat { flex-wrap: nowrap; }
+.lk-repeat i { height: 30px; border-radius: 15px 15px 15px 4px; background: rgba(245,245,240,0.14); animation: lkAsk 3.6s ease infinite; }
+.lk-repeat i:nth-child(1) { width: 96px; } .lk-repeat i:nth-child(2) { width: 132px; animation-delay: 0.5s; } .lk-repeat i:nth-child(3) { width: 78px; animation-delay: 1s; }
+.lk-repeat b { margin-left: auto; font: 500 22px/1 'IBM Plex Mono', monospace; color: var(--green); animation: lkCount 3.6s ease infinite; }
+@keyframes lkAsk { 0%, 100% { opacity: 0.25; transform: translateY(4px); } 12%, 60% { opacity: 1; transform: none; background: rgba(245,245,240,0.3); } }
+@keyframes lkCount { 0%, 40% { opacity: 0.3; transform: scale(0.9); } 55%, 90% { opacity: 1; transform: scale(1); } }
+/* 03: 21:00 → 9:30, cisza po drodze */
+.lk-clock em { font: 500 15px/1 'IBM Plex Mono', monospace; font-style: normal; color: #F5F5F0; letter-spacing: 0.04em; }
+.lk-clock em:last-child { color: #FF5A4D; }
+.lk-clock span { flex: 1 1 auto; height: 6px; background: rgba(245,245,240,0.1); position: relative; overflow: hidden; }
+.lk-clock span i { position: absolute; inset: 0; background: linear-gradient(90deg, var(--green), #FF5A4D); transform-origin: left; animation: lkWait 5s cubic-bezier(0.3, 0, 0.2, 1) infinite; }
+@keyframes lkWait { 0% { transform: scaleX(0); } 70%, 92% { transform: scaleX(1); } 100% { transform: scaleX(1); opacity: 0; } }
+/* 04: wchodzi wielu, formularz wypełnia garstka */
+.lk-funnel { flex-wrap: wrap; gap: 7px; align-content: center; }
+.lk-funnel i { width: 10px; height: 10px; border-radius: 50%; background: rgba(245,245,240,0.6); animation: lkLeave 4.6s ease infinite; }
+.lk-funnel i:nth-child(3n) { animation-delay: 0.3s; } .lk-funnel i:nth-child(4n) { animation-delay: 0.6s; } .lk-funnel i:nth-child(5n) { animation-delay: 0.9s; }
+.lk-funnel i:nth-child(7), .lk-funnel i:nth-child(18) { background: var(--green); box-shadow: 0 0 12px rgba(184,255,0,0.8); animation: none; }
+@keyframes lkLeave { 0%, 20% { opacity: 1; transform: none; } 45%, 85% { opacity: 0.12; transform: scale(0.6); } 100% { opacity: 1; } }
+
+/* ===== TRZY DROGI: mini-sceny w kartach ===== */
+.way-vis { align-self: stretch; height: 58px; margin-bottom: 18px; padding-bottom: 16px; border-bottom: 1px dashed rgba(245,245,240,0.14); display: flex; align-items: center; gap: 8px; overflow: hidden; }
+.way-code code { font: 400 12.5px/1 'IBM Plex Mono', monospace; color: var(--green); white-space: nowrap; overflow: hidden; width: 0; animation: wayType 5s steps(27) infinite; }
+.way-code i { width: 8px; height: 17px; background: var(--green); animation: dmBlink 0.9s steps(1) infinite; flex: 0 0 auto; }
+@keyframes wayType { 0% { width: 0; } 45%, 92% { width: 27ch; } 100% { width: 0; } }
+.way-list { gap: 8px; flex-wrap: wrap; }
+.way-list span { display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border: 1px solid rgba(245,245,240,0.2); font: 400 10.5px/1 'IBM Plex Mono', monospace; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(245,245,240,0.5); animation: wayTick 5.4s ease infinite; }
+.way-list span:nth-child(2) { animation-delay: 0.8s; } .way-list span:nth-child(3) { animation-delay: 1.6s; }
+.way-list svg { width: 13px; height: 13px; }
+@keyframes wayTick { 0%, 10% { color: rgba(245,245,240,0.5); border-color: rgba(245,245,240,0.2); background: none; } 20%, 88% { color: var(--green); border-color: rgba(184,255,0,0.6); background: rgba(184,255,0,0.08); } 100% { color: rgba(245,245,240,0.5); } }
+.way-cal { display: grid; grid-template-columns: repeat(7, 16px) 1fr; grid-auto-rows: 16px; gap: 5px; align-content: center; }
+.way-cal i { border: 1px solid rgba(245,245,240,0.22); }
+.way-cal i:nth-child(10) { background: var(--green); border-color: var(--green); animation: wayPulse 2.2s ease infinite; }
+.way-cal b { grid-column: 8; grid-row: 1 / span 2; align-self: center; justify-self: end; font: 500 13px/1 'IBM Plex Mono', monospace; letter-spacing: 0.1em; text-transform: uppercase; color: var(--green); }
+@keyframes wayPulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(184,255,0,0.7); } 60% { box-shadow: 0 0 0 9px rgba(184,255,0,0); } }
+
+/* ===== CENNIK: paski rosną po wejściu grani ===== */
+.ad-vs-row i { transform: scaleX(0); transform-origin: left; transition: transform 1.2s cubic-bezier(0.22, 1, 0.36, 1) 0.4s; }
+.slide.active .ad-vs-row i { transform: scaleX(1); }
+.ad-incl li { opacity: 0; transform: translateX(-10px); transition: opacity 0.5s ease, transform 0.5s ease; }
+.slide.active .ad-incl li { opacity: 1; transform: none; }
+.ad-incl li:nth-child(2) { transition-delay: 0.12s; } .ad-incl li:nth-child(3) { transition-delay: 0.24s; }
+.ad-incl li:nth-child(4) { transition-delay: 0.36s; } .ad-incl li:nth-child(5) { transition-delay: 0.48s; }
+
+/* ===== FAQ: ikona przy numerze ===== */
+.ad-faq .faq-num { display: flex; align-items: center; gap: 10px; }
+.ad-faq .faq-num svg { width: 22px; height: 22px; color: var(--green); }
+
+/* ===== Desktop bez bębna 3D (`html.mode-flat.mode-desk`, silnik: `drum: false`) =====
+   Zwykłe przewijanie dokumentu. Wygląd sekcji zostaje jak w bębnie: każda ma
+   wysokość okna i treść na środku, te same marginesy, własny kursor i licznik. */
+html.mode-desk body, html.mode-desk a, html.mode-desk button,
+html.mode-desk input, html.mode-desk textarea { cursor: none; }
+html.mode-desk .cursor-dot, html.mode-desk .cursor-ring { display: block; }
+html.mode-desk .counter, html.mode-desk .scroll-hint { display: flex; }
+html.mode-desk .slide { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+html.mode-desk .slide-inner,
+html.mode-desk .slide:first-child .slide-inner { max-width: 1320px; padding: 110px 88px 64px 48px; }
+html.mode-desk .btn-primary, html.mode-desk .nav-cta, html.mode-desk .menu-cta {
+  cursor: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 24 24' fill='%230D0D0D' stroke='%23F5F5F0' stroke-width='1.4' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M10 13V5.1a1.55 1.55 0 013.1 0v6.2a1.4 1.4 0 012.8.2v.6a1.4 1.4 0 012.8.2v.6a1.4 1.4 0 012.7.3v2.5c0 2.9-2.3 5.3-5.2 5.3h-2.1c-1.6 0-3.1-.8-4-2.1l-2.7-3.9a1.6 1.6 0 012.6-1.9z'/%3E%3C/svg%3E") 16 5, pointer;
+}
+
+/* bez bębna treść sekcji pojawia się raz, przy wejściu w okno, i zostaje */
+html.mode-flat .slide.seen .rv { opacity: 1; transform: translateY(0); }
+html.mode-flat .slide.seen .ad-incl li, html.mode-flat .slide.seen .ad-vs-row i { opacity: 1; transform: none; }
+html.mode-flat .ad-incl li { opacity: 0; transform: translateX(-10px); }
+html.mode-flat .ad-vs-row i { transform: scaleX(0); }
+
+/* Animacje w pętli chodzą tylko w sekcji, która jest na ekranie — reszta stoi
+   (bez bębna wszystkie sekcje są w dokumencie naraz). */
+.slide:not(.active) .lk-vis *, .slide:not(.active) .way-vis *, .slide:not(.active) .hb,
+.slide:not(.active) .dm-live i, .slide:not(.active) .dots i { animation-play-state: paused; }
+
 /* ===== Breakpointy ===== */
 @media (max-width: 1200px) {
-  .ad-steps { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .ad-faq { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 @media (max-width: 1100px) {
@@ -191,12 +319,21 @@
 }
 @media (max-width: 900px) {
   .ad-hero, .ad-demo { grid-template-columns: 1fr; gap: 30px; }
+  .ad-how { grid-template-columns: 1fr; }
+  .way-list { flex-wrap: nowrap; gap: 5px; }
+  .way-list span { padding: 6px 7px; font-size: 9.5px; letter-spacing: 0.04em; }
+  .ad-steps { grid-template-columns: 1fr; }
+  .ad-hero-vis { justify-content: center; padding-left: 0; padding-top: 150px; }
+  .ad-float { left: 0; right: 0; top: 0; }
+  .ad-hero-vis > .ad-neuro, .ad-demo-wrap > .ad-neuro { inset: 0; width: 100%; height: 100%; }
+  .hb-a { align-self: flex-end; margin-left: 0; }
+  #start .ad-team { max-width: none; }
   #start .ag-h1 { font-size: clamp(28px, 8vw, 40px); max-width: none; }
   #start .ag-lead { font-size: 16.5px; }
   .ad-checks { flex-direction: column; gap: 9px; }
   .ad-actions .btn-primary, .ad-actions .btn-ghost { white-space: normal; font-size: 12px; }
-  .ad-hero-vis .dm-screen { height: 440px; min-height: 440px; }
-  .ad-leaks, .ad-steps, .ad-faq { grid-template-columns: 1fr; }
+  .ad-scene .dm-screen { height: 440px; min-height: 440px; }
+  .ad-leaks, .ad-faq { grid-template-columns: 1fr; }
   .ad-leak { padding: 20px 20px 22px; column-gap: 16px; }
   .ad-leak-num { font-size: 34px; }
   .ad-leak h3 { font-size: 18.5px; }
@@ -216,4 +353,9 @@
 
 /* ===== Edytor ===== */
 body.fiq-edit .ad-win-body { height: auto; min-height: 0; }
-body.fiq-edit .ad-hero-vis .dm-screen, body.fiq-edit .ad-script .dm-screen { height: auto; min-height: 0; }
+body.fiq-edit .ad-neuro, body.fiq-edit .ad-synapse { display: none; }
+body.fiq-edit .hb { animation: none; opacity: 1; transform: none; }
+body.fiq-edit .ad-float { position: static !important; pointer-events: auto; margin-top: 12px; }
+body.fiq-edit .ad-hero-vis { flex-direction: column; padding-left: 0; }
+body.fiq-edit .ad-incl li, body.fiq-edit .ad-vs-row i { opacity: 1; transform: none; }
+body.fiq-edit .ad-scene .dm-screen, body.fiq-edit .ad-script .dm-screen { height: auto; min-height: 0; }
