@@ -49,11 +49,11 @@ export default function Home() {
           window.FIQ.applyContent(published, { editor: false });
 
           // Секции, скрытые через CMS (_hidden: "sec:<id>"): applyContent дал им
-          // display:none, но барабан уже измерил все грани — физически убираем
-          // грань + её пункт рейла и пере-инициализируем движок. Всё происходит
-          // за прелоадером, юзер перестройки не видит.
-          // Ta sama droga, gdy CMS zmienił KOLEJNOŚĆ grani (`_order`): bęben
-          // zmierzył ściany w kolejności z markupu, więc musi wstać od nowa.
+          // display:none, но движок уже посчитал секции (счётчик, меню, активная) —
+          // физически убираем секцию + её пункт рейла и пере-инициализируем движок.
+          // Всё происходит за прелоадером, юзер перестройки не видит.
+          // Ta sama droga, gdy CMS zmienił KOLEJNOŚĆ sekcji (`_order`): silnik
+          // trzyma je w kolejności z markupu, więc musi wstać od nowa.
           const hiddenSlides = Array.from(document.querySelectorAll('.slide[data-hideable]'))
             .filter((s) => s.style.display === 'none');
           if (hiddenSlides.length || slideIds() !== before) {
@@ -76,7 +76,7 @@ export default function Home() {
 
           // строки услуг могли перестроиться — пере-инициализируем демо
           if (typeof window.fiqInitServices === 'function') window.fiqInitServices();
-          // высоты слайдов изменились (блоки/списки) — пересчёт барабана
+          // высоты секций изменились (блоки/списки) — пересчёт позиций и канваса
           if (typeof window.fiqRemeasure === 'function') requestAnimationFrame(() => window.fiqRemeasure());
         }
 

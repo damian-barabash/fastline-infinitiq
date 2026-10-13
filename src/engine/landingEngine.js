@@ -1,6 +1,7 @@
-// Движок главной: 3D-барабан слайдов + гибридный скролл + нейро-столп +
-// кастомный курсор + интерактивные демо услуг. Перенос 1:1 из index.html,
-// адаптация только: (1) SPA-переходы через onNavigate, (2) cleanup для React.
+// Движок главной: нейро-столп + кастомный курсор + меню + «матовое стекло»
+// карточек. Bębna 3D nie ma (usunięty 2026-10-13, właściciel: przewijanie „jak
+// w prezentacji" spowalniało stronę) — sekcje `.slide` leżą w zwykłym dokumencie
+// i przewijają się natywnie; silnik tylko wskazuje aktywną sekcję.
 import { interceptInternalLinks } from './wipe.js';
 import { initTeam } from './team.js';
 import { watchNavClaim, initClaimScramble } from './navClaim.js';
@@ -18,14 +19,15 @@ export function initLanding({ onNavigate }) {
      Windows с выключенными «эффектами анимации» репортит reduce
      и юзер получил бы мёртвую статичную страницу. */
   const COARSE = matchMedia('(hover: none), (pointer: coarse)').matches;
-  // Telefon: żadnego bębna — zwykłe przewijanie. 3D-transformacje na każdej grani
-  // i frost-canvasy zjadały klatki, a właściciel prosił, żeby „latało".
-  const FLAT = COARSE || matchMedia('(max-width: 900px)').matches;
-  document.documentElement.classList.add(FLAT ? 'mode-flat' : 'mode-3d');
+  // SMALL = telefon/dotyk: układ mobilny, bez frost-canvasów.
+  // Klasa `mode-flat` jest zawsze (zwykłe przewijanie); `mode-desk` = desktop:
+  // własny kursor, licznik, sekcja na wysokość okna z treścią na środku.
+  const SMALL = COARSE || matchMedia('(max-width: 900px)').matches;
+  document.documentElement.classList.add('mode-flat');
+  if (!SMALL) document.documentElement.classList.add('mode-desk');
   if (COARSE) document.documentElement.classList.add('coarse');
 
   const slides = Array.from(document.querySelectorAll('.slide'));
-  const inners = slides.map(s => s.querySelector('.slide-inner'));
   const N = slides.length;
   const TEAM_SLIDE = slides.findIndex(s2 => s2.id === 'zespol');
   const lerp = (a, b, t) => a + (b - a) * t;
@@ -80,49 +82,7 @@ export function initLanding({ onNavigate }) {
     if (s !== navShrunk) { navShrunk = s; navEl.classList.toggle('shrunk', s); }
   }
 
-  /* ===== 3D drum + внутренний докрут длинных слайдов ===== */
-  const track = document.getElementById('track');
-  const drum = document.getElementById('drum');
-  const FACE = 72; // deg between faces
-  let R = 0;
-  let extras = slides.map(() => 0); // лишняя высота контента сверх vh
-  let starts = [0];                  // scrollY, с которого начинается слайд
-  let maxScroll = 0;
-  let ySmooth = 0, lastApplied = -1, pSmooth = 0;
-
-  function measure() {
-    vh = lockedVh; vw = innerWidth;
-    R = (vh / 2) / Math.tan((FACE / 2) * Math.PI / 180);
-    drum.style.transform = `translateZ(${-R}px)`;
-    extras = slides.map((s, i) => {
-      let h = inners[i].offsetHeight;
-      const tick = s.querySelector('.ticker'); if (tick) h += tick.offsetHeight;
-      const fb = s.querySelector('.footer-bar'); if (fb) h += fb.offsetHeight;
-      const ex = Math.max(0, Math.ceil(h - vh));
-      s.classList.toggle('tall', ex > 0);
-      if (ex === 0) inners[i].style.transform = '';
-      return ex;
-    });
-    starts = [0];
-    for (let i = 0; i < N; i++) starts.push(starts[i] + vh + extras[i]);
-    maxScroll = starts[N - 1] + extras[N - 1];
-    track.innerHTML = '';
-    for (let i = 0; i < N; i++) {
-      const d = document.createElement('div');
-      d.className = 'snap';
-      d.style.height = (vh + extras[i]) + 'px';
-      track.appendChild(d);
-    }
-    lastApplied = -1;
-  }
-
-  function mapScroll(y) {
-    let i = 0;
-    while (i < N - 1 && y >= starts[i + 1]) i++;
-    const local = y - starts[i];
-    const flip = clamp((local - extras[i]) / vh, 0, 1);
-    return { i, flip };
-  }
+  let pSmooth = 0;
 
   /* ===== Rail / counter / hint ===== */
   const railItems = Array.from(document.querySelectorAll('.rail-item'));
@@ -132,8 +92,7 @@ export function initLanding({ onNavigate }) {
 
   function goTo(i) {
     const idx = clamp(i, 0, N - 1);
-    if (FLAT) { slides[idx].scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
-    scrollTo({ top: starts[idx], behavior: 'smooth' });
+    slides[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   railItems.forEach(b => b.addEventListener('click', () => goTo(+b.dataset.i), { signal }));
   const closeMenu = initMenu({ signal, goTo });
@@ -159,47 +118,47 @@ export function initLanding({ onNavigate }) {
     if (!first) kickColumn(); // нейро-столп реагирует на смену слайда
   }
 
-  // płaski tryb (telefon): aktywna jest grań najbliżej środka ekranu
-  let flatKey = -1;
+  // Aktywna jest sekcja najbliżej środka okna. Prostokąty czytamy tylko po
+  // przewinięciu / zmianie układu (`dirty`), nie co klatkę.
+  let dirty = true;
+  const markDirty = () => { dirty = true; };
+  addEventListener('scroll', markDirty, { passive: true, signal });
+  addEventListener('fiq:content-ready', markDirty, { signal });
+  addEventListener('load', markDirty, { signal });
+  let fontsAlive = true;
+  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (fontsAlive) dirty = true; });
+
+  // `inview` = sekcja jest w oknie (z zapasem): poza nim arkusz stawia animacje
+  // CSS na pauzie, a silnik nie rysuje jej canvasów.
+  const inView = slides.map(() => true);
+  const io = 'IntersectionObserver' in window
+    ? new IntersectionObserver((es) => es.forEach((e) => {
+        inView[slides.indexOf(e.target)] = e.isIntersecting;
+        e.target.classList.toggle('inview', e.isIntersecting);
+        dirty = true;
+      }), { rootMargin: '12% 0px' })
+    : null;
+  slides.forEach((s) => { if (io) io.observe(s); else s.classList.add('inview'); });
+
+  let pTarget = 0;
   function updateFlat() {
-    const key = Math.round(scrollY / 40);
-    if (key === flatKey) return;      // reguła projektu: nie piszemy do DOM bez powodu
-    flatKey = key;
+    if (!dirty) return;
+    const mid = innerHeight / 2;
     let best = 0, bestD = Infinity;
     for (let i = 0; i < N; i++) {
       const r = slides[i].getBoundingClientRect();
-      const d = Math.abs(r.top + r.height / 2 - innerHeight / 2);
-      if (d < bestD) { bestD = d; best = i; }
-    }
-    pSmooth = best;
-    setActive(best);
-    hint.classList.toggle('gone', scrollY > innerHeight * 0.3);
-  }
-
-  function updateDrum() {
-    const yT = clamp(scrollY, 0, maxScroll);
-    ySmooth = lerp(ySmooth, yT, 0.14);
-    if (Math.abs(ySmooth - yT) < 0.3) ySmooth = yT;
-    // не пишем стили, когда барабан замер (урок HORIN: DOM-записи только при изменении)
-    if (ySmooth === lastApplied) return;
-    lastApplied = ySmooth;
-    const m = mapScroll(ySmooth);
-    const pF = m.i + m.flip;
-    pSmooth = pF;
-    for (let k = 0; k < N; k++) {
-      const d = k - pF;
-      const el = slides[k];
-      if (Math.abs(d) > 1.1) { el.classList.remove('shown'); continue; }
-      el.classList.add('shown');
-      el.style.transform = `rotateX(${(-d * FACE).toFixed(3)}deg) translateZ(${R.toFixed(1)}px)`;
-      el.style.opacity = (1 - clamp(Math.abs(d), 0, 1) * 0.85).toFixed(3);
-      if (extras[k] > 0) {
-        const off = clamp(ySmooth - starts[k], 0, extras[k]);
-        inners[k].style.transform = `translateY(${(-off).toFixed(1)}px)`;
+      // sekcja, która weszła w okno, zostaje oznaczona na stałe (`seen`) — treść
+      // pokazuje się raz, zamiast gasnąć po zejściu ze środka
+      if (r.top < innerHeight * 0.86 && !slides[i].classList.contains('seen')) slides[i].classList.add('seen');
+      const d = Math.abs(r.top + r.height / 2 - mid);
+      if (d < bestD) {
+        bestD = d; best = i;
+        // pozycja ciągła (sekcja + ułamek) — nią obraca się neuro-słup
+        pTarget = i + clamp((mid - r.top) / Math.max(1, r.height), 0, 1) - 0.5;
       }
     }
-    setActive(m.flip > 0.5 ? Math.min(m.i + 1, N - 1) : m.i);
-    hint.classList.toggle('gone', scrollY > vh * 0.3);
+    setActive(best);
+    hint.classList.toggle('gone', scrollY > innerHeight * 0.3);
   }
 
   /* ===== Services (mapa procesu) =====
@@ -418,18 +377,17 @@ export function initLanding({ onNavigate }) {
   }
 
   /* ===== Frost glass (2026-08-14): «матовое стекло» карточек =====
-     backdrop-filter внутри 3D-барабана не сэмплит фиксированный канвас (Chromium:
-     3D-трансформ-предки = граница backdrop root), поэтому морозим сами: в каждую
-     карточку кладётся canvas, куда каждый кадр рисуется downscale-каскад региона
-     #neural под ней (двойное масштабирование ≈ blur, почти бесплатно).
-     Rect'ы читаются ДО записи трансформов барабана (урок team.js), пиксели
-     берутся ПОСЛЕ drawNeural — тот же кадр, никакого лага. */
-  const frost = { items: [], tick: 0, lastY: -1 };
+     В каждую карточку кладётся canvas, куда каждый кадр рисуется downscale-каскад
+     региона #neural под ней (двойное масштабирование ≈ blur, почти бесплатно) —
+     prawdziwy backdrop-filter nad żywym canvasem liczyłby się co klatkę pod każdą
+     kartą. Rect'y czytamy tylko po przewinięciu (`dirty`) i tylko w sekcjach
+     w oknie; пиксели берутся ПОСЛЕ drawNeural — тот же кадр, никакого лага. */
+  const frost = { items: [], tick: 0 };
   const frostOff = document.createElement('canvas');
   const frostOffCtx = frostOff.getContext('2d');
   function frostCollect() {
     frost.items = [];
-    frost.lastY = -1; // строки могли перестроиться — рект-кэш невалиден
+    dirty = true; // строки могли перестроиться — рект-кэш невалиден
     document.querySelectorAll('.what-board .diff-item, .svc-list .svc-row, .who-grid .who-item, .af').forEach(el => {
       let c = el.querySelector(':scope > .frost-c');
       if (!c) {
@@ -438,20 +396,19 @@ export function initLanding({ onNavigate }) {
         c.setAttribute('aria-hidden', 'true');
         el.prepend(c);
       }
-      frost.items.push({ el, c, ctx: c.getContext('2d'), slide: el.closest('.slide'), r: null });
+      frost.items.push({ el, c, ctx: c.getContext('2d'), si: slides.indexOf(el.closest('.slide')), r: null });
     });
   }
   function frostRects() {
-    if (FLAT) return;
+    if (SMALL) return;
     frost.tick++;
-    if (ySmooth === frost.lastY && frost.tick % 20) return; // покой: ревизия раз в 20 кадров
-    frost.lastY = ySmooth;
+    if (!dirty && frost.tick % 20) return; // покой: ревизия раз в 20 кадров
     for (const it of frost.items) {
-      it.r = (it.slide && it.slide.classList.contains('shown')) ? it.el.getBoundingClientRect() : null;
+      it.r = (it.si >= 0 && inView[it.si]) ? it.el.getBoundingClientRect() : null;
     }
   }
   function frostDraw() {
-    if (FLAT) return;
+    if (SMALL) return;
     if (WEAK && frost.tick % 2) return;
     const kx = canvas.width / vw, ky = canvas.height / vh;
     for (const it of frost.items) {
@@ -469,17 +426,18 @@ export function initLanding({ onNavigate }) {
       it.ctx.drawImage(frostOff, 0, 0, dw, dh, 0, 0, w, h);
     }
   }
-  if (!FLAT) {
+  if (!SMALL) {
     frostCollect();
     addEventListener('fiq:content-ready', frostCollect, { signal });
   }
 
   /* ===== Who «Co robimy»: живой спарклайн pipeline в hero-карточке =====
      Ховер по карточкам категорий даёт импульс вверх — «каждый obszar кормит pipeline». */
-  const spark = { c: null, ctx: null, v: [], boost: 0, glow: 0, last: 0 };
+  const spark = { c: null, ctx: null, si: -1, v: [], boost: 0, glow: 0, last: 0 };
   function sparkCollect() {
     spark.c = document.querySelector('.wh-spark');
     spark.ctx = spark.c ? spark.c.getContext('2d') : null;
+    spark.si = spark.c ? slides.indexOf(spark.c.closest('.slide')) : -1;
     if (spark.c && !spark.v.length) {
       let y = 0.62;
       for (let i = 0; i < 46; i++) { y = clamp(y + (Math.random() - 0.56) * 0.07, 0.1, 0.9); spark.v.push(y); }
@@ -492,8 +450,7 @@ export function initLanding({ onNavigate }) {
   function sparkTick(now) {
     if (!spark.ctx) return;
     const c = spark.c;
-    const slide = c.closest('.slide');
-    if (!slide || !slide.classList.contains('shown')) return;
+    if (spark.si < 0 || !inView[spark.si]) return;
     if (now - spark.last > (spark.boost > 0.05 ? 90 : 170)) {
       spark.last = now;
       let y = spark.v[spark.v.length - 1] + (Math.random() - 0.56) * 0.09 - spark.boost * 0.06;
@@ -525,22 +482,30 @@ export function initLanding({ onNavigate }) {
   sparkCollect();
   addEventListener('fiq:content-ready', sparkCollect, { signal });
 
-  /* ===== Main loop ===== */
+  /* ===== Main loop =====
+     Kolejność w klatce: najpierw odczyty układu (sekcje, karty), potem zapisy. */
+  let teamNear = true;
   function frame(time) {
     if (destroyed) return;
+    rafId = requestAnimationFrame(frame);
+    if (document.hidden) return;
     // mouse easing (shared by canvas + cursor)
     mouse.ix = lerp(mouse.ix, mouse.x, 0.2);
     mouse.iy = lerp(mouse.iy, mouse.y, 0.2);
 
     updateNav();
-    // team.tick читает getBoundingClientRect — зовём ДО записи трансформов барабана,
-    // иначе каждый кадр скролла даёт принудительный layout
     if (team && TEAM_SLIDE >= 0) {
-      const d = Math.abs(pSmooth - TEAM_SLIDE);
-      team.tick(performance.now(), d < 1.15, Math.round(ySmooth), d < 0.45);
+      if (dirty) {
+        const r = slides[TEAM_SLIDE].getBoundingClientRect();
+        teamNear = r.bottom > -innerHeight && r.top < innerHeight * 2;
+      }
+      team.tick(time, teamNear, Math.round(scrollY), teamNear);
     }
-    frostRects(); // тоже читает layout — до записей барабана
-    if (FLAT) updateFlat(); else updateDrum();
+    frostRects();
+    updateFlat();
+    dirty = false;
+    pSmooth = lerp(pSmooth, pTarget, 0.14);
+    if (Math.abs(pSmooth - pTarget) < 0.0005) pSmooth = pTarget;
 
     if (!COARSE) {
       dot.style.transform = `translate(${mouse.x}px, ${mouse.y}px) translate(-50%, -50%)`;
@@ -551,49 +516,35 @@ export function initLanding({ onNavigate }) {
 
     drawNeural(time);
     frostDraw(); // пиксели «за стеклом» — из свежеотрисованного канваса
-    sparkTick(performance.now());
-    rafId = requestAnimationFrame(frame);
+    sparkTick(time);
   }
 
   /* ===== Init ===== */
-  if (FLAT) {
-    slides.forEach(s2 => s2.classList.add('shown'));
-    track.innerHTML = '';
-  } else {
-    measure();
-  }
   sizeCanvas();
-  // хук для пересчёта высот после того как loader подставит контент из БД
-  window.fiqRemeasure = () => { if (!FLAT) measure(); sizeCanvas(); if (team) team.resize(); };
-  // перемер после шрифтов и полной загрузки (высоты слайдов меняются)
-  let fontsAlive = true;
-  if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (fontsAlive && !FLAT) measure(); });
-  addEventListener('load', () => { if (!FLAT) measure(); }, { signal });
+  // хук для пересчёта после того как loader подставит контент из БД
+  window.fiqRemeasure = () => { dirty = true; sizeCanvas(); if (team) team.resize(); };
   addEventListener('resize', () => {
-    if (FLAT) { sizeCanvas(); return; }
-    // iOS toolbar дёргает innerHeight — пересобираем только при реальном изменении
-    if (innerWidth !== lastW || Math.abs(innerHeight - lockedVh) > 120) {
+    dirty = true;
+    // iOS toolbar дёргает innerHeight — на телефоне пересобираем только при реальном изменении
+    if (!SMALL || innerWidth !== lastW || Math.abs(innerHeight - lockedVh) > 120) {
       lastW = innerWidth;
       lockedVh = innerHeight;
-      const cur = Math.max(0, activeIdx);
-      measure();
+      vh = lockedVh; vw = innerWidth;
       sizeCanvas();
-      scrollTo(0, starts[cur]);
     }
   }, { signal });
   rafId = requestAnimationFrame(frame);
 
-  /* Заход с хэшем (напр. со страницы produktu: /#audyt) — переводим барабан
-     на нужную грань. Скроллом это не сделать «вслепую»: позиция грани зависит
-     от посчитанных высот, поэтому ждём measure и прыгаем сами. */
+  /* Заход с хэшем (напр. со страницы produktu: /#audyt) — przewijamy do sekcji.
+     Powtórka po chwili: po czcionkach i treści z CMS wysokości sekcji się zmieniają. */
   (function gotoHash() {
     const id = (location.hash || '').replace('#', '');
     if (!id) return;
-    const idx = slides.findIndex(s2 => s2.id === id);
-    if (idx < 0) return;
-    const jump = () => { if (!destroyed) scrollTo({ top: starts[idx], behavior: 'auto' }); };
+    const el = slides.find(s2 => s2.id === id);
+    if (!el) return;
+    const jump = () => { if (!destroyed) el.scrollIntoView({ behavior: 'auto', block: 'start' }); };
     requestAnimationFrame(() => requestAnimationFrame(jump));
-    setTimeout(jump, 700);          // после шрифтов и подстановки CMS высоты меняются
+    setTimeout(jump, 700);
   })();
 
   /* ===== Cleanup (SPA) ===== */
@@ -602,11 +553,12 @@ export function initLanding({ onNavigate }) {
     fontsAlive = false;
     cancelAnimationFrame(rafId);
     ac.abort();
+    if (io) io.disconnect();
     if (claim) claim.destroy();
     if (closeMenu) closeMenu();
     unwatchClaim();
     delete window.fiqInitServices;
     delete window.fiqRemeasure;
-    document.documentElement.classList.remove('mode-3d', 'mode-flat', 'coarse');
+    document.documentElement.classList.remove('mode-flat', 'mode-desk', 'coarse');
   };
 }

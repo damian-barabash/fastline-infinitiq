@@ -5,5 +5,6 @@ import react from '@vitejs/plugin-react';
 export default defineConfig({
   base: '/',
   plugins: [react()],
-  build: { outDir: 'dist' },
+  // manifest: prerender dopisuje <link rel="modulepreload"> paczki strony (bez kaskady pobrań)
+  build: { outDir: 'dist', manifest: true },
 });

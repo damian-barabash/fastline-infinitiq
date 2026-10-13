@@ -105,7 +105,7 @@ export default function AgenciShell() {
                 <article className="team-card" tabIndex={0} data-team="1" data-hideable="agent:sprzedawca" data-hide-label="Agent — Sprzedawca">
                   <div className="tm-visual">
                     <canvas className="tm-canvas" aria-hidden="true"></canvas>
-                    <img className="tm-photo" src="/assets/team/kacper.webp" alt="AI Sprzedawca — Fastline InfinitiQ" data-edit="ag_a1_photo" data-edit-type="image" />
+                    <img className="tm-photo" crossOrigin="anonymous" src="/assets/team/kacper.webp" alt="AI Sprzedawca — Fastline InfinitiQ" data-edit="ag_a1_photo" data-edit-type="image" />
                     <span className="tm-frame" aria-hidden="true"></span>
                     <span className="tm-badge" data-edit="ag_a1_tag">● pierwsza linia</span>
                   </div>
@@ -123,7 +123,7 @@ export default function AgenciShell() {
                 <article className="team-card" tabIndex={0} data-team="2" data-hideable="agent:doradca" data-hide-label="Agent — Doradca">
                   <div className="tm-visual">
                     <canvas className="tm-canvas" aria-hidden="true"></canvas>
-                    <img className="tm-photo" src="/assets/team/maja.webp" alt="AI Doradca — Fastline InfinitiQ" data-edit="ag_a2_photo" data-edit-type="image" />
+                    <img className="tm-photo" crossOrigin="anonymous" src="/assets/team/maja.webp" alt="AI Doradca — Fastline InfinitiQ" data-edit="ag_a2_photo" data-edit-type="image" />
                     <span className="tm-frame" aria-hidden="true"></span>
                     <span className="tm-badge" data-edit="ag_a2_tag">● doradztwo</span>
                   </div>
@@ -141,7 +141,7 @@ export default function AgenciShell() {
                 <article className="team-card" tabIndex={0} data-team="3" data-hideable="agent:recepcja" data-hide-label="Agent — Recepcjonistka">
                   <div className="tm-visual">
                     <canvas className="tm-canvas" aria-hidden="true"></canvas>
-                    <img className="tm-photo" src="/assets/team/adam.webp" alt="AI Recepcjonistka — Fastline InfinitiQ" data-edit="ag_a3_photo" data-edit-type="image" />
+                    <img className="tm-photo" crossOrigin="anonymous" src="/assets/team/adam.webp" alt="AI Recepcjonistka — Fastline InfinitiQ" data-edit="ag_a3_photo" data-edit-type="image" />
                     <span className="tm-frame" aria-hidden="true"></span>
                     <span className="tm-badge" data-edit="ag_a3_tag">● online 24/7</span>
                   </div>
@@ -159,7 +159,7 @@ export default function AgenciShell() {
                 <article className="team-card" tabIndex={0} data-team="4" data-hideable="agent:asystent" data-hide-label="Agent — Asystent">
                   <div className="tm-visual">
                     <canvas className="tm-canvas" aria-hidden="true"></canvas>
-                    <img className="tm-photo" src="/assets/team/natalia.webp" alt="AI Asystent — Fastline InfinitiQ" data-edit="ag_a4_photo" data-edit-type="image" />
+                    <img className="tm-photo" crossOrigin="anonymous" src="/assets/team/natalia.webp" alt="AI Asystent — Fastline InfinitiQ" data-edit="ag_a4_photo" data-edit-type="image" />
                     <span className="tm-frame" aria-hidden="true"></span>
                     <span className="tm-badge" data-edit="ag_a4_tag">● wsparcie zespołu</span>
                   </div>

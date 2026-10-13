@@ -1,6 +1,8 @@
 // SPA-версия шторки перехода: exit (w-out, накрывает вверх) → navigate →
 // WipeController в App делает entrance (w-in, уходит вверх). Классы w-in/w-out —
 // НЕ .in/.out (грабля kontakt: .in занят entrance-анимацией контента).
+import { preloadPath } from '../lib/pages.jsx';
+
 export function mapLegacyHref(href) {
   if (!href) return '/';
   if (href.endsWith('kontakt.html')) return '/kontakt';
@@ -15,7 +17,11 @@ export function wipeTo(navigate, to) {
   if (!w) { navigate(to); return; }
   w.classList.remove('w-in', 'noanim');
   w.classList.add('w-out', 'cover');
-  setTimeout(() => navigate(to), 680);
+  // paczka JS strony docelowej dociąga się, gdy kurtyna się zamyka; nawigujemy,
+  // gdy minie animacja ORAZ paczka jest gotowa (limit 4 s — potem i tak idziemy)
+  const loaded = Promise.race([preloadPath(to), new Promise((r) => setTimeout(r, 4000))]);
+  const closed = new Promise((r) => setTimeout(r, 680));
+  Promise.all([loaded, closed]).then(() => navigate(to));
 }
 
 // делегированный перехват внутренних ссылок (работает и для блоков CMS,

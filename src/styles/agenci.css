@@ -23,8 +23,8 @@
     overflow-x: hidden;
   }
 
-  html.mode-3d body, html.mode-3d a, html.mode-3d button,
-  html.mode-3d input, html.mode-3d textarea { cursor: none; }
+  html.mode-desk body, html.mode-desk a, html.mode-desk button,
+  html.mode-desk input, html.mode-desk textarea { cursor: none; }
 
   ::selection { background: var(--green); color: var(--black); }
 
@@ -38,7 +38,7 @@
     border-radius: 50%;
     display: none;
   }
-  html.mode-3d .cursor-dot, html.mode-3d .cursor-ring { display: block; }
+  html.mode-desk .cursor-dot, html.mode-desk .cursor-ring { display: block; }
   .cursor-dot { width: 6px; height: 6px; background: var(--green); }
   .cursor-ring {
     width: 36px; height: 36px;
@@ -101,7 +101,7 @@
     gap: 18px;
     align-items: flex-end;
   }
-  html.mode-3d .rail { display: flex; }
+  html.mode-desk .rail { display: flex; }
 
   .rail-item {
     display: flex;
@@ -146,7 +146,7 @@
     align-items: baseline;
     gap: 6px;
   }
-  html.mode-3d .counter { display: flex; }
+  html.mode-desk .counter { display: flex; }
   .counter .cur { color: var(--green); font-size: 13px; }
 
   /* ===== Scroll hint ===== */
@@ -165,7 +165,7 @@
     gap: 12px;
     transition: opacity 0.5s;
   }
-  html.mode-3d .scroll-hint { display: flex; }
+  html.mode-desk .scroll-hint { display: flex; }
   .scroll-hint.gone { opacity: 0; }
   .scroll-hint::after {
     content: '';
@@ -236,8 +236,27 @@
     opacity: 1 !important;
     display: block;
   }
-  html.mode-flat .slide-inner { padding: 96px 24px; max-width: 100%; }
-  html.mode-flat .slide:first-child .slide-inner { padding-top: 140px; }
+  html.mode-flat:not(.mode-desk) .slide-inner { padding: 96px 24px; max-width: 100%; }
+  html.mode-flat:not(.mode-desk) .slide:first-child .slide-inner { padding-top: 140px; }
+
+  /* ===== Desktop (`html.mode-flat.mode-desk`) — zwykłe przewijanie, bez bębna 3D =====
+     Wygląd sekcji jak dawniej w bębnie: wysokość okna, treść na środku, te same
+     marginesy (`.slide-inner` z reguły bazowej). Sekcja nie jest warstwą GPU. */
+  html.mode-desk .slide {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    min-height: 100vh;
+    will-change: auto;
+    backface-visibility: visible;
+  }
+  /* treść sekcji pojawia się raz, przy wejściu w okno (`seen` dokłada silnik), i zostaje */
+  html.mode-flat .slide.seen .rv { opacity: 1; transform: translateY(0); }
+  html.mode-flat .slide.seen .rv:nth-child(1), html.mode-flat .slide.seen .rv1 { transition-delay: 0.05s; }
+  /* animacje w pętli stoją w sekcjach poza oknem (`inview` dokłada silnik; nie w edytorze — tam silnika nie ma) */
+  html.mode-flat body:not(.fiq-edit) .slide:not(.inview) *,
+  html.mode-flat body:not(.fiq-edit) .slide:not(.inview) *::before,
+  html.mode-flat body:not(.fiq-edit) .slide:not(.inview) *::after { animation-play-state: paused !important; }
 
   /* ===== Reveal-in for active slide ===== */
   .rv {
@@ -1464,8 +1483,8 @@ html.menu-open nav .nav-brand, html.menu-open nav .nav-cta, html.menu-open nav .
 .cursor-ring.acid.link { border-color: #0D0D0D; background: rgba(13,13,13,0.10); }
 .model-panel, .ag-final, .btn-primary, .btn-send, .bf-btn, .bf-pill.on, .bf-slot.on, .nav-cta, .menu-cta,
 .af-btn, .af-btn-a, .wh-cta, .fb-cta-btn, .pill.on,
-html.mode-3d .btn-primary, html.mode-3d .nav-cta, html.mode-3d .menu-cta,
-html.mode-3d .af-btn, html.mode-3d .btn-send, html.mode-3d .bf-btn, html.mode-3d .wh-cta {
+html.mode-desk .btn-primary, html.mode-desk .nav-cta, html.mode-desk .menu-cta,
+html.mode-desk .af-btn, html.mode-desk .btn-send, html.mode-desk .bf-btn, html.mode-desk .wh-cta {
   cursor: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 24 24' fill='%230D0D0D' stroke='%23F5F5F0' stroke-width='1.4' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M10 13V5.1a1.55 1.55 0 013.1 0v6.2a1.4 1.4 0 012.8.2v.6a1.4 1.4 0 012.8.2v.6a1.4 1.4 0 012.7.3v2.5c0 2.9-2.3 5.3-5.2 5.3h-2.1c-1.6 0-3.1-.8-4-2.1l-2.7-3.9a1.6 1.6 0 012.6-1.9z'/%3E%3C/svg%3E") 16 5, pointer;
 }
 html.coarse .model-panel, html.coarse .ag-final, html.coarse .btn-primary,

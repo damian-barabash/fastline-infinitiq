@@ -27,7 +27,7 @@ export function initMenu({ signal, goTo } = {}) {
   /* ---- sekcje ---- */
   function buildSections() {
     if (!box) return;
-    // Strona z bębnem (lądowanie, /agenci-ai) ma granie `.slide`; strona zwykła
+    // Strona z sekcjami `.slide` (lądowanie, strony produktów); strona zwykła
     // (/kontakt) — bloki `[data-msec]`. Wtedy zamiast `goTo` przewijamy do bloku.
     const slides = Array.from(document.querySelectorAll('.slide'));
     const drum = slides.length > 0;

@@ -101,31 +101,50 @@ const FALLBACK_HEAD = `<!--head-->
 <meta name="robots" content="noindex">
 <!--/head-->`;
 
-function page(url, head) {
+// Paczka JS strony + jej zależności jako <link rel="modulepreload">: przeglądarka
+// pobiera je równolegle z paczką główną, a nie dopiero po jej wykonaniu.
+const manifest = JSON.parse(readFileSync(resolve(dist, '.vite', 'manifest.json'), 'utf8'));
+function preloadTags(src) {
+  const seen = new Set();
+  const walk = (key) => {
+    const m = manifest[key];
+    if (!m || seen.has(m.file)) return;
+    seen.add(m.file);
+    (m.imports || []).forEach(walk);
+  };
+  walk(src);
+  return [...seen]
+    .filter((f) => !template.includes(f))            // paczka główna już jest w szablonie
+    .map((f) => `<link rel="modulepreload" crossorigin href="/${f}">`)
+    .join('\n');
+}
+
+function page(url, head, src) {
   let html = template;
   if (head) html = html.replace(HEAD_RE, head);
+  if (src) html = html.replace('</head>', `${preloadTags(src)}\n</head>`);
   return html.replace('<!--app-html-->', render(url));
 }
 
 // / — главная (дефолтный head из шаблона)
-writeFileSync(resolve(dist, 'index.html'), page('/'));
+writeFileSync(resolve(dist, 'index.html'), page('/', null, 'src/pages/Home.jsx'));
 
 // /kontakt/
 mkdirSync(resolve(dist, 'kontakt'), { recursive: true });
-writeFileSync(resolve(dist, 'kontakt', 'index.html'), page('/kontakt', KONTAKT_HEAD));
+writeFileSync(resolve(dist, 'kontakt', 'index.html'), page('/kontakt', KONTAKT_HEAD, 'src/pages/Kontakt.jsx'));
 
 // /agenci-ai/ — strona produktowa zbiorcza (czterej agenci)
 mkdirSync(resolve(dist, 'agenci-ai'), { recursive: true });
-writeFileSync(resolve(dist, 'agenci-ai', 'index.html'), page('/agenci-ai', AGENCI_HEAD));
+writeFileSync(resolve(dist, 'agenci-ai', 'index.html'), page('/agenci-ai', AGENCI_HEAD, 'src/pages/Agenci.jsx'));
 
 // /ai-doradca/ — LP produktu AI Doradca
 mkdirSync(resolve(dist, 'ai-doradca'), { recursive: true });
-writeFileSync(resolve(dist, 'ai-doradca', 'index.html'), page('/ai-doradca', DORADCA_HEAD));
+writeFileSync(resolve(dist, 'ai-doradca', 'index.html'), page('/ai-doradca', DORADCA_HEAD, 'src/pages/Doradca.jsx'));
 
 // dokumenty prawne
 for (const slug of Object.keys(LEGAL_META)) {
   mkdirSync(resolve(dist, slug), { recursive: true });
-  writeFileSync(resolve(dist, slug, 'index.html'), page(`/${slug}`, legalHead(slug)));
+  writeFileSync(resolve(dist, slug, 'index.html'), page(`/${slug}`, legalHead(slug), 'src/pages/Legal.jsx'));
 }
 
 // 404.html — SPA fallback (editor/login/audyt и любые прямые заходы), noindex

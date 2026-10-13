@@ -115,7 +115,7 @@ export default function DoradcaShell() {
                     <article className="team-card" tabIndex={0} data-team="2">
                       <div className="tm-visual">
                         <canvas className="tm-canvas" aria-hidden="true"></canvas>
-                        <img className="tm-photo" src="/assets/team/maja.webp" fetchpriority="high" decoding="async" alt="AI Doradca — Fastline InfinitiQ" data-edit="ad_card_photo" data-edit-type="image" />
+                        <img className="tm-photo" crossOrigin="anonymous" src="/assets/team/maja.webp" fetchpriority="high" decoding="async" alt="AI Doradca — Fastline InfinitiQ" data-edit="ad_card_photo" data-edit-type="image" />
                         <span className="tm-frame" aria-hidden="true"></span>
                         <span className="tm-badge" data-edit="ad_card_tag">● doradztwo</span>
                       </div>

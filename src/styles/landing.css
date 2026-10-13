@@ -10,7 +10,6 @@
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   html { background: var(--black); }
-  html.mode-3d { scroll-snap-type: y proximity; }
 
   body {
     background: var(--black);
@@ -20,7 +19,7 @@
     overflow-x: hidden;
   }
 
-  html.mode-3d body, html.mode-3d a, html.mode-3d button { cursor: none; }
+  html.mode-desk body, html.mode-desk a, html.mode-desk button { cursor: none; }
 
   ::selection { background: var(--green); color: var(--black); }
 
@@ -42,7 +41,7 @@
     transform: translate(-50%, -50%);
     display: none;
   }
-  html.mode-3d .cursor-dot, html.mode-3d .cursor-ring { display: block; }
+  html.mode-desk .cursor-dot, html.mode-desk .cursor-ring { display: block; }
   html.coarse .cursor-dot, html.coarse .cursor-ring { display: none !important; }
   html.coarse body, html.coarse a, html.coarse button { cursor: auto; }
   .cursor-dot {
@@ -169,7 +168,7 @@
     gap: 18px;
     align-items: flex-end;
   }
-  html.mode-3d .rail { display: flex; }
+  html.mode-desk .rail { display: flex; }
 
   .rail-item {
     display: flex;
@@ -214,7 +213,7 @@
     align-items: baseline;
     gap: 6px;
   }
-  html.mode-3d .counter { display: flex; }
+  html.mode-desk .counter { display: flex; }
   .counter .cur { color: var(--green); font-size: 13px; }
 
   /* ===== Scroll hint ===== */
@@ -233,7 +232,7 @@
     gap: 12px;
     transition: opacity 0.5s;
   }
-  html.mode-3d .scroll-hint { display: flex; }
+  html.mode-desk .scroll-hint { display: flex; }
   .scroll-hint.gone { opacity: 0; }
   .scroll-hint::after {
     content: '';
@@ -304,8 +303,40 @@
     opacity: 1 !important;
     display: block;
   }
-  html.mode-flat .slide-inner { padding: 96px 24px; max-width: 100%; }
-  html.mode-flat .slide:first-child .slide-inner { padding-top: 140px; }
+  html.mode-flat:not(.mode-desk) .slide-inner { padding: 96px 24px; max-width: 100%; }
+  html.mode-flat:not(.mode-desk) .slide:first-child .slide-inner { padding-top: 140px; }
+
+  /* ===== Desktop (`html.mode-flat.mode-desk`) — zwykłe przewijanie, bez bębna 3D =====
+     (2026-10-13, właściciel: przewijanie „jak w prezentacji" spowalniało stronę.)
+     Wygląd sekcji jak dawniej w bębnie: wysokość okna, treść na środku, te same
+     marginesy (`.slide-inner` z reguły bazowej). Sekcja nie jest warstwą GPU.
+     Reguły `html.mode-flat:not(.mode-desk)` niżej = telefon (i stary tryb edytora). */
+  html.mode-desk .slide {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    min-height: 100vh;
+    will-change: auto;
+    backface-visibility: visible;
+  }
+  /* hero trzyma dokładnie wysokość okna — jego siatka liczy się od `height: 100%` */
+  html.mode-desk #start { height: 100vh; }
+  /* „matowe szkło" rysuje silnik (`.frost-c`); prawdziwy backdrop-blur nad żywym
+     canvasem liczyłby się co klatkę pod każdą kartą */
+  html.mode-desk .what-board .diff-item,
+  html.mode-desk .svc-row { -webkit-backdrop-filter: none; backdrop-filter: none; }
+  /* treść sekcji pojawia się raz, przy wejściu w okno (`seen` dokłada silnik), i zostaje */
+  html.mode-flat .slide.seen .rv { opacity: 1; transform: translateY(0); }
+  html.mode-flat .slide.seen .rv:nth-child(1), html.mode-flat .slide.seen .rv1 { transition-delay: 0.05s; }
+  html.mode-flat .slide.seen .rv2 { transition-delay: 0.15s; }
+  html.mode-flat .slide.seen .rv3 { transition-delay: 0.25s; }
+  html.mode-flat .slide.seen .rv4 { transition-delay: 0.35s; }
+  html.mode-flat .slide.seen .rv5 { transition-delay: 0.45s; }
+  html.mode-flat .slide.seen .rv6 { transition-delay: 0.55s; }
+  /* animacje w pętli stoją w sekcjach poza oknem (`inview` dokłada silnik; nie w edytorze — tam silnika nie ma) */
+  html.mode-flat body:not(.fiq-edit) .slide:not(.inview) *,
+  html.mode-flat body:not(.fiq-edit) .slide:not(.inview) *::before,
+  html.mode-flat body:not(.fiq-edit) .slide:not(.inview) *::after { animation-play-state: paused !important; }
 
   /* ===== Reveal-in for active slide ===== */
   .rv {
@@ -441,7 +472,7 @@
     white-space: nowrap;
     background: rgba(13,13,13,0.5);
   }
-  html.mode-flat .ticker { position: relative; margin-top: 48px; }
+  html.mode-flat:not(.mode-desk) .ticker { position: relative; margin-top: 48px; }
 
   .ticker-inner { display: inline-flex; animation: ticker 28s linear infinite; }
 
@@ -960,7 +991,7 @@
     border-top: 1px solid rgba(255,255,255,0.07);
     background: rgba(13,13,13,0.5);
   }
-  html.mode-flat .footer-bar { position: relative; margin-top: 64px; }
+  html.mode-flat:not(.mode-desk) .footer-bar { position: relative; margin-top: 64px; }
 
   .footer-bar p {
     font-family: 'IBM Plex Mono', monospace;
@@ -1206,10 +1237,10 @@
     .what-right .diff-item { padding: 14px 0; }
   }
   /* редактор (mode-flat): полосы прячем, показываем обычную картинку для CMS-загрузки */
-  html.mode-flat .wm-strips, html.mode-flat .wm-scan { display: none; }
-  html.mode-flat .wm-src { position: static; visibility: visible; display: block; }
-  html.mode-flat .wm-tag { pointer-events: auto; }
-  html.mode-flat .what-media { aspect-ratio: auto; }
+  html.mode-flat:not(.mode-desk) .wm-strips, html.mode-flat:not(.mode-desk) .wm-scan { display: none; }
+  html.mode-flat:not(.mode-desk) .wm-src { position: static; visibility: visible; display: block; }
+  html.mode-flat:not(.mode-desk) .wm-tag { pointer-events: auto; }
+  html.mode-flat:not(.mode-desk) .what-media { aspect-ratio: auto; }
 
   /* ===== ZESPÓŁ AI — силуэты из точек, по ховеру проявляется фото ===== */
   .team-head {
@@ -1414,9 +1445,9 @@
     .team-card { max-width: 460px; width: 100%; margin: 0 auto; }
   }
   /* редактор (mode-flat): канвас-движок не работает — показываем обычное фото для замены */
-  html.mode-flat .tm-canvas { display: none; }
-  html.mode-flat .tm-visual { aspect-ratio: auto; overflow: visible; }
-  html.mode-flat .tm-photo {
+  html.mode-flat:not(.mode-desk) .tm-canvas { display: none; }
+  html.mode-flat:not(.mode-desk) .tm-visual { aspect-ratio: auto; overflow: visible; }
+  html.mode-flat:not(.mode-desk) .tm-photo {
     position: static;
     -webkit-mask-image: none;
     mask-image: none;
@@ -1428,8 +1459,8 @@
     object-fit: contain;
     cursor: pointer;
   }
-  html.mode-flat .tm-visual::after, html.mode-flat .tm-visual::before { display: none; }
-  html.mode-flat .tm-badge { pointer-events: auto; }
+  html.mode-flat:not(.mode-desk) .tm-visual::after, html.mode-flat:not(.mode-desk) .tm-visual::before { display: none; }
+  html.mode-flat:not(.mode-desk) .tm-badge { pointer-events: auto; }
 
 /* ===== Kontrast + rozmiar tekstu (2026-08-12, prośba usera):
    szare teksty → białe, drobne → czytelne. Overrides na końcu pliku —
@@ -1552,7 +1583,7 @@
   .what-board .what-media { grid-column: auto; aspect-ratio: 16 / 9; min-height: 0; height: auto; }
 }
 /* редактор (mode-flat): картинка статикой, высоту не растягиваем */
-html.mode-flat .what-board .what-media { height: auto; min-height: 0; }
+html.mode-flat:not(.mode-desk) .what-board .what-media { height: auto; min-height: 0; }
 
 /* ===== SERVICES v2 + MATTE (2026-08-14) =====
    (1) карточки доски WHAT — матовые (backdrop-blur);
@@ -1688,7 +1719,7 @@ html.mode-flat .what-board .what-media { height: auto; min-height: 0; }
 }
 
 /* редактор (mode-flat): луч и derived-элементы прячем, сырые поля редактируемы */
-html.mode-flat .svc-beam { display: none; }
+html.mode-flat:not(.mode-desk) .svc-beam { display: none; }
 body.fiq-edit .svc-row { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); padding: 26px 28px 24px; }
 body.fiq-edit .svc-title, body.fiq-edit .svc-cap, body.fiq-edit .svc-chips { display: none; }
 body.fiq-edit .svc-name {
@@ -1725,7 +1756,7 @@ body.fiq-edit .svc-chips-src {
 .svc-row > *:not(.frost-c),
 .who-grid .who-item > *:not(.frost-c),
 .af > *:not(.frost-c) { position: relative; z-index: 1; }
-html.mode-flat .frost-c { display: none; }
+html.mode-flat:not(.mode-desk) .frost-c { display: none; }
 
 /* -- грид категорий -- */
 .who-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -1818,7 +1849,7 @@ html.mode-flat .frost-c { display: none; }
 }
 
 /* редактор: спарклайн скрыт (движок не работает), CTA/data-f-поля кликабельны */
-html.mode-flat .wh-spark { display: none; }
+html.mode-flat:not(.mode-desk) .wh-spark { display: none; }
 body.fiq-edit [data-f] { pointer-events: auto; }
 
 /* ═══ AUDYT — formularz w sekcji CTA (2026-09-04) ═════════════════════════
@@ -2401,8 +2432,8 @@ body.fiq-edit [data-f] { pointer-events: auto; }
 }
 
 /* ── kursor „łapka" i podświetlenie klikalnych kart ──────────────────────── */
-html.mode-3d a, html.mode-3d button, html.mode-3d .rail-item,
-html.mode-3d [data-goto], html.mode-3d .pl-node,
+html.mode-desk a, html.mode-desk button, html.mode-desk .rail-item,
+html.mode-desk [data-goto], html.mode-desk .pl-node,
 a, button, .rail-item, [data-goto], .pl-node {
   cursor: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 24 24' fill='%230D0D0D' stroke='%23B8FF00' stroke-width='1.6' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M10 13V5.1a1.55 1.55 0 013.1 0v6.2a1.4 1.4 0 012.8.2v.6a1.4 1.4 0 012.8.2v.6a1.4 1.4 0 012.7.3v2.5c0 2.9-2.3 5.3-5.2 5.3h-2.1c-1.6 0-3.1-.8-4-2.1l-2.7-3.9a1.6 1.6 0 012.6-1.9z'/%3E%3C/svg%3E") 16 5, pointer;
 }
@@ -2429,8 +2460,8 @@ html.coarse [data-goto], html.coarse .pl-node { cursor: auto; }
 
 /* pola tekstowe: własna kwasowa „belka" zamiast systemowej (ciemny obrys pod
    spodem, żeby była widoczna także na jasnym tle) */
-html.mode-3d input, html.mode-3d textarea, html.mode-3d select,
-html.mode-3d [contenteditable="true"],
+html.mode-desk input, html.mode-desk textarea, html.mode-desk select,
+html.mode-desk [contenteditable="true"],
 input, textarea, select, [contenteditable="true"] {
   cursor: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='26' height='26' viewBox='0 0 24 24'%3E%3Cg fill='none' stroke='%230D0D0D' stroke-width='4' stroke-linecap='round'%3E%3Cpath d='M12 4.5v15M9 4.5h6M9 19.5h6'/%3E%3C/g%3E%3Cg fill='none' stroke='%23B8FF00' stroke-width='1.7' stroke-linecap='round'%3E%3Cpath d='M12 4.5v15M9 4.5h6M9 19.5h6'/%3E%3C/g%3E%3C/svg%3E") 13 13, text;
 }
@@ -2873,8 +2904,8 @@ html.menu-open nav .nav-brand, html.menu-open nav .nav-cta, html.menu-open nav .
 .cursor-ring.acid.link { border-color: #0D0D0D; background: rgba(13,13,13,0.10); }
 .model-panel, .ag-final, .btn-primary, .btn-send, .bf-btn, .bf-pill.on, .bf-slot.on, .nav-cta, .menu-cta,
 .af-btn, .af-btn-a, .wh-cta, .fb-cta-btn, .pill.on,
-html.mode-3d .btn-primary, html.mode-3d .nav-cta, html.mode-3d .menu-cta,
-html.mode-3d .af-btn, html.mode-3d .btn-send, html.mode-3d .bf-btn, html.mode-3d .wh-cta {
+html.mode-desk .btn-primary, html.mode-desk .nav-cta, html.mode-desk .menu-cta,
+html.mode-desk .af-btn, html.mode-desk .btn-send, html.mode-desk .bf-btn, html.mode-desk .wh-cta {
   cursor: url("data:image/svg+xml;charset=utf-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='34' height='34' viewBox='0 0 24 24' fill='%230D0D0D' stroke='%23F5F5F0' stroke-width='1.4' stroke-linejoin='round' stroke-linecap='round'%3E%3Cpath d='M10 13V5.1a1.55 1.55 0 013.1 0v6.2a1.4 1.4 0 012.8.2v.6a1.4 1.4 0 012.8.2v.6a1.4 1.4 0 012.7.3v2.5c0 2.9-2.3 5.3-5.2 5.3h-2.1c-1.6 0-3.1-.8-4-2.1l-2.7-3.9a1.6 1.6 0 012.6-1.9z'/%3E%3C/svg%3E") 16 5, pointer;
 }
 html.coarse .model-panel, html.coarse .ag-final, html.coarse .btn-primary,

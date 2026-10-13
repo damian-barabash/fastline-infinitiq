@@ -38,6 +38,12 @@ export function initHeroSphere() {
   const { signal } = ac;
   const ctx = cv.getContext('2d', { alpha: true });
   const slide = stage.closest('.slide');
+  // kulę rysujemy tylko, gdy scena jest w oknie (sekcje leżą w zwykłym dokumencie)
+  let onScreen = true;
+  const vis = 'IntersectionObserver' in window
+    ? new IntersectionObserver((es) => { onScreen = es[es.length - 1].isIntersecting; })
+    : null;
+  if (vis) vis.observe(stage);
   const nodesBox = stage.querySelector('.pl-nodes');
 
   // Telefon: pod przyciskiem CTA stoją trzy przyciski NIEOTWARTYCH grup —
@@ -541,7 +547,7 @@ export function initHeroSphere() {
     raf = requestAnimationFrame(tick);
     const dt = Math.min(64, now - (last || now));
     last = now;
-    const visible = !document.hidden && (!slide || slide.classList.contains('shown'));
+    const visible = !document.hidden && onScreen;
     if (!visible) return;
     if (WEAK && (frame++ & 1)) return;
 
@@ -591,6 +597,7 @@ export function initHeroSphere() {
   return function destroy() {
     cancelAnimationFrame(raf);
     if (ro) ro.disconnect();
+    if (vis) vis.disconnect();
     ac.abort();
   };
 }

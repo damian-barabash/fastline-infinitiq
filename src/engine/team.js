@@ -228,7 +228,10 @@ export function initTeam({ signal, coarse, weak, mouse }) {
     const sameOrigin = src.indexOf('data:') === 0 ||
       src.indexOf('/') === 0 ||
       src.indexOf(location.origin) === 0;
-    const source = sameOrigin ? it.img : new Image();
+    // <img crossorigin> (strony produktów): zdjęcie z magazynu CMS pobiera się RAZ
+    // i to samo służy za źródło punktów — bez drugiego pobrania przez `new Image()`
+    const cors = !sameOrigin && !!it.img.crossOrigin;
+    const source = (sameOrigin || cors) ? it.img : new Image();
     const run = () => {
       const cloud = buildCloud(source, budgetFor(it.w || 340, it.h || 300), it.seed);
       if (cloud) {
@@ -240,9 +243,15 @@ export function initTeam({ signal, coarse, weak, mouse }) {
         it.card.classList.add('tm-static');
       }
     };
-    if (sameOrigin) {
+    if (sameOrigin || cors) {
       if (it.img.complete && it.img.naturalWidth) run();
       else it.img.addEventListener('load', run, { once: true, signal });
+      // host bez nagłówków CORS: zdjęcie ma się pokazać mimo wszystko (bez siatki punktów)
+      if (cors) it.img.addEventListener('error', () => {
+        it.img.removeAttribute('crossorigin');
+        it.img.src = src;
+        it.card.classList.add('tm-static');
+      }, { once: true, signal });
     } else {
       source.crossOrigin = 'anonymous';
       source.addEventListener('load', run, { once: true, signal });

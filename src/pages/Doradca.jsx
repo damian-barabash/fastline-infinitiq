@@ -10,9 +10,8 @@ import agenciCss from '../styles/agenci.css?inline';
 import doradcaCss from '../styles/doradca.css?inline';
 
 /* LP produktu AI Doradca (/ai-doradca). Rama i silnik wspólne z /agenci-ai
-   (`initAgenci`: menu, kursor, sceny rozmów), ale BEZ bębna 3D (`drum: false`,
-   2026-10-12 — właściciel: przewijanie „jak w prezentacji" spowalnia stronę);
-   sekcje to zwykły przewijany dokument. Treść edytuje się w /editor
+   (`initAgenci`: menu, kursor, sceny rozmów); sekcje to zwykły przewijany
+   dokument (bębna 3D nie ma na żadnej stronie). Treść edytuje się w /editor
    (zakładka „AI Doradca") — wiersz `site_content` o id `ai-doradca`.
 
    DEMO_KEY = publiczny klucz kanału widget w Brain (projekt z ofertą FIQ).
@@ -38,9 +37,9 @@ export default function Doradca() {
   useEffect(() => {
     document.title = 'AI Doradca — doradza klientom na Twojej stronie 24/7 | Fastline InfinitiQ';
     ensureFIQ();
-    let destroy = initAgenci({ onNavigate: (to) => wipeTo(navigate, to), drum: false });
+    let destroy = initAgenci({ onNavigate: (to) => wipeTo(navigate, to) });
     mountLiveDemo();
-    // po `initAgenci`: tryb (mode-flat / mode-3d) jest już ustawiony na <html>
+    // po `initAgenci`: klasy trybu (mode-flat / mode-desk) są już ustawione na <html>
     const fxAc = new AbortController();
     const stopFx = initDoradcaFx({ signal: fxAc.signal });
 
@@ -76,7 +75,7 @@ export default function Doradca() {
             const total = document.querySelectorAll('.slide').length;
             const cntTotal = document.querySelector('#counter span:last-child');
             if (cntTotal) cntTotal.textContent = '/ ' + String(total).padStart(2, '0');
-            destroy = initAgenci({ onNavigate: (to) => wipeTo(navigate, to), drum: false });
+            destroy = initAgenci({ onNavigate: (to) => wipeTo(navigate, to) });
           }
         }
       })

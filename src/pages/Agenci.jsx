@@ -37,13 +37,12 @@ export default function Agenci() {
           const before = slideIds();
           window.FIQ.applyContent(published, { editor: false });
 
-          // Grań wyłączona w edytorze (`_hidden: "sec:<id>"`) dostaje display:none,
-          // ale bęben zmierzył już wszystkie ściany — pusta ściana zostawiłaby
-          // dziurę w przewijaniu. Usuwamy grań i jej pozycję z railu, po czym
-          // stawiamy silnik od nowa (jak na lądowaniu).
+          // Sekcja wyłączona w edytorze (`_hidden: "sec:<id>"`) dostaje display:none,
+          // ale silnik policzył już sekcje (licznik, menu, aktywna sekcja) — usuwamy
+          // ją i jej pozycję z railu, po czym stawiamy silnik od nowa (jak na lądowaniu).
           const hiddenSlides = Array.from(document.querySelectorAll('.slide[data-hideable]'))
             .filter((el) => el.style.display === 'none');
-          // …albo gdy CMS przestawił granie (`_order`) — bęben mierzy ściany w kolejności DOM
+          // …albo gdy CMS przestawił sekcje (`_order`) — silnik trzyma je w kolejności DOM
           if (hiddenSlides.length || slideIds() !== before) {
             destroy();
             const all = Array.from(document.querySelectorAll('.slide'));

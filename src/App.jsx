@@ -1,14 +1,18 @@
 import React, { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
-import Home from './pages/Home.jsx';
-import Kontakt from './pages/Kontakt.jsx';
-import Agenci from './pages/Agenci.jsx';
-import Doradca from './pages/Doradca.jsx';
-import Legal from './pages/Legal.jsx';
 import CookieNotice from './components/CookieNotice.jsx';
+import { page } from './lib/pages.jsx';
+
+// Strony publiczne (SSG) — każda w swojej paczce JS; strona z adresu jest
+// dociągnięta PRZED hydracją, więc renderuje się synchronicznie (lib/pages.jsx).
+const Home = page('Home');
+const Kontakt = page('Kontakt');
+const Agenci = page('Agenci');
+const Doradca = page('Doradca');
+const Legal = page('Legal');
 
 // Не-пререндеренные роуты — lazy: supabase-js + редакторский код не попадают
-// в основной бандл лендинга. В SSG рендерятся только / и /kontakt (eager).
+// в основной бандл лендинга.
 const Login = lazy(() => import('./pages/Login.jsx'));
 const Editor = lazy(() => import('./pages/Editor.jsx'));
 const Audit = lazy(() => import('./pages/Audit.jsx'));

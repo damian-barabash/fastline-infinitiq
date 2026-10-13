@@ -1,16 +1,16 @@
-// Движок страницы /agenci-ai: тот же 3D-барабан слайдов, что и на главной
-// (грани перелистываются скроллом, длинные докручиваются внутри), нейро-фон,
-// курсор, силуэты «цифровых работников» (team.js) и живые демо-сцены.
+// Движок страниц продуктов (/agenci-ai, /ai-doradca): нейро-фон, курсор, меню,
+// силуэты «цифровых работников» (team.js) и живые демо-сцены.
 //
-// Механика барабана перенесена из landingEngine — формулы те же (rotateX по
-// граням, R = (vh/2)/tan(36°), гибридный скролл), без CMS-специфики лендинга.
+// Bębna 3D nie ma (usunięty 2026-10-13, właściciel: przewijanie „jak w prezentacji"
+// spowalniało stronę) — sekcje `.slide` leżą w zwykłym dokumencie i przewijają się
+// natywnie. Silnik tylko wskazuje aktywną sekcję (licznik, sceny, animacje CSS).
 
 import { interceptInternalLinks } from './wipe.js';
 import { initTeam } from './team.js';
 import { watchNavClaim, initClaimScramble } from './navClaim.js';
 import { initMenu } from './menu.js';
 
-export function initAgenci({ onNavigate, drum: useDrum = true }) {
+export function initAgenci({ onNavigate }) {
   const ac = new AbortController();
   const signal = ac.signal;
   let rafId = 0;
@@ -18,15 +18,12 @@ export function initAgenci({ onNavigate, drum: useDrum = true }) {
 
   /* prefers-reduced-motion игнорируем сознательно (урок HORIN) */
   const COARSE = matchMedia('(hover: none), (pointer: coarse)').matches;
-  // SMALL = telefon/dotyk (mniej punktów tła, sieć na środku).
-  // FLAT  = bez bębna 3D: telefon ALBO strona, która go wyłączyła (`drum: false`,
-  //         np. /ai-doradca — zwykłe przewijanie, na desktopie wygląd bez zmian:
-  //         klasa `mode-desk` zostawia własny kursor, licznik i układ grani).
+  // SMALL = telefon/dotyk (mniej punktów tła, sieć na środku, układ mobilny).
+  // Klasa `mode-flat` jest zawsze (zwykłe przewijanie); `mode-desk` = desktop:
+  // własny kursor, licznik, sekcja na wysokość okna z treścią na środku.
   const SMALL = COARSE || matchMedia('(max-width: 900px)').matches;
-  const FLAT = SMALL || !useDrum;
-  const DESK = FLAT && !SMALL;
-  document.documentElement.classList.add(FLAT ? 'mode-flat' : 'mode-3d');
-  if (DESK) document.documentElement.classList.add('mode-desk');
+  document.documentElement.classList.add('mode-flat');
+  if (!SMALL) document.documentElement.classList.add('mode-desk');
   if (COARSE) document.documentElement.classList.add('coarse');
 
   const lerp = (a, b, t) => a + (b - a) * t;
@@ -73,55 +70,13 @@ export function initAgenci({ onNavigate, drum: useDrum = true }) {
     }, { signal });
   }
 
-  /* ===== 3D-барабан + гибридный скролл (как на главной) ===== */
+  /* ===== sekcje ===== */
   const slides = Array.from(document.querySelectorAll('.slide'));
-  const inners = slides.map((s) => s.querySelector('.slide-inner'));
   const N = slides.length;
   // karty agentów żyją teraz w grani hero — szukamy jej po samej siatce kart,
   // żeby przeniesienie bloku nie wymagało ruszania silnika
   const teamGridEl = document.getElementById('teamGrid');
   const ZESPOL = teamGridEl ? slides.findIndex((s2) => s2.contains(teamGridEl)) : -1;
-  const track = document.getElementById('track');
-  const drum = document.getElementById('drum');
-  const FACE = 72;
-  let R = 0;
-  let extras = slides.map(() => 0);
-  let starts = [0];
-  let maxScroll = 0;
-  let ySmooth = 0, lastApplied = -1, pSmooth = 0;
-  let lockedVh = innerHeight, lastW = innerWidth;
-
-  function measure() {
-    vh = lockedVh; vw = innerWidth;
-    R = (vh / 2) / Math.tan((FACE / 2) * Math.PI / 180);
-    drum.style.transform = `translateZ(${-R}px)`;
-    extras = slides.map((s, i) => {
-      const h = inners[i].offsetHeight;
-      const ex = Math.max(0, Math.ceil(h - vh));
-      s.classList.toggle('tall', ex > 0);
-      if (ex === 0) inners[i].style.transform = '';
-      return ex;
-    });
-    starts = [0];
-    for (let i = 0; i < N; i++) starts.push(starts[i] + vh + extras[i]);
-    maxScroll = starts[N - 1] + extras[N - 1];
-    track.innerHTML = '';
-    for (let i = 0; i < N; i++) {
-      const d = document.createElement('div');
-      d.className = 'snap';
-      d.style.height = (vh + extras[i]) + 'px';
-      track.appendChild(d);
-    }
-    lastApplied = -1;
-  }
-
-  function mapScroll(y) {
-    let i = 0;
-    while (i < N - 1 && y >= starts[i + 1]) i++;
-    const local = y - starts[i];
-    const flip = clamp((local - extras[i]) / vh, 0, 1);
-    return { i, flip };
-  }
 
   const railItems = Array.from(document.querySelectorAll('.rail-item'));
   const counterCur = document.querySelector('#counter .cur');
@@ -130,12 +85,11 @@ export function initAgenci({ onNavigate, drum: useDrum = true }) {
 
   function goTo(i) {
     const idx = clamp(i, 0, N - 1);
-    if (FLAT) { slides[idx].scrollIntoView({ behavior: 'smooth', block: 'start' }); return; }
-    scrollTo({ top: starts[idx], behavior: 'smooth' });
+    slides[idx].scrollIntoView({ behavior: 'smooth', block: 'start' });
   }
   railItems.forEach((b) => b.addEventListener('click', () => goTo(+b.dataset.i), { signal }));
   const closeMenu = initMenu({ signal, goTo });
-  // внутренние якоря (#kontakt) — перелистываем барабан, а не скроллим вслепую
+  // внутренние якоря (#kontakt) — płynne przewinięcie do sekcji
   document.addEventListener('click', (e) => {
     const a = e.target.closest('a[data-scroll]');
     if (!a) return;
@@ -154,40 +108,24 @@ export function initAgenci({ onNavigate, drum: useDrum = true }) {
     slides.forEach((s, i) => s.classList.toggle('active', i === idx));
   }
 
-  function updateDrum() {
-    const yT = clamp(scrollY, 0, maxScroll);
-    ySmooth = lerp(ySmooth, yT, 0.14);
-    if (Math.abs(ySmooth - yT) < 0.3) ySmooth = yT;
-    if (ySmooth === lastApplied) return;
-    lastApplied = ySmooth;
-    const m = mapScroll(ySmooth);
-    const pF = m.i + m.flip;
-    pSmooth = pF;
-    for (let k = 0; k < N; k++) {
-      const d = k - pF;
-      const el = slides[k];
-      if (Math.abs(d) > 1.1) { el.classList.remove('shown'); continue; }
-      el.classList.add('shown');
-      el.style.transform = `rotateX(${(-d * FACE).toFixed(3)}deg) translateZ(${R.toFixed(1)}px)`;
-      el.style.opacity = (1 - clamp(Math.abs(d), 0, 1) * 0.85).toFixed(3);
-      if (extras[k] > 0) {
-        const off = clamp(ySmooth - starts[k], 0, extras[k]);
-        inners[k].style.transform = `translateY(${(-off).toFixed(1)}px)`;
-      }
-    }
-    setActive(m.flip > 0.5 ? Math.min(m.i + 1, N - 1) : m.i);
-    if (hint) hint.classList.toggle('gone', scrollY > vh * 0.3);
-  }
-
-  // flat-режим (телефон): барабана нет — активной считаем ближайшую к центру грань
+  // Aktywna jest sekcja najbliżej środka okna.
   // Prostokąty czytamy tylko po przewinięciu / zmianie układu, nie co klatkę.
   let flatDirty = true;
-  if (FLAT) {
+  {
     const dirty = () => { flatDirty = true; };
     addEventListener('scroll', dirty, { passive: true, signal });
     addEventListener('resize', dirty, { signal });
     addEventListener('fiq:content-ready', dirty, { signal });
+    addEventListener('load', dirty, { signal });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(dirty);
   }
+  // `inview` = sekcja jest w oknie (z zapasem): poza nim arkusz stawia animacje
+  // CSS na pauzie — wszystkie sekcje leżą w dokumencie naraz.
+  const io = 'IntersectionObserver' in window
+    ? new IntersectionObserver((es) => es.forEach((e) => e.target.classList.toggle('inview', e.isIntersecting)), { rootMargin: '12% 0px' })
+    : null;
+  slides.forEach((s) => { if (io) io.observe(s); else s.classList.add('inview'); });
+
   function updateFlat() {
     if (!flatDirty) return;
     flatDirty = false;
@@ -202,20 +140,6 @@ export function initAgenci({ onNavigate, drum: useDrum = true }) {
       if (d < bestD) { bestD = d; best = i; }
     });
     setActive(best);
-  }
-
-  if (!FLAT) {
-    measure();
-    addEventListener('resize', () => {
-      // iOS дёргает innerHeight при показе тулбара — меряем только при реальной смене
-      if (Math.abs(innerHeight - lockedVh) > 120 || innerWidth !== lastW) {
-        lockedVh = innerHeight; lastW = innerWidth; measure();
-      }
-    }, { signal });
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { if (!destroyed) measure(); });
-    addEventListener('load', () => { if (!destroyed) measure(); }, { signal });
-  } else {
-    slides.forEach((s) => s.classList.add('shown'));
   }
 
   /* ===== силуэты команды ===== */
@@ -342,21 +266,15 @@ export function initAgenci({ onNavigate, drum: useDrum = true }) {
       ring.style.transform = `translate(${rx}px, ${ry}px) translate(-50%, -50%)`;
     }
     updateNav();
-    // team.tick читает getBoundingClientRect — зовём ДО записи трансформов барабана
     if (team && ZESPOL >= 0) {
-      if (FLAT) {
-        // grań z kartami rysujemy, gdy jest w oknie (z zapasem ekranu w każdą stronę)
-        if (flatDirty) {
-          const r = slides[ZESPOL].getBoundingClientRect();
-          teamNear = r.bottom > -innerHeight && r.top < innerHeight * 2;
-        }
-        team.tick(time, teamNear, Math.round(scrollY), teamNear);
-      } else {
-        const d = Math.abs(pSmooth - ZESPOL);
-        team.tick(time, d < 1.15, Math.round(ySmooth), d < 0.45);
+      // sekcję z kartami rysujemy, gdy jest w oknie (z zapasem ekranu w każdą stronę)
+      if (flatDirty) {
+        const r = slides[ZESPOL].getBoundingClientRect();
+        teamNear = r.bottom > -innerHeight && r.top < innerHeight * 2;
       }
+      team.tick(time, teamNear, Math.round(scrollY), teamNear);
     }
-    if (FLAT) updateFlat(); else updateDrum();
+    updateFlat();
     if (!document.hidden) drawNeural(time);
     rafId = requestAnimationFrame(frame);
   }
@@ -396,7 +314,7 @@ export function initAgenci({ onNavigate, drum: useDrum = true }) {
   document.querySelectorAll('.dm[data-demo]').forEach((root) => {
     const slide = root.closest('.slide');
     const slideIdx = slides.indexOf(slide);
-    // сцена «живёт», только пока её грань активна — иначе четыре таймера крутились бы вхолостую
+    // сцена «живёт», только пока её секция активна — иначе четыре таймера крутились бы вхолостую
     const state = { visible: () => slideIdx < 0 || activeIdx === slideIdx };
     const kind = root.dataset.demo;
 
@@ -457,11 +375,6 @@ export function initAgenci({ onNavigate, drum: useDrum = true }) {
     else loopSimple({ gap: 1200, typingGap: 1000 });
   });
 
-  /* высоты граней меняются после подмены текстов из CMS */
-  addEventListener('fiq:content-ready', () => {
-    if (!destroyed && !FLAT) requestAnimationFrame(measure);
-  }, { signal });
-
   return function destroy() {
     destroyed = true;
     cancelAnimationFrame(rafId);
@@ -471,6 +384,7 @@ export function initAgenci({ onNavigate, drum: useDrum = true }) {
     if (closeMenu) closeMenu();
     unwatchClaim();
     ac.abort();
-    document.documentElement.classList.remove('mode-3d', 'mode-flat', 'mode-desk', 'coarse');
+    if (io) io.disconnect();
+    document.documentElement.classList.remove('mode-flat', 'mode-desk', 'coarse');
   };
 }
