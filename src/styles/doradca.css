@@ -293,6 +293,94 @@ html.mode-flat .ad-vs-row i { transform: scaleX(0); }
 .slide:not(.active) .lk-vis *, .slide:not(.active) .way-vis *, .slide:not(.active) .hb,
 .slide:not(.active) .dm-live i, .slide:not(.active) .dots i { animation-play-state: paused; }
 
+/* ===== v2 (2026-10-13, uwagi właściciela) =====
+   1) przyciski tylko z pełnym wypełnieniem (obrysowych nie używamy),
+   2) czytelność: karty z tekstem mają pełne tło — sieć neuronów nie przebija przez litery,
+   3) droga „Kup z podłączeniem" = polecana, dopłata jednorazowa wielkości ceny,
+   4) nagłówki: Archivo Expanded 800 (szeroki, w typie Monument) zamiast Space Grotesk. */
+
+/* -- 4) krój nagłówków (tylko ta strona; szerszy krój → mniejszy stopień) -- */
+.ag-h1, .sec-head h2, .ad-h2, .ag-final h2, .team-card h3, .step h3, .faq-item h3,
+.ad-way h3, .ad-way-price b, .ad-price-big b, .ad-leak-num {
+  font-family: 'Archivo', 'Space Grotesk', sans-serif;
+  font-weight: 800;
+  font-stretch: 125%;
+  letter-spacing: 0;
+}
+#start .ag-h1 { font-size: clamp(26px, 2.85vw, 44px); line-height: 1.08; max-width: 19ch; }
+.sec-head h2 { font-size: clamp(22px, 2.7vw, 36px); line-height: 1.1; }
+.ad-h2 { font-size: clamp(26px, 3.2vw, 46px); line-height: 1.08; }
+.ag-final h2 { font-size: clamp(22px, 3vw, 40px); line-height: 1.1; }
+#kontakt .ag-final h2 { max-width: 20ch; }
+#start .ad-team .team-card h3 { font-size: 22px; }
+.ad-steps .step h3 { font-size: 15.5px; line-height: 1.2; }
+.ad-faq .faq-item h3 { font-size: 14.5px; line-height: 1.25; }
+.ad-way h3 { font-size: 20px; line-height: 1.12; }
+.ad-price-big b { font-size: clamp(40px, 4.8vw, 68px); }
+.ad-leak-num { font-size: 38px; }
+
+/* -- 1) przyciski: trzy pełne w rzędzie -- */
+.ad-actions .btn-primary { padding: 15px 18px; }
+.ag-final-row .btn-dark { padding: 15px 26px; }
+
+/* -- 2) czytelność: pełne tła kart, jaśniejsze i większe podpisy -- */
+#start .ad-team .team-card { background: #0F100D; }
+.ad-leak, .ad-way { background: linear-gradient(158deg, #1A1D15 0%, #0F100D 100%); }
+.step, .faq-item { background: #111210; }
+.ad-steps .step.lit { background: #1A2108; }
+.ad-terms, .ad-vs { background: #111210; border-color: rgba(245,245,240,0.16); }
+.ad-price-main { background: linear-gradient(158deg, #1E2A08 0%, #0F100D 70%); }
+.ad-price-main > .ad-neuro { opacity: 0.45; }
+.ad-terms dt { font-size: 12.5px; letter-spacing: 0.06em; color: rgba(245,245,240,0.86); }
+.ad-terms dd { font-size: 16.5px; font-weight: 500; }
+.ad-vs p { font-size: 17px; color: #F5F5F0; }
+.ad-vs-row { font-size: 12px; color: rgba(245,245,240,0.86); grid-template-columns: 108px 1fr; }
+.ad-way p { color: #F5F5F0; }
+.ad-way-when { font-size: 12.5px; }
+.ad-price-big span { font-size: 15px; color: #F5F5F0; }
+#start .ad-team .team-card p { font-size: 15.5px; color: #F5F5F0; }
+#start .ad-team .ag-role { color: rgba(245,245,240,0.8); }
+
+/* -- 3) trzy drogi: cena i dopłata tej samej wielkości, droga 2 polecana -- */
+.ad-way { position: relative; }
+.ad-way-price { min-height: 88px; gap: 6px 10px; align-items: baseline; }
+.ad-way-price b { font-size: 30px; }
+.ad-way-price span { font-size: 13.5px; color: rgba(245,245,240,0.86); }
+.ad-way-price .brk { flex: 0 0 100%; height: 0; }
+.ad-way.hot { background: linear-gradient(158deg, #1E2A08 0%, #0F100D 70%); border: 2px solid var(--green); box-shadow: 0 30px 80px -40px rgba(184,255,0,0.65); }
+.ad-way.hot .ad-way-price b { color: var(--green); }
+.ad-way-badge {
+  position: absolute; top: -1px; right: -1px;
+  padding: 7px 14px;
+  font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase;
+  color: var(--black); background: var(--green);
+}
+
+/* ===== „Dalej: <następna sekcja>" — strzałka na dole okna (2026-10-13) =====
+   Znika od razu przy przewijaniu (`.moving`), wraca po zatrzymaniu; w ostatniej
+   sekcji jej nie ma (`.end`). Zastępuje napis „Scroll" z prawego rogu. */
+#scrollHint { display: none !important; }
+.next-hint {
+  position: fixed; left: 50%; bottom: 18px; z-index: 80;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 10px;
+  padding: 9px 16px 9px 18px;
+  font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; line-height: 1;
+  color: #F5F5F0; background: rgba(13,13,13,0.86); border: 1px solid rgba(184,255,0,0.45);
+  transition: opacity 0.45s ease 0.1s, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.1s, border-color 0.25s, background 0.25s;
+}
+.next-hint:hover { border-color: var(--green); background: #14180A; }
+.next-hint .nh-cap { color: rgba(245,245,240,0.6); }
+.next-hint .nh-name { color: var(--green); font-weight: 500; white-space: nowrap; }
+.next-hint .nh-arrow { width: 16px; height: 16px; color: var(--green); animation: nhDrop 1.5s ease-in-out infinite; }
+@keyframes nhDrop { 0%, 100% { transform: translateY(-3px); } 50% { transform: translateY(3px); } }
+.next-hint.moving, .next-hint.end { opacity: 0; transform: translateX(-50%) translateY(10px); pointer-events: none; transition-delay: 0s; transition-duration: 0.12s; }
+html.menu-open .next-hint, body.fiq-edit .next-hint { display: none; }
+@media (max-width: 900px) {
+  .next-hint { bottom: 12px; padding: 8px 12px 8px 14px; font-size: 10.5px; letter-spacing: 0.12em; gap: 8px; max-width: calc(100vw - 32px); }
+  .next-hint .nh-name { overflow: hidden; text-overflow: ellipsis; }
+}
+
 /* ===== Breakpointy ===== */
 @media (max-width: 1200px) {
   .ad-faq { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -327,6 +415,11 @@ html.mode-flat .ad-vs-row i { transform: scaleX(0); }
   .ad-win-title span { display: none; }
   .ad-script .msg { font-size: 14px; max-width: 90%; }
   .ad-way { padding: 24px 20px 22px; }
+  #start .ag-h1 { font-size: clamp(23px, 6.6vw, 32px); max-width: none; }
+  .sec-head h2 { font-size: clamp(20px, 5.6vw, 28px); }
+  .ad-h2, .ag-final h2 { font-size: clamp(22px, 6.2vw, 30px); }
+  .ad-actions .btn-primary { justify-content: center; }
+  .ad-way-price b { font-size: 27px; }
   .ad-price-main { padding: 24px 20px; }
   .ad-incl li { font-size: 16px; }
   .ad-terms { padding: 4px 18px; }

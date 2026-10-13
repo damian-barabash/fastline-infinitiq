@@ -76,6 +76,12 @@ export default function DoradcaShell() {
 
       <div className="counter" id="counter"><span className="cur">01</span><span>/ 08</span></div>
       <div className="scroll-hint" id="scrollHint">Scroll</div>
+      {/* strzałka „dalej": nazwę następnej sekcji wpisuje silnik (agenciEngine) */}
+      <button type="button" className="next-hint" id="nextHint" aria-label="Następna sekcja">
+        <span className="nh-cap">Dalej</span>
+        <span className="nh-name" data-next>problem</span>
+        <svg className="nh-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 4v15M5.5 12.5 12 19l6.5-6.5" /></svg>
+      </button>
 
       <div id="track"></div>
 
@@ -96,8 +102,8 @@ export default function DoradcaShell() {
 
                   <div className="ag-actions ad-actions rv rv3">
                     <a href={BUY.call} data-wipe className="btn-primary" data-edit="ad_cta1">Umów 30 minut</a>
-                    <a href={BUY.now} data-wipe className="btn-ghost" data-edit="ad_cta2">Kup teraz — 490 zł/mies.</a>
-                    <a href={BUY.setup} data-wipe className="btn-ghost" data-edit="ad_cta3">Kup z podłączeniem</a>
+                    <a href={BUY.now} data-wipe className="btn-primary" data-edit="ad_cta2">Kup teraz — 490 zł/mies.</a>
+                    <a href={BUY.setup} data-wipe className="btn-primary" data-edit="ad_cta3">Kup z podłączeniem</a>
                   </div>
 
                   <ul className="ag-checks ad-checks rv rv3">
@@ -302,7 +308,7 @@ export default function DoradcaShell() {
               </div>
 
               <div className="ad-ways rv rv2">
-                <article className="ad-way hot" data-hideable="way:1" data-hide-label="Droga — Kup teraz">
+                <article className="ad-way" data-hideable="way:1" data-hide-label="Droga — Kup teraz">
                   <div className="way-vis way-code" aria-hidden="true"><code>&lt;script src="doradca.js"&gt;</code><i></i></div>
                   <span className="ad-way-tag" data-edit="ad_w1_tag">Sam, dziś</span>
                   <h3 data-edit="ad_w1_h">Kup teraz</h3>
@@ -312,14 +318,15 @@ export default function DoradcaShell() {
                   <a href={BUY.now} data-wipe className="btn-primary" data-edit="ad_w1_cta">Kup teraz</a>
                 </article>
 
-                <article className="ad-way" data-hideable="way:2" data-hide-label="Droga — Kup z podłączeniem">
+                <article className="ad-way hot" data-hideable="way:2" data-hide-label="Droga — Kup z podłączeniem">
+                  <span className="ad-way-badge" data-edit="ad_w2_badge">Polecamy</span>
                   <div className="way-vis way-list" aria-hidden="true"><span><IcCheck />Katalog</span><span><IcCheck />Ton marki</span><span><IcCheck />Osadzenie</span></div>
                   <span className="ad-way-tag" data-edit="ad_w2_tag">Robimy za Ciebie</span>
                   <h3 data-edit="ad_w2_h">Kup z podłączeniem</h3>
-                  <div className="ad-way-price"><b data-edit="ad_w2_price">490 zł</b><span data-edit="ad_w2_unit">/ mies. + 1 490 zł jednorazowo</span></div>
+                  <div className="ad-way-price two"><b data-edit="ad_w2_price">490 zł</b><span data-edit="ad_w2_per">/ mies. netto</span><i className="brk" aria-hidden="true"></i><b className="plus" data-edit="ad_w2_plus">+ 1 490 zł</b><span data-edit="ad_w2_once">jednorazowo</span></div>
                   <p data-edit="ad_w2_p" data-edit-type="html">Konfigurację, katalog, ton marki i osadzenie na stronie robimy my.</p>
                   <div className="ad-way-when"><IcClock /><span data-edit="ad_w2_when">Start do 5 dni roboczych</span></div>
-                  <a href={BUY.setup} data-wipe className="btn-ghost" data-edit="ad_w2_cta">Kup z podłączeniem</a>
+                  <a href={BUY.setup} data-wipe className="btn-primary" data-edit="ad_w2_cta">Kup z podłączeniem</a>
                 </article>
 
                 <article className="ad-way" data-hideable="way:3" data-hide-label="Droga — Umów 30 minut">
@@ -329,7 +336,7 @@ export default function DoradcaShell() {
                   <div className="ad-way-price"><b data-edit="ad_w3_price">Bezpłatnie</b><span data-edit="ad_w3_unit"></span></div>
                   <p data-edit="ad_w3_p" data-edit-type="html">Pokazujemy agenta na Twojej ofercie i mówimy wprost, czy to się u Ciebie spina.</p>
                   <div className="ad-way-when"><IcCalendar /><span data-edit="ad_w3_when">Termin wybierasz sam</span></div>
-                  <a href={BUY.call} data-wipe className="btn-ghost" data-edit="ad_w3_cta">Umów rozmowę</a>
+                  <a href={BUY.call} data-wipe className="btn-primary" data-edit="ad_w3_cta">Umów rozmowę</a>
                 </article>
               </div>
             </div>
@@ -433,8 +440,8 @@ export default function DoradcaShell() {
                 </p>
                 <div className="ag-final-row">
                   <a href={BUY.call} data-wipe className="btn-dark" data-edit="ad_final_cta1">Umów 30 minut</a>
-                  <a href={BUY.now} data-wipe className="btn-dark ghost" data-edit="ad_final_cta2">Kup teraz</a>
-                  <a href={BUY.setup} data-wipe className="btn-dark ghost" data-edit="ad_final_cta3">Kup z podłączeniem</a>
+                  <a href={BUY.now} data-wipe className="btn-dark" data-edit="ad_final_cta2">Kup teraz</a>
+                  <a href={BUY.setup} data-wipe className="btn-dark" data-edit="ad_final_cta3">Kup z podłączeniem</a>
                 </div>
               </div>
 

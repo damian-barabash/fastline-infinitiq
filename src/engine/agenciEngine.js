@@ -106,6 +106,39 @@ export function initAgenci({ onNavigate }) {
     railItems.forEach((b, i) => b.classList.toggle('on', i === idx));
     if (counterCur) counterCur.textContent = String(idx + 1).padStart(2, '0');
     slides.forEach((s, i) => s.classList.toggle('active', i === idx));
+    updateNext();
+  }
+
+  /* ===== „Dalej: <następna sekcja>" — strzałka na dole okna =====
+     Tylko strony, które mają `#nextHint` w markupie. Nazwa jak w menu: tekst
+     `.section-label` następnej sekcji (CMS), awaryjnie nazwa z railu. Znika od
+     razu przy przewijaniu, wraca po zatrzymaniu; w ostatniej sekcji jej nie ma. */
+  const nextHint = document.getElementById('nextHint');
+  const nextName = nextHint ? nextHint.querySelector('[data-next]') : null;
+  const railNames = railItems.map((b) => ((b.querySelector('.rail-name') || {}).textContent || '').trim());
+  const secName = (i) => {
+    const raw = ((slides[i].querySelector('.section-label') || {}).textContent || '').trim();
+    return raw.replace(/^(\/\/|\d+\s*[—–-])\s*/, '') || railNames[i] || slides[i].id;
+  };
+  function updateNext() {
+    if (!nextHint) return;
+    const last = activeIdx >= N - 1;
+    // telefon: sekcje są dłuższe niż ekran i plakietka zasłaniałaby treść — tylko na pierwszym ekranie
+    nextHint.classList.toggle('end', last || (SMALL && activeIdx > 0));
+    if (!last && nextName) {
+      const name = secName(activeIdx + 1);
+      if (nextName.textContent !== name) nextName.textContent = name;
+    }
+  }
+  if (nextHint) {
+    let stopT = 0;
+    addEventListener('scroll', () => {
+      if (!nextHint.classList.contains('moving')) nextHint.classList.add('moving');
+      clearTimeout(stopT);
+      stopT = setTimeout(() => nextHint.classList.remove('moving'), 280);
+    }, { passive: true, signal });
+    nextHint.addEventListener('click', () => goTo(activeIdx + 1), { signal });
+    addEventListener('fiq:content-ready', updateNext, { signal }); // CMS mógł zmienić nazwy sekcji
   }
 
   // Aktywna jest sekcja najbliżej środka okna.
