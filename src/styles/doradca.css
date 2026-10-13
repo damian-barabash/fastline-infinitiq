@@ -297,27 +297,56 @@ html.mode-flat .ad-vs-row i { transform: scaleX(0); }
    1) przyciski tylko z pełnym wypełnieniem (obrysowych nie używamy),
    2) czytelność: karty z tekstem mają pełne tło — sieć neuronów nie przebija przez litery,
    3) droga „Kup z podłączeniem" = polecana, dopłata jednorazowa wielkości ceny,
-   4) nagłówki: Archivo Expanded 800 (szeroki, w typie Monument) zamiast Space Grotesk. */
+   4) nagłówki: Onest 800 zamiast Space Grotesk. */
 
-/* -- 4) krój nagłówków (tylko ta strona; szerszy krój → mniejszy stopień) -- */
+/* -- 4) krój nagłówków (tylko ta strona): Onest 800 — otwarte, spokojne litery.
+      Archivo Expanded (w typie Monument) właściciel odrzucił jako nieczytelny. -- */
 .ag-h1, .sec-head h2, .ad-h2, .ag-final h2, .team-card h3, .step h3, .faq-item h3,
 .ad-way h3, .ad-way-price b, .ad-price-big b, .ad-leak-num {
-  font-family: 'Archivo', 'Space Grotesk', sans-serif;
+  font-family: 'Onest', 'Space Grotesk', sans-serif;
   font-weight: 800;
-  font-stretch: 125%;
-  letter-spacing: 0;
+  letter-spacing: 0.005em;
 }
-#start .ag-h1 { font-size: clamp(26px, 2.85vw, 44px); line-height: 1.08; max-width: 19ch; }
-.sec-head h2 { font-size: clamp(22px, 2.7vw, 36px); line-height: 1.1; }
-.ad-h2 { font-size: clamp(26px, 3.2vw, 46px); line-height: 1.08; }
-.ag-final h2 { font-size: clamp(22px, 3vw, 40px); line-height: 1.1; }
-#kontakt .ag-final h2 { max-width: 20ch; }
-#start .ad-team .team-card h3 { font-size: 22px; }
-.ad-steps .step h3 { font-size: 15.5px; line-height: 1.2; }
-.ad-faq .faq-item h3 { font-size: 14.5px; line-height: 1.25; }
-.ad-way h3 { font-size: 20px; line-height: 1.12; }
-.ad-price-big b { font-size: clamp(40px, 4.8vw, 68px); }
-.ad-leak-num { font-size: 38px; }
+#start .ag-h1 { font-size: clamp(28px, 3.25vw, 50px); line-height: 1.06; max-width: 18ch; }
+.sec-head h2 { font-size: clamp(24px, 3.05vw, 41px); line-height: 1.08; }
+.ad-h2 { font-size: clamp(28px, 3.7vw, 52px); line-height: 1.06; }
+.ag-final h2 { font-size: clamp(24px, 3.5vw, 46px); line-height: 1.08; }
+#start .ad-team .team-card h3 { font-size: 25px; }
+.ad-steps .step h3 { font-size: 17.5px; line-height: 1.18; }
+.ad-faq .faq-item h3 { font-size: 16.5px; line-height: 1.22; }
+.ad-way h3 { font-size: 23px; line-height: 1.1; }
+.ad-price-big b { font-size: clamp(46px, 5.6vw, 78px); }
+.ad-leak-num { font-size: 42px; }
+
+/* -- 4b) drobne podpisy i przyciski: Onest 600 zamiast IBM Plex Mono (właściciel:
+      rozstrzelony mono w małym stopniu źle się czyta). Mono zostaje tylko tam, gdzie
+      udaje kod/licznik: numery, okna rozmów, mini-sceny, klejm w pasku. -- */
+.section-label, .ag-role, .ag-chan, .ag-checks li, .tm-badge, .ad-ask-cap,
+.ad-way-tag, .ad-way-price span, .ad-way-when, .ad-way-badge,
+.ad-price-big span, .ad-terms dt, .ad-vs-cap, .ad-vs-row,
+.dm-cap, .dm-foot, .hb-c, .ag-footer, .next-hint, .nav-back,
+.btn-primary, .btn-dark, .nav-cta {
+  font-family: 'Onest', 'Schibsted Grotesk', sans-serif;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+}
+.section-label { font-size: 13px; }
+#start .ad-team .ag-role { font-size: 13px; line-height: 1.45; color: rgba(245,245,240,0.86); }
+#start .ad-team .ag-chan { font-size: 12.5px; }
+.ag-checks li { font-size: 12.5px; }
+.ad-way-tag { font-size: 12.5px; }
+.ad-way-price span { font-size: 15px; letter-spacing: 0.02em; text-transform: none; }
+.ad-price-big span { font-size: 16.5px; letter-spacing: 0.02em; }
+.ad-way-when { font-size: 13px; }
+.ad-terms dt { font-size: 13px; }
+.ad-vs-cap { font-size: 12.5px; }
+.ad-vs-row { font-size: 12.5px; }
+.ad-ask-cap { font-size: 12.5px; }
+.dm-cap, .dm-foot { font-size: 12.5px; }
+.btn-primary, .btn-dark { font-size: 13px; }
+.ad-actions .btn-primary { font-size: 12.5px; letter-spacing: 0.05em; }
+.nav-cta { font-size: 12px; }
+.next-hint { font-size: 12.5px; letter-spacing: 0.08em; }
 
 /* -- 1) przyciski: trzy pełne w rzędzie -- */
 .ad-actions .btn-primary { padding: 15px 18px; }
@@ -344,7 +373,7 @@ html.mode-flat .ad-vs-row i { transform: scaleX(0); }
 /* -- 3) trzy drogi: cena i dopłata tej samej wielkości, droga 2 polecana -- */
 .ad-way { position: relative; }
 .ad-way-price { min-height: 88px; gap: 6px 10px; align-items: baseline; }
-.ad-way-price b { font-size: 30px; }
+.ad-way-price b { font-size: 34px; }
 .ad-way-price span { font-size: 13.5px; color: rgba(245,245,240,0.86); }
 .ad-way-price .brk { flex: 0 0 100%; height: 0; }
 .ad-way.hot { background: linear-gradient(158deg, #1E2A08 0%, #0F100D 70%); border: 2px solid var(--green); box-shadow: 0 30px 80px -40px rgba(184,255,0,0.65); }
@@ -352,7 +381,7 @@ html.mode-flat .ad-vs-row i { transform: scaleX(0); }
 .ad-way-badge {
   position: absolute; top: -1px; right: -1px;
   padding: 7px 14px;
-  font-family: 'IBM Plex Mono', monospace; font-weight: 600; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase;
+  font-family: 'Onest', 'Schibsted Grotesk', sans-serif; font-weight: 800; font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase;
   color: var(--black); background: var(--green);
 }
 
@@ -365,19 +394,19 @@ html.mode-flat .ad-vs-row i { transform: scaleX(0); }
   transform: translateX(-50%);
   display: flex; align-items: center; gap: 10px;
   padding: 9px 16px 9px 18px;
-  font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: 0.16em; text-transform: uppercase; line-height: 1;
-  color: #F5F5F0; background: rgba(13,13,13,0.86); border: 1px solid rgba(184,255,0,0.45);
-  transition: opacity 0.45s ease 0.1s, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.1s, border-color 0.25s, background 0.25s;
+  font-family: 'Onest', 'Schibsted Grotesk', sans-serif; font-weight: 600; font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1;
+  color: var(--black); background: var(--green); border: 0; box-shadow: 0 10px 30px -12px rgba(0,0,0,0.8);
+  transition: opacity 0.45s ease 0.1s, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.1s, box-shadow 0.25s;
 }
-.next-hint:hover { border-color: var(--green); background: #14180A; }
-.next-hint .nh-cap { color: rgba(245,245,240,0.6); }
-.next-hint .nh-name { color: var(--green); font-weight: 500; white-space: nowrap; }
-.next-hint .nh-arrow { width: 16px; height: 16px; color: var(--green); animation: nhDrop 1.5s ease-in-out infinite; }
+.next-hint:hover { box-shadow: 0 0 30px rgba(184,255,0,0.45); }
+.next-hint .nh-cap { color: rgba(13,13,13,0.62); }
+.next-hint .nh-name { color: var(--black); font-weight: 800; white-space: nowrap; }
+.next-hint .nh-arrow { width: 16px; height: 16px; color: var(--black); animation: nhDrop 1.5s ease-in-out infinite; }
 @keyframes nhDrop { 0%, 100% { transform: translateY(-3px); } 50% { transform: translateY(3px); } }
 .next-hint.moving, .next-hint.end { opacity: 0; transform: translateX(-50%) translateY(10px); pointer-events: none; transition-delay: 0s; transition-duration: 0.12s; }
 html.menu-open .next-hint, body.fiq-edit .next-hint { display: none; }
 @media (max-width: 900px) {
-  .next-hint { bottom: 12px; padding: 8px 12px 8px 14px; font-size: 10.5px; letter-spacing: 0.12em; gap: 8px; max-width: calc(100vw - 32px); }
+  .next-hint { bottom: 12px; padding: 9px 12px 9px 14px; font-size: 12px; letter-spacing: 0.06em; gap: 8px; max-width: calc(100vw - 32px); }
   .next-hint .nh-name { overflow: hidden; text-overflow: ellipsis; }
 }
 
@@ -415,11 +444,11 @@ html.menu-open .next-hint, body.fiq-edit .next-hint { display: none; }
   .ad-win-title span { display: none; }
   .ad-script .msg { font-size: 14px; max-width: 90%; }
   .ad-way { padding: 24px 20px 22px; }
-  #start .ag-h1 { font-size: clamp(23px, 6.6vw, 32px); max-width: none; }
-  .sec-head h2 { font-size: clamp(20px, 5.6vw, 28px); }
-  .ad-h2, .ag-final h2 { font-size: clamp(22px, 6.2vw, 30px); }
+  #start .ag-h1 { font-size: clamp(26px, 7.4vw, 36px); max-width: none; }
+  .sec-head h2 { font-size: clamp(22px, 6.2vw, 31px); }
+  .ad-h2, .ag-final h2 { font-size: clamp(24px, 6.8vw, 33px); }
   .ad-actions .btn-primary { justify-content: center; }
-  .ad-way-price b { font-size: 27px; }
+  .ad-way-price b { font-size: 30px; }
   .ad-price-main { padding: 24px 20px; }
   .ad-incl li { font-size: 16px; }
   .ad-terms { padding: 4px 18px; }
