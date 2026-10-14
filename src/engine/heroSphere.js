@@ -113,7 +113,7 @@ export function initHeroSphere() {
     // inaczej górny łuk wychodzi poza canvas i jest ucięty
     R = mode === 'list'
       ? Math.min(W * 0.27, 104)
-      : Math.min(W * 0.15, H * 0.32, 168);   // zapas w pionie na kule-satelity z nazwami grup
+      : Math.min(W * 0.15, H * 0.39, 172);   // ten sam rozmiar co przed 2026-10-14 (scena niższa o miejsce na plakietkę „↓") (właściciel); satelity schodzą bliżej poziomu, gdy brak miejsca w pionie
     // Telefon: kula na górze, karty pod nią (rezerwuje je `padding-top` w `.pl-nodes`).
     // Zapas R*1.35 + 22 to miejsce na pierścień strzałek i podpis nad nim.
     cy = mode === 'list' ? R * 1.35 + 22 : H / 2;
@@ -142,6 +142,7 @@ export function initHeroSphere() {
       if (!el) continue;
       const q = QUAD[g];
       el.classList.toggle('on', g === active);
+      el.classList.toggle('docked', !!active && g !== active && mode !== 'list');
       const w = el.offsetWidth || 120, h = el.offsetHeight || 20;
       let t;
       if (g === active && mode !== 'list' && colTop) {
@@ -151,8 +152,9 @@ export function initHeroSphere() {
         const y = clamp(colTop.y - h / 2 - 16, h / 2 + 4, H - h / 2 - 4);
         t = { x, y, s: 0.78, a: 1 };
       } else if (active && mode !== 'list') {
-        // pod dużą kulę: w stronę swojej ćwiartki, mała i zgaszona
-        t = { x: cx + q.sx * R * 0.22, y: cy - q.sy * R * 0.22, s: 0.2, a: 0 };
+        // Pozostałe grupy NIE znikają — „siadają" na dużej kuli, każda na swojej
+        // ćwiartce, mniejsze (właściciel 2026-10-14). Najechanie przełącza grupę.
+        t = { x: cx + q.sx * R * 0.5, y: cy - q.sy * R * 0.5, s: 0.62, a: 1 };
       } else {
         // okienko między łukami, CAŁY satelita i napis poza pierścieniem strzałek.
         // Najpierw przekątna (45°); gdy scena jest niska i satelita wyszedłby za
@@ -160,7 +162,7 @@ export function initHeroSphere() {
         const ring = R * 1.2 + (mode === 'list' ? 6 : 12);
         const hw = Math.max(w / 2, rs), hh = Math.max(h / 2, rs);
         let best = null;
-        for (const deg of [45, 41, 37, 34]) {
+        for (const deg of [45, 41, 37, 34, 31]) {
           const ca = Math.cos(deg * Math.PI / 180), sa = Math.sin(deg * Math.PI / 180);
           let d = ring + rs;
           for (let k = 0; k < 80; k++) {

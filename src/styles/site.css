@@ -235,7 +235,7 @@ body.fiq-edit .contact-left::after, body.fiq-edit .chg-grid::after { display: no
 
 /* hero głównej: na dole okna stoi plakietka „↓ następna sekcja ↓" — treść hero
    (przycisk i nota pod nim) kończy się nad nią, a nie pod nią */
-html.mode-desk #start .hero-content { padding-bottom: 82px; }
+html.mode-desk #start .hero-content { padding-bottom: 66px; }
 html.fiq-last .counter { opacity: 0; transition: opacity 0.3s; }
 
 /* kwasowa płyta „AI-native": akapity ciemne i pełne (były wyblakłe na kwasie) */
@@ -255,7 +255,7 @@ html.fiq-last .counter { opacity: 0; transition: opacity 0.3s; }
 .counter, #counter { display: none !important; }
 
 /* sekcje mają u dołu miejsce na plakietkę „↓ następna sekcja ↓" */
-html.mode-desk .slide { padding-bottom: 72px; }
+html.mode-desk .slide:not(#start) { padding-bottom: 72px; }
 
 /* pasek po przewinięciu: przyklejony do góry, pełna szerokość, pełne tło —
    pływająca ramka z przerwą pokazywała treść nad sobą */
@@ -315,3 +315,7 @@ body:has(.ck.on) .next-hint { opacity: 0; pointer-events: none; }
 
 /* własny kursor niewidoczny, dopóki mysz się nie ruszy (stał na środku ekranu) */
 html:not(.has-pointer) .cursor-dot, html:not(.has-pointer) .cursor-ring { opacity: 0 !important; }
+
+/* otwarta grupa: pozostałe nazwy siedzą na dużej kuli (silnik: klasa `.docked`) */
+.pl-gname.docked { font-size: 13px; color: rgba(184,255,0,0.9); background: rgba(13,13,13,0.86); }
+.pl-gname.docked:hover { color: #F5F5F0; }
