@@ -8,6 +8,7 @@ import { renderHeroProducts, LANDING_PRODUCTS_QUERY } from '../engine/heroProduc
 import { wipeTo } from '../engine/wipe.js';
 import { SB_URL, SB_KEY } from '../lib/supabase-config.js';
 import landingCss from '../styles/landing.css?inline';
+import siteCss from '../styles/site.css?inline';
 
 export default function Home() {
   const navigate = useNavigate();
@@ -98,6 +99,7 @@ export default function Home() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: landingCss }} />
+      <style dangerouslySetInnerHTML={{ __html: siteCss }} />
       <LandingShell />
     </>
   );

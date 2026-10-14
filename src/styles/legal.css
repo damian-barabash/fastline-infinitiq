@@ -13,8 +13,8 @@
   .legal-doc { position: relative; }
   .legal-head { margin-bottom: 40px; }
   .legal-head h1 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 700;
+    font-family: 'Onest', sans-serif;
+    font-weight: 800;
     text-transform: uppercase;
     font-size: clamp(30px, 4.4vw, 56px);
     line-height: 1.02;
@@ -29,8 +29,8 @@
     border-top: 1px solid rgba(245,245,240,0.12);
   }
   .legal-sec h2 {
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 700;
+    font-family: 'Onest', sans-serif;
+    font-weight: 800;
     text-transform: uppercase;
     font-size: clamp(18px, 2vw, 22px);
     letter-spacing: 0.02em;

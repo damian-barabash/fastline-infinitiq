@@ -8,6 +8,7 @@ import { wipeTo } from '../engine/wipe.js';
 import { SB_URL, SB_KEY } from '../lib/supabase-config.js';
 import agenciCss from '../styles/agenci.css?inline';
 import doradcaCss from '../styles/doradca.css?inline';
+import siteCss from '../styles/site.css?inline';
 
 /* LP produktu AI Doradca (/ai-doradca). Rama i silnik wspólne z /agenci-ai
    (`initAgenci`: menu, kursor, sceny rozmów); sekcje to zwykły przewijany
@@ -91,6 +92,7 @@ export default function Doradca() {
     <>
       <style dangerouslySetInnerHTML={{ __html: agenciCss }} />
       <style dangerouslySetInnerHTML={{ __html: doradcaCss }} />
+      <style dangerouslySetInnerHTML={{ __html: siteCss }} />
       <DoradcaShell />
     </>
   );

@@ -3,9 +3,11 @@
 // Rysuje tylko to, co widać: w bębnie — płótna aktywnej grani, bez bębna
 // (mode-flat) — te, które są w oknie. Jedna pętla rAF dla wszystkiego.
 
+import { renderDpr, skipFrame } from './perf.js';
+
 export function initDoradcaFx({ signal } = {}) {
   const FLAT = document.documentElement.classList.contains('mode-flat');
-  const DPR = Math.min(devicePixelRatio || 1, 2);
+  const DPR = renderDpr(1.5);   // perf.js: dekoracje bez Retina 2×
   const rnd = (a, b) => a + Math.random() * (b - a);
   let raf = 0, dead = false, last = 0;
 
@@ -134,6 +136,8 @@ export function initDoradcaFx({ signal } = {}) {
 
   function frame(t) {
     if (dead) return;
+    // w spoczynku co druga klatka (perf.js); `last` zostaje, więc ruch nie zwalnia
+    if (skipFrame(t, 'dfx')) { raf = requestAnimationFrame(frame); return; }
     const k = Math.min(3, last ? (t - last) / 16.7 : 1);
     last = t;
     if (!document.hidden) {

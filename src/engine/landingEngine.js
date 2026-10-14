@@ -6,6 +6,8 @@ import { interceptInternalLinks } from './wipe.js';
 import { initTeam } from './team.js';
 import { watchNavClaim, initClaimScramble } from './navClaim.js';
 import { initMenu } from './menu.js';
+import { initNextHint } from './nextHint.js';
+import { renderDpr, skipFrame, makeBuckets, pushLine, strokeBuckets } from './perf.js';
 
 export function initLanding({ onNavigate }) {
 
@@ -58,7 +60,7 @@ export function initLanding({ onNavigate }) {
   /* Kursor na kwasowym tle: kwasowa kropka i pierścień na zieleni znikają,
      więc nad takimi blokami przełączamy je na czarne (2026-09-11, właściciel).
      Jedna lista selektorów dla wszystkich stron — te same klasy wracają. */
-  const ACID = '.ck-btn, .model-panel, .ag-final, .btn-primary, .btn-send, .bf-btn, .bf-pill.on, .bf-slot.on, .nav-cta, .menu-cta,'
+  const ACID = '.next-hint, .ck-btn, .model-panel, .ag-final, .btn-primary, .btn-send, .bf-btn, .bf-pill.on, .bf-slot.on, .nav-cta, .menu-cta,'
     + ' .af-btn, .af-btn-a, .wh-cta, .fb-cta-btn, .pill.on, .cta-slide-inner .btn-primary';
   const markAcid = (el) => {
     const on = !!(el && el.closest && el.closest(ACID));
@@ -96,6 +98,8 @@ export function initLanding({ onNavigate }) {
   }
   railItems.forEach(b => b.addEventListener('click', () => goTo(+b.dataset.i), { signal }));
   const closeMenu = initMenu({ signal, goTo });
+  // „↓ nazwa następnej sekcji ↓" na dole okna (wspólne dla wszystkich stron)
+  const nextHint = initNextHint({ slides, goTo, small: SMALL, signal });
   document.getElementById('navHome').addEventListener('click', e => { e.preventDefault(); goTo(0); }, { signal });
   // `data-goto-id="audyt"` celuje w grań po id — numery (`data-goto`) przestają
   // być prawdą, gdy CMS ukrywa albo przestawia sekcje; numer zostaje fallbackiem.
@@ -115,6 +119,7 @@ export function initLanding({ onNavigate }) {
     counterCur.textContent = String(idx + 1).padStart(2, '0');
     slides.forEach((s, i) => s.classList.toggle('active', i === idx));
     fxIdx = idx;
+    nextHint.update(idx);
     if (!first) kickColumn(); // нейро-столп реагирует на смену слайда
   }
 
@@ -187,7 +192,8 @@ export function initLanding({ onNavigate }) {
   const ctx = canvas.getContext('2d');
   // слабые устройства: меньше узлов и DPR-кап пониже (мало памяти/ядер)
   const WEAK = (navigator.deviceMemory || 8) <= 4 || (navigator.hardwareConcurrency || 8) <= 4;
-  const DPR = Math.min(devicePixelRatio || 1, WEAK ? 1.5 : 2);
+  // dekoracja tła nie potrzebuje gęstości Retina 2× (perf.js) — połowa pikseli mniej
+  const DPR = renderDpr(WEAK ? 1.25 : 1.5);
 
   /* ===== Секция «Zespół AI»: силуэты из точек ===== */
   const team = initTeam({ signal, coarse: COARSE, weak: WEAK, mouse });
@@ -225,14 +231,14 @@ export function initLanding({ onNavigate }) {
      порядок/количество граней меняется — эффекты остаются свои. */
   const FX_BY_ID = {
     'start':         { cx: 0.50, r: 0.40, tint: 0, dim: 0.58, ex: 1.0 }, // hero: узкий приглушённый столп — «вырастает» из планеты
-    'audyt':         { cx: 0.74, r: 1.06, tint: 0, dim: 0.30, ex: 1.8 }, // разогнан, но приглушён под формой
-    'czym-jestesmy': { cx: 0.78, r: 0.80, tint: 0, dim: 0,    ex: 1.0 }, // узкий, у правого края
+    'audyt':         { cx: 0.86, r: 0.80, tint: 0, dim: 0.62, ex: 1.2 }, // przy krawędzi i przygaszony — za formularzem nie może być siatki (2026-10-14)
+    'czym-jestesmy': { cx: 0.92, r: 0.70, tint: 0, dim: 0.40, ex: 1.0 }, // przy prawej krawędzi, żeby nie szedł przez lead
     'oferta':        { cx: 0.72, r: 1.18, tint: 0, dim: 0,    ex: 1.6 }, // широкая сеть, живее
     'zespol':        { cx: 0.50, r: 1.45, tint: 0, dim: 0.62, ex: 1.3 }, // разведён по краям, приглушён под силуэтами
     'model':         { cx: 0.70, r: 1.00, tint: 0, dim: 0.65, ex: 0.5 }, // приглушён за зелёной панелью
     'dla-kogo':      { cx: 0.74, r: 0.55, tint: 0, dim: 0,    ex: 1.0 }, // тугой луч
-    'grupa':         { cx: 0.50, r: 0.95, tint: 1, dim: 0,    ex: 0.8 }, // в центр + золотой
-    'kontakt':       { cx: 0.50, r: 1.28, tint: 0, dim: 0,    ex: 2.6 }, // широкий, разогнанный
+    'grupa':         { cx: 0.50, r: 0.95, tint: 1, dim: 0.45, ex: 0.8 }, // в центр + золотой, przygaszony pod tekstem
+    'kontakt':       { cx: 0.50, r: 1.28, tint: 0, dim: 0.5,  ex: 2.0 }, // szeroki, ale przygaszony — tekst stoi na środku
   };
   const SLIDE_FX = slides.map(s => FX_BY_ID[s.id] || FX_BY_ID['start']);
   let fxIdx = 0;
@@ -303,11 +309,13 @@ export function initLanding({ onNavigate }) {
 
     const dimK = (1 - fx.dim) * (1 + surge * 0.55);
 
-    // links between close nodes
+    // links between close nodes — paczkami po jasności (perf.js): kilka `stroke()`
+    // na klatkę zamiast osobnego wywołania dla każdej z kilkuset linii
     const L = Math.min(120, Math.max(80, vw * 0.07));
     const L2 = L * L;
     ctx.lineWidth = 1;
     const spawnP = 0.0015 * fx.ex;
+    const LINK_MAX = 0.45;
     for (let i = 0; i < COUNT; i++) {
       const a = nodes[i];
       for (let j = i + 1; j < COUNT; j++) {
@@ -317,18 +325,14 @@ export function initLanding({ onNavigate }) {
         if (d2 > L2) continue;
         const near = 1 - Math.sqrt(d2) / L;
         const dep = (a.depth + b.depth) * 0.5;
-        const alpha = near * (0.06 + dep * 0.22) * dimK;
-        ctx.strokeStyle = `rgba(${cr},${cg},${cb},${alpha.toFixed(3)})`;
-        ctx.beginPath();
-        ctx.moveTo(a.sx, a.sy);
-        ctx.lineTo(b.sx, b.sy);
-        ctx.stroke();
+        pushLine(linkB, Math.min(LINK_MAX, near * (0.06 + dep * 0.22) * dimK), LINK_MAX, a.sx, a.sy, b.sx, b.sy);
         // spawn travelling signal occasionally
         if (pulses.length < 14 && Math.random() < spawnP) {
           pulses.push({ i, j, t: 0, sp: 0.018 + Math.random() * 0.02 });
         }
       }
     }
+    strokeBuckets(ctx, linkB, `${cr},${cg},${cb}`, LINK_MAX);
 
     // mouse synapses — cursor joins the network
     if (!COARSE && mouse.active) {
@@ -338,12 +342,9 @@ export function initLanding({ onNavigate }) {
         const d2 = dx * dx + dy * dy;
         if (d2 > MR2) continue;
         const near = 1 - Math.sqrt(d2) / MR;
-        ctx.strokeStyle = `rgba(245,245,240,${(near * 0.22 * Math.min(1, dimK)).toFixed(3)})`;
-        ctx.beginPath();
-        ctx.moveTo(mouse.ix, mouse.iy);
-        ctx.lineTo(n.sx, n.sy);
-        ctx.stroke();
+        pushLine(synB, near * 0.22 * Math.min(1, dimK), 0.22, mouse.ix, mouse.iy, n.sx, n.sy);
       }
+      strokeBuckets(ctx, synB, '245,245,240', 0.22);
     }
 
     // travelling pulses
@@ -361,75 +362,35 @@ export function initLanding({ onNavigate }) {
       ctx.fill();
     }
 
-    // nodes
+    // nodes — też paczkami: 2 kolory × 6 poziomów jasności, jedna ścieżka na paczkę
     const flickSpeed = 0.0011 * (1 + (fx.ex - 1) * 0.4);
     for (const n of nodes) {
       const flicker = 0.65 + 0.35 * Math.sin(time * flickSpeed + n.ph);
       const a = Math.min(1, (0.12 + n.depth * 0.55) * flicker * dimK);
-      const sz = 1 + n.depth * 1.8;
-      ctx.fillStyle = n.ph % 1 < 0.22
-        ? `rgba(${cr},${cg},${cb},${a.toFixed(3)})`
-        : `rgba(245,245,240,${(a * 0.8).toFixed(3)})`;
+      const acid = n.ph % 1 < 0.22;
+      const k = Math.min(5, Math.floor(a * 6));
+      dotB[(acid ? 6 : 0) + k].push(n.sx, n.sy, 1 + n.depth * 1.8);
+    }
+    for (let b = 0; b < 12; b++) {
+      const arr = dotB[b];
+      if (!arr.length) continue;
+      const al = ((b % 6) + 0.5) / 6;
+      ctx.fillStyle = b >= 6 ? `rgba(${cr},${cg},${cb},${al.toFixed(3)})` : `rgba(245,245,240,${(al * 0.8).toFixed(3)})`;
       ctx.beginPath();
-      ctx.arc(n.sx, n.sy, sz, 0, Math.PI * 2);
+      for (let i = 0; i < arr.length; i += 3) { ctx.moveTo(arr[i] + arr[i + 2], arr[i + 1]); ctx.arc(arr[i], arr[i + 1], arr[i + 2], 0, Math.PI * 2); }
       ctx.fill();
+      arr.length = 0;
     }
   }
+  const linkB = makeBuckets(), synB = makeBuckets();
+  const dotB = Array.from({ length: 12 }, () => []);
 
-  /* ===== Frost glass (2026-08-14): «матовое стекло» карточек =====
-     В каждую карточку кладётся canvas, куда каждый кадр рисуется downscale-каскад
-     региона #neural под ней (двойное масштабирование ≈ blur, почти бесплатно) —
-     prawdziwy backdrop-filter nad żywym canvasem liczyłby się co klatkę pod każdą
-     kartą. Rect'y czytamy tylko po przewinięciu (`dirty`) i tylko w sekcjach
-     w oknie; пиксели берутся ПОСЛЕ drawNeural — тот же кадр, никакого лага. */
-  const frost = { items: [], tick: 0 };
-  const frostOff = document.createElement('canvas');
-  const frostOffCtx = frostOff.getContext('2d');
-  function frostCollect() {
-    frost.items = [];
-    dirty = true; // строки могли перестроиться — рект-кэш невалиден
-    document.querySelectorAll('.what-board .diff-item, .svc-list .svc-row, .who-grid .who-item, .af').forEach(el => {
-      let c = el.querySelector(':scope > .frost-c');
-      if (!c) {
-        c = document.createElement('canvas');
-        c.className = 'frost-c';
-        c.setAttribute('aria-hidden', 'true');
-        el.prepend(c);
-      }
-      frost.items.push({ el, c, ctx: c.getContext('2d'), si: slides.indexOf(el.closest('.slide')), r: null });
-    });
-  }
-  function frostRects() {
-    if (SMALL) return;
-    frost.tick++;
-    if (!dirty && frost.tick % 20) return; // покой: ревизия раз в 20 кадров
-    for (const it of frost.items) {
-      it.r = (it.si >= 0 && inView[it.si]) ? it.el.getBoundingClientRect() : null;
-    }
-  }
-  function frostDraw() {
-    if (SMALL) return;
-    if (WEAK && frost.tick % 2) return;
-    const kx = canvas.width / vw, ky = canvas.height / vh;
-    for (const it of frost.items) {
-      const r = it.r;
-      if (!r || r.width < 10 || r.bottom < -20 || r.top > vh + 20) continue;
-      const w = Math.round(r.width), h = Math.round(r.height);
-      const dw = Math.max(2, Math.round(w / 12)), dh = Math.max(2, Math.round(h / 12));
-      if (it.c.width !== w || it.c.height !== h) { it.c.width = w; it.c.height = h; }
-      if (frostOff.width < dw) frostOff.width = dw;
-      if (frostOff.height < dh) frostOff.height = dh;
-      frostOffCtx.clearRect(0, 0, dw, dh);
-      frostOffCtx.drawImage(canvas, r.left * kx, r.top * ky, r.width * kx, r.height * ky, 0, 0, dw, dh);
-      it.ctx.clearRect(0, 0, w, h);
-      it.ctx.globalAlpha = 0.9;
-      it.ctx.drawImage(frostOff, 0, 0, dw, dh, 0, 0, w, h);
-    }
-  }
-  if (!SMALL) {
-    frostCollect();
-    addEventListener('fiq:content-ready', frostCollect, { signal });
-  }
+  /* ===== Frost glass — USUNIĘTE (2026-10-14) =====
+     Każda karta miała własny canvas, do którego CO KLATKĘ kopiowano i rozmywano
+     fragment neuro-słupa — kilkanaście dodatkowych warstw do odświeżenia 60×/s.
+     Karty mają teraz pełne, nieprzezroczyste tło (czytelność, wzór /ai-doradca),
+     więc szkło nie ma czego pokazywać. `.frost-c`, które renderuje jeszcze React
+     (formularz audytu), chowa CSS. */
 
   /* ===== Who «Co robimy»: живой спарклайн pipeline в hero-карточке =====
      Ховер по карточкам категорий даёт импульс вверх — «каждый obszar кормит pipeline». */
@@ -501,7 +462,6 @@ export function initLanding({ onNavigate }) {
       }
       team.tick(time, teamNear, Math.round(scrollY), teamNear);
     }
-    frostRects();
     updateFlat();
     dirty = false;
     pSmooth = lerp(pSmooth, pTarget, 0.14);
@@ -514,8 +474,8 @@ export function initLanding({ onNavigate }) {
       ring.style.transform = `translate(${rx}px, ${ry}px) translate(-50%, -50%)`;
     }
 
-    drawNeural(time);
-    frostDraw(); // пиксели «за стеклом» — из свежеотрисованного канваса
+    // tło w spoczynku: co druga klatka (perf.js) — ruch jest wolny, różnicy nie widać
+    if (!skipFrame(time, 'neural')) drawNeural(time);
     sparkTick(time);
   }
 
@@ -555,6 +515,7 @@ export function initLanding({ onNavigate }) {
     ac.abort();
     if (io) io.disconnect();
     if (claim) claim.destroy();
+    nextHint.destroy();
     if (closeMenu) closeMenu();
     unwatchClaim();
     delete window.fiqInitServices;

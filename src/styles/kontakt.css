@@ -178,9 +178,9 @@
   }
 
   .contact-left h1 {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Onest', sans-serif;
     font-stretch: normal;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
     font-size: clamp(30px, 4.2vw, 62px);
     line-height: 1.1;
@@ -209,9 +209,9 @@
   }
 
   .step-num {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Onest', sans-serif;
     font-stretch: normal;
-    font-weight: 700;
+    font-weight: 800;
     font-size: 20px;
     line-height: 1;
     color: var(--green);
@@ -575,8 +575,8 @@
   border-bottom: 1px solid rgba(245,245,240,0.08);
   text-align: left;
   text-decoration: none;
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
+  font-family: 'Onest', sans-serif;
+  font-weight: 800;
   font-size: clamp(18px, 2.2vw, 28px);
   line-height: 1.1;
   text-transform: uppercase;
@@ -902,7 +902,7 @@ html.coarse .af-btn, html.coarse .wh-cta, html.coarse .pill.on { cursor: auto; }
 /* ---- krok 3 ---- */
 .bf-done-h {
   display: flex; align-items: center; gap: 12px;
-  font-family: 'Space Grotesk', sans-serif; font-weight: 700; text-transform: uppercase;
+  font-family: 'Onest', sans-serif; font-weight: 800; text-transform: uppercase;
   font-size: 22px; color: var(--white); margin-bottom: 10px;
 }
 .bf-done-when {
@@ -924,7 +924,7 @@ html.coarse .af-btn, html.coarse .wh-cta, html.coarse .pill.on { cursor: auto; }
 .bf-fx-c { position: absolute; inset: 0; width: 100%; height: 100%; }
 .bf-fx-txt { position: relative; text-align: center; display: grid; justify-items: center; gap: 8px; }
 .bf-fx-txt b {
-  font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 19px;
+  font-family: 'Onest', sans-serif; font-weight: 800; font-size: 19px;
   text-transform: uppercase; letter-spacing: 0.04em; color: var(--white);
 }
 .bf-fx-txt i {

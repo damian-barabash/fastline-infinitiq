@@ -6,6 +6,7 @@ import { initKontakt } from '../engine/kontaktEngine.js';
 import { wipeTo } from '../engine/wipe.js';
 import { SB_URL, SB_KEY } from '../lib/supabase-config.js';
 import kontaktCss from '../styles/kontakt.css?inline';
+import siteCss from '../styles/site.css?inline';
 
 /* Strona /kontakt. Treść edytuje się w /editor (zakładka „Kontakt") — CMS trzyma
    ją w wierszu `site_content` o id `kontakt`, a markup zostaje snapshotem dla SSG.
@@ -64,6 +65,7 @@ export default function Kontakt() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: kontaktCss }} />
+      <style dangerouslySetInnerHTML={{ __html: siteCss }} />
       <KontaktShell />
     </>
   );

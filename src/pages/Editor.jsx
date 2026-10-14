@@ -15,6 +15,7 @@ import agenciCss from '../styles/agenci.css?inline';
 import doradcaCss from '../styles/doradca.css?inline';
 import kontaktCss from '../styles/kontakt.css?inline';
 import audytCss from '../styles/audyt-panel.css?inline';
+import siteCss from '../styles/site.css?inline';
 
 /* Редактор обслуживает несколько страниц. Каждая = свой Shell + своя строка
    `site_content` (лендинг — `index`, страница продукта — `agenci-ai`).
@@ -61,6 +62,7 @@ export default function Editor() {
     <>
       {/* стиль редактируемой страницы + общий UI редактора */}
       <style dangerouslySetInnerHTML={{ __html: PAGES[page].css }} />
+      <style dangerouslySetInnerHTML={{ __html: siteCss }} />
       <style dangerouslySetInnerHTML={{ __html: editorUiCss }} />
       <style dangerouslySetInnerHTML={{ __html: audytCss }} />
 

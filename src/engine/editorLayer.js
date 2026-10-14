@@ -368,7 +368,7 @@ export function initEditorLayer({ sb, onRequireLogin, pageId = 'index' }) {
     css: {
       lab: 'Własny CSS tego fragmentu', ph: 'letter-spacing: .12em; text-transform: uppercase; color: #B8FF00',
       hint: 'Deklaracje CSS rozdzielone średnikiem — trafiają do atrybutu style tego kawałka tekstu.',
-      presets: [['odstępy liter', 'letter-spacing: .12em'], ['mono', "font-family: 'IBM Plex Mono', monospace"], ['display', "font-family: 'Space Grotesk', sans-serif; font-weight: 700; text-transform: uppercase"], ['poświata', 'text-shadow: 0 0 14px rgba(184,255,0,.6)'], ['obramowanie', 'border: 1px solid #B8FF00; padding: 0 .3em']],
+      presets: [['odstępy liter', 'letter-spacing: .12em'], ['mono', "font-family: 'IBM Plex Mono', monospace"], ['display', "font-family: 'Onest', sans-serif; font-weight: 800; text-transform: uppercase"], ['poświata', 'text-shadow: 0 0 14px rgba(184,255,0,.6)'], ['obramowanie', 'border: 1px solid #B8FF00; padding: 0 .3em']],
     },
   };
 

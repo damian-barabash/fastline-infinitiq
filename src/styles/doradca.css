@@ -42,8 +42,8 @@
 .ad-leak:hover { border-color: rgba(184,255,0,0.35); transform: translateY(-3px); }
 .ad-leak-num {
   grid-row: 1 / span 2;
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
+  font-family: 'Onest', sans-serif;
+  font-weight: 800;
   font-size: 44px;
   line-height: 0.9;
   color: transparent;
@@ -68,8 +68,8 @@
 /* ===== DEMO ===== */
 .ad-demo { display: grid; grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(28px, 4vw, 60px); align-items: center; }
 .ad-h2 {
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
+  font-family: 'Onest', sans-serif;
+  font-weight: 800;
   font-size: clamp(30px, 4vw, 56px);
   line-height: 1.04;
   text-transform: uppercase;
@@ -132,9 +132,9 @@
   font-family: 'IBM Plex Mono', monospace; font-size: 11px; letter-spacing: 0.2em;
   text-transform: uppercase; color: var(--green);
 }
-.ad-way h3 { margin-top: 12px; font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 25px; line-height: 1.08; text-transform: uppercase; }
+.ad-way h3 { margin-top: 12px; font-family: 'Onest', sans-serif; font-weight: 800; font-size: 25px; line-height: 1.08; text-transform: uppercase; }
 .ad-way-price { margin-top: 16px; display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 10px; min-height: 3.4em; align-content: flex-start; }
-.ad-way-price b { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 38px; line-height: 1; color: #F5F5F0; }
+.ad-way-price b { font-family: 'Onest', sans-serif; font-weight: 800; font-size: 38px; line-height: 1; color: #F5F5F0; }
 .ad-way.hot .ad-way-price b { color: var(--green); }
 .ad-way-price span { font-family: 'IBM Plex Mono', monospace; font-size: 12px; letter-spacing: 0.04em; color: rgba(245,245,240,0.72); }
 .ad-way p { margin-top: 8px; font-size: 16px; line-height: 1.55; color: rgba(245,245,240,0.88); }
@@ -155,7 +155,7 @@
   background: linear-gradient(158deg, rgba(184,255,0,0.11) 0%, rgba(14,15,11,0.75) 70%);
 }
 .ad-price-big { display: flex; align-items: baseline; flex-wrap: wrap; gap: 6px 12px; }
-.ad-price-big b { font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: clamp(48px, 6vw, 84px); line-height: 0.95; color: var(--green); }
+.ad-price-big b { font-family: 'Onest', sans-serif; font-weight: 800; font-size: clamp(48px, 6vw, 84px); line-height: 0.95; color: var(--green); }
 .ad-price-big span { font-family: 'IBM Plex Mono', monospace; font-size: 13px; letter-spacing: 0.06em; color: rgba(245,245,240,0.8); }
 .ad-incl { list-style: none; margin: 24px 0 26px; display: grid; gap: 12px; }
 .ad-incl li { display: flex; align-items: flex-start; gap: 12px; font-size: 17px; line-height: 1.35; color: #F5F5F0; }
@@ -303,7 +303,7 @@ html.mode-flat .ad-vs-row i { transform: scaleX(0); }
       Archivo Expanded (w typie Monument) właściciel odrzucił jako nieczytelny. -- */
 .ag-h1, .sec-head h2, .ad-h2, .ag-final h2, .team-card h3, .step h3, .faq-item h3,
 .ad-way h3, .ad-way-price b, .ad-price-big b, .ad-leak-num {
-  font-family: 'Onest', 'Space Grotesk', sans-serif;
+  font-family: 'Onest', sans-serif;
   font-weight: 800;
   letter-spacing: 0.005em;
 }
@@ -318,13 +318,10 @@ html.mode-flat .ad-vs-row i { transform: scaleX(0); }
 .ad-price-big b { font-size: clamp(46px, 5.6vw, 78px); }
 .ad-leak-num { font-size: 42px; }
 
-/* -- 4b) drobne podpisy i przyciski: Onest 600 zamiast IBM Plex Mono (właściciel:
-      rozstrzelony mono w małym stopniu źle się czyta). Mono zostaje tylko tam, gdzie
-      udaje kod/licznik: numery, okna rozmów, mini-sceny, klejm w pasku. -- */
-.section-label, .ag-role, .ag-chan, .ag-checks li, .tm-badge, .ad-ask-cap,
-.ad-way-tag, .ad-way-price span, .ad-way-when, .ad-way-badge,
-.ad-price-big span, .ad-terms dt, .ad-vs-cap, .ad-vs-row,
-.dm-cap, .dm-foot, .hb-c, .ag-footer, .next-hint, .nav-back,
+/* -- 4b) przyciski i jednostki cen: Onest 600. Podpisy sekcji i dopiski
+      (etykiety, kanały, tagi, terminy) są od 2026-10-14 znów w mono —
+      pogrubionym (`site.css`, prośba właściciela: „кибер-шрифт, только жирнее"). -- */
+.ad-way-price span, .ad-price-big span, .nav-back,
 .btn-primary, .btn-dark, .nav-cta {
   font-family: 'Onest', 'Schibsted Grotesk', sans-serif;
   font-weight: 600;
@@ -346,7 +343,6 @@ html.mode-flat .ad-vs-row i { transform: scaleX(0); }
 .btn-primary, .btn-dark { font-size: 13px; }
 .ad-actions .btn-primary { font-size: 12.5px; letter-spacing: 0.05em; }
 .nav-cta { font-size: 12px; }
-.next-hint { font-size: 12.5px; letter-spacing: 0.08em; }
 
 /* -- 1) przyciski: trzy pełne w rzędzie -- */
 .ad-actions .btn-primary { padding: 15px 18px; }
@@ -385,30 +381,7 @@ html.mode-flat .ad-vs-row i { transform: scaleX(0); }
   color: var(--black); background: var(--green);
 }
 
-/* ===== „Dalej: <następna sekcja>" — strzałka na dole okna (2026-10-13) =====
-   Znika od razu przy przewijaniu (`.moving`), wraca po zatrzymaniu; w ostatniej
-   sekcji jej nie ma (`.end`). Zastępuje napis „Scroll" z prawego rogu. */
-#scrollHint { display: none !important; }
-.next-hint {
-  position: fixed; left: 50%; bottom: 18px; z-index: 80;
-  transform: translateX(-50%);
-  display: flex; align-items: center; gap: 10px;
-  padding: 9px 16px 9px 18px;
-  font-family: 'Onest', 'Schibsted Grotesk', sans-serif; font-weight: 600; font-size: 12.5px; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1;
-  color: var(--black); background: var(--green); border: 0; box-shadow: 0 10px 30px -12px rgba(0,0,0,0.8);
-  transition: opacity 0.45s ease 0.1s, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.1s, box-shadow 0.25s;
-}
-.next-hint:hover { box-shadow: 0 0 30px rgba(184,255,0,0.45); }
-.next-hint .nh-cap { color: rgba(13,13,13,0.62); }
-.next-hint .nh-name { color: var(--black); font-weight: 800; white-space: nowrap; }
-.next-hint .nh-arrow { width: 16px; height: 16px; color: var(--black); animation: nhDrop 1.5s ease-in-out infinite; }
-@keyframes nhDrop { 0%, 100% { transform: translateY(-3px); } 50% { transform: translateY(3px); } }
-.next-hint.moving, .next-hint.end { opacity: 0; transform: translateX(-50%) translateY(10px); pointer-events: none; transition-delay: 0s; transition-duration: 0.12s; }
-html.menu-open .next-hint, body.fiq-edit .next-hint { display: none; }
-@media (max-width: 900px) {
-  .next-hint { bottom: 12px; padding: 9px 12px 9px 14px; font-size: 12px; letter-spacing: 0.06em; gap: 8px; max-width: calc(100vw - 32px); }
-  .next-hint .nh-name { overflow: hidden; text-overflow: ellipsis; }
-}
+/* Plakietka „↓ następna sekcja ↓" (#nextHint) — od 2026-10-14 w `site.css`, wspólna dla całej strony. */
 
 /* ===== Breakpointy ===== */
 @media (max-width: 1200px) {

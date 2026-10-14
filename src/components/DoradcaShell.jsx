@@ -76,11 +76,11 @@ export default function DoradcaShell() {
 
       <div className="counter" id="counter"><span className="cur">01</span><span>/ 08</span></div>
       <div className="scroll-hint" id="scrollHint">Scroll</div>
-      {/* strzałka „dalej": nazwę następnej sekcji wpisuje silnik (agenciEngine) */}
+      {/* „↓ następna sekcja ↓": nazwę wpisuje silnik (nextHint.js) */}
       <button type="button" className="next-hint" id="nextHint" aria-label="Następna sekcja">
-        <span className="nh-cap">Dalej</span>
-        <span className="nh-name" data-next>problem</span>
-        <svg className="nh-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 4v15M5.5 12.5 12 19l6.5-6.5" /></svg>
+        <svg className="nh-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 4v15M5.5 12.5 12 19l6.5-6.5" /></svg>
+        <span className="nh-name" data-next>Problem</span>
+        <svg className="nh-arrow" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M12 4v15M5.5 12.5 12 19l6.5-6.5" /></svg>
       </button>
 
       <div id="track"></div>

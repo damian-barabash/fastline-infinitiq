@@ -5,6 +5,8 @@
 // Почему облако считается в рантайме, а не лежит готовым JSON: портрет
 // редактируется через CMS — при замене фото сетка обязана совпасть с новым лицом.
 
+import { renderDpr } from './perf.js';
+
 const RW = 220;               // ширина растра для сэмплирования (raster units)
 const F = 520;                // фокус перспективы (в px канваса)
 const Z_AMP = 16;             // «выпуклость» силуэта к зрителю (raster units)
@@ -178,7 +180,7 @@ export function initTeam({ signal, coarse, weak, mouse }) {
   const cards = Array.from(document.querySelectorAll('.team-card'));
   if (!cards.length) return null;
 
-  const DPR = Math.min(devicePixelRatio || 1, weak ? 1.5 : 2);
+  const DPR = renderDpr(weak ? 1.25 : 1.5);   // perf.js
   const BUD_MIN = coarse ? 260 : 420;
   const BUD_MAX = weak ? 700 : (coarse ? 900 : 1200);
   const DENSITY = weak ? 0.0052 : 0.0078;         // точек на CSS-px² канваса
@@ -494,7 +496,14 @@ export function initTeam({ signal, coarse, weak, mouse }) {
         const rel = clamp((mouse.ix - it.rect.left) / Math.max(1, it.rect.width), 0, 1) - 0.5;
         it.parallax = lerp(it.parallax || 0, rel * 0.22, 0.06);
       }
-      drawCard(it, time);
+      // Od 2026-09-11 w spoczynku widać ZDJĘCIE, a canvas ma opacity 0 — chmura
+      // rysowała się mimo to 60×/s na każdej karcie (2026-10-14: to był jeden
+      // z powodów, dla których strona się cięła). Rysujemy tylko, gdy kursor
+      // jest na karcie albo siatka jeszcze gaśnie.
+      if (it.hover > 0 || it.hoverTarget > 0 || !it.drawnOnce) {
+        drawCard(it, time);
+        it.drawnOnce = true;
+      }
     }
   }
 

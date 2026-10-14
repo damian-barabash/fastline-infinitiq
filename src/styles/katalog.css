@@ -1,7 +1,7 @@
 /* ===== Edytor katalogu produktów (/katalog) — styl panelu FIQ ===== */
 .kt-page {
   --bg: #0D0D0D; --fg: #F5F5F0; --acid: #B8FF00; --mid: rgba(245,245,240,0.16);
-  --mono: 'IBM Plex Mono', monospace; --disp: 'Space Grotesk', sans-serif;
+  --mono: 'IBM Plex Mono', monospace; --disp: 'Onest', sans-serif;
   background: var(--bg); color: var(--fg); min-height: 100vh;
   font-family: 'Schibsted Grotesk', sans-serif; font-size: 16px; line-height: 1.6;
 }

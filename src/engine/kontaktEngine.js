@@ -3,6 +3,7 @@
 import { interceptInternalLinks } from './wipe.js';
 import { initMenu } from './menu.js';
 import { fitNavClaim, watchNavClaim, initClaimScramble } from './navClaim.js';
+import { renderDpr, skipFrame } from './perf.js';
 
 export function initKontakt({ onNavigate }) {
 
@@ -74,7 +75,7 @@ export function initKontakt({ onNavigate }) {
   const canvas = document.getElementById('neural');
   const ctx = canvas.getContext('2d');
   const WEAK = (navigator.deviceMemory || 8) <= 4 || (navigator.hardwareConcurrency || 8) <= 4;
-  const DPR = Math.min(devicePixelRatio || 1, WEAK ? 1.5 : 2);
+  const DPR = renderDpr(WEAK ? 1.25 : 1.5);   // perf.js
   const COUNT = FLAT ? (WEAK ? 50 : 70) : (WEAK ? 95 : 130);
   const nodes = [];
   for (let i = 0; i < COUNT; i++) {
@@ -207,7 +208,7 @@ export function initKontakt({ onNavigate }) {
       ry = lerp(ry, mouse.y, 0.16);
       ring.style.transform = `translate(${rx}px, ${ry}px) translate(-50%, -50%)`;
     }
-    drawNeural(time);
+    if (!document.hidden && !skipFrame(time, 'neural')) drawNeural(time);   // w spoczynku co druga klatka
     rafId = requestAnimationFrame(frame);
   }
   rafId = requestAnimationFrame(frame);

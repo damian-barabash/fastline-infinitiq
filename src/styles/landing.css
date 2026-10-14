@@ -377,9 +377,9 @@
     top: 50%;
     left: -20px;
     transform: translateY(-50%);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Onest', sans-serif;
     font-stretch: normal;
-    font-weight: 700;
+    font-weight: 800;
     font-size: clamp(90px, 14vw, 210px);
     line-height: 1;
     color: transparent;
@@ -402,9 +402,9 @@
   }
 
   .hero-h1 {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Onest', sans-serif;
     font-stretch: normal;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
     font-size: clamp(32px, 5vw, 76px);
     line-height: 1.08;
@@ -500,9 +500,9 @@
   }
 
   .what-left h2 {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Onest', sans-serif;
     font-stretch: normal;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
     font-size: clamp(24px, 3vw, 44px);
     line-height: 1.12;
@@ -560,9 +560,9 @@
   }
 
   .services-head h2 {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Onest', sans-serif;
     font-stretch: normal;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
     font-size: clamp(22px, 2.8vw, 40px);
     line-height: 1.1;
@@ -794,9 +794,9 @@
   .model-panel .section-label::before { background: var(--black); }
 
   .model-panel h2 {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Onest', sans-serif;
     font-stretch: normal;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
     font-size: clamp(26px, 3.4vw, 50px);
     line-height: 1.1;
@@ -828,9 +828,9 @@
 
   /* ===== WHO ===== */
   .who-h2 {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Onest', sans-serif;
     font-stretch: normal;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
     font-size: clamp(24px, 3vw, 44px);
     line-height: 1.12;
@@ -854,9 +854,9 @@
 
   .who-item::before {
     content: attr(data-n);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Onest', sans-serif;
     font-stretch: normal;
-    font-weight: 700;
+    font-weight: 800;
     font-size: 40px;
     color: rgba(184,255,0,0.08);
     position: absolute;
@@ -923,9 +923,9 @@
     position: absolute;
     top: 50%; left: 50%;
     transform: translate(-50%, -50%);
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Onest', sans-serif;
     font-stretch: normal;
-    font-weight: 700;
+    font-weight: 800;
     font-size: clamp(160px, 22vw, 380px);
     line-height: 1;
     color: transparent;
@@ -939,9 +939,9 @@
   .cta-slide-inner .section-label::before { display: none; }
 
   .cta-slide-inner h2 {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Onest', sans-serif;
     font-stretch: normal;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
     font-size: clamp(30px, 4.4vw, 68px);
     line-height: 1.08;
@@ -1050,7 +1050,7 @@
   .fiq-blocks:empty { display: none; }
   .fb { position: relative; }
   .fb-h {
-    font-family: 'Space Grotesk', sans-serif; font-stretch: normal; font-weight: 700;
+    font-family: 'Onest', sans-serif; font-stretch: normal; font-weight: 800;
     text-transform: uppercase; letter-spacing: .01em; line-height: 1.04;
     font-size: clamp(22px, 3.4vw, 44px); color: var(--white); margin-bottom: 28px;
   }
@@ -1086,7 +1086,7 @@
   .fb-stats { grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); }
   .fb-stat { border: 1px solid var(--mid); border-radius: 16px; padding: 28px 26px; background: rgba(255,255,255,.02); }
   .fb-stat-num {
-    font-family: 'Space Grotesk', sans-serif; font-stretch: normal; font-weight: 700;
+    font-family: 'Onest', sans-serif; font-stretch: normal; font-weight: 800;
     font-size: clamp(36px, 5vw, 58px); line-height: 1; color: var(--green); margin-bottom: 16px;
   }
   .fb-stat-label { font-weight: 700; color: var(--white); margin-bottom: 8px; }
@@ -1096,8 +1096,8 @@
   .fb-cards { grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
   .fb-card { position: relative; border: 1px solid var(--mid); border-radius: 16px; padding: 30px 26px; overflow: hidden; background: rgba(255,255,255,.02); }
   .fb-card-num {
-    position: absolute; top: 8px; right: 16px; font-family: 'Space Grotesk', sans-serif; font-stretch: normal;
-    font-weight: 700; font-size: 72px; line-height: 1; color: rgba(184,255,0,.08); pointer-events: none;
+    position: absolute; top: 8px; right: 16px; font-family: 'Onest', sans-serif; font-stretch: normal;
+    font-weight: 800; font-size: 72px; line-height: 1; color: rgba(184,255,0,.08); pointer-events: none;
   }
   .fb-card h3 { font-size: 19px; color: var(--white); margin-bottom: 12px; position: relative; }
   .fb-card p { color: rgba(245,245,240,.58); font-size: 15px; line-height: 1.6; position: relative; }
@@ -1251,9 +1251,9 @@
     margin-bottom: 12px;
   }
   .team-head h2 {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Onest', sans-serif;
     font-stretch: normal;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
     font-size: clamp(20px, 2.2vw, 31px);
     line-height: 1.1;
@@ -1404,9 +1404,9 @@
     margin-bottom: 10px;
   }
   .tm-name {
-    font-family: 'Space Grotesk', sans-serif;
+    font-family: 'Onest', sans-serif;
     font-stretch: normal;
-    font-weight: 700;
+    font-weight: 800;
     text-transform: uppercase;
     font-size: 24px;
     line-height: 1;
@@ -1555,8 +1555,8 @@
 }
 .what-board .diff-item:hover .diff-num { opacity: 1; text-shadow: 0 0 10px rgba(184,255,0,0.55); }
 .what-board .diff-text h3 {
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
+  font-family: 'Onest', sans-serif;
+  font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.04em;
   font-size: 15px;
@@ -1651,8 +1651,8 @@ html.mode-flat:not(.mode-desk) .what-board .what-media { height: auto; min-heigh
 .svc-top { display: flex; align-items: baseline; gap: 14px 18px; flex-wrap: wrap; }
 .svc-num { width: auto; flex: none; font-size: 11px; color: var(--green); letter-spacing: 0.2em; }
 .svc-title {
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
+  font-family: 'Onest', sans-serif;
+  font-weight: 800;
   text-transform: uppercase;
   font-size: clamp(21px, 2vw, 28px);
   line-height: 1.05;
@@ -1724,7 +1724,7 @@ body.fiq-edit .svc-row { display: grid; grid-template-columns: minmax(0, 1.05fr)
 body.fiq-edit .svc-title, body.fiq-edit .svc-cap, body.fiq-edit .svc-chips { display: none; }
 body.fiq-edit .svc-name {
   display: inline-block; flex: none;
-  font-family: 'Space Grotesk', sans-serif; font-weight: 700; text-transform: uppercase;
+  font-family: 'Onest', sans-serif; font-weight: 800; text-transform: uppercase;
   font-size: 22px; color: var(--white);
 }
 body.fiq-edit .svc-side::before {
@@ -1793,8 +1793,8 @@ html.mode-flat:not(.mode-desk) .frost-c { display: none; }
   margin-bottom: 12px;
 }
 .who-item h3 {
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+  font-family: 'Onest', sans-serif;
+  font-weight: 800; text-transform: uppercase; letter-spacing: 0.04em;
   font-size: 15px; max-width: none; margin-bottom: 10px;
 }
 .who-item p { max-width: none; }
@@ -1830,8 +1830,8 @@ html.mode-flat:not(.mode-desk) .frost-c { display: none; }
 }
 .wh-stat-v {
   display: flex; align-items: center; gap: 14px;
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700; text-transform: uppercase;
+  font-family: 'Onest', sans-serif;
+  font-weight: 800; text-transform: uppercase;
   font-size: 19px; color: var(--white);
   white-space: nowrap;
 }
@@ -1983,7 +1983,7 @@ body.fiq-edit [data-f] { pointer-events: auto; }
   width: 62px; height: 74px; flex: 0 0 auto;
   background: rgba(13,13,13,0.7); border: 1px solid rgba(245,245,240,0.2); border-radius: 0;
   color: var(--white); text-align: center; outline: none;
-  font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 30px;
+  font-family: 'Onest', sans-serif; font-weight: 800; font-size: 30px;
   transition: border-color 0.25s, box-shadow 0.25s, color 0.25s;
 }
 .af-cell:focus { border-color: var(--green); box-shadow: 0 0 20px rgba(184,255,0,0.18) inset; }
@@ -1992,7 +1992,7 @@ body.fiq-edit [data-f] { pointer-events: auto; }
 /* ekran końcowy */
 .af-done-h {
   display: flex; align-items: center; gap: 10px;
-  font-family: 'Space Grotesk', sans-serif; font-weight: 700; text-transform: uppercase;
+  font-family: 'Onest', sans-serif; font-weight: 800; text-transform: uppercase;
   font-size: 19px; color: var(--white); margin-bottom: 4px;
 }
 .af-pulse {
@@ -2041,9 +2041,9 @@ body.fiq-edit [data-f] { pointer-events: auto; }
 .aud-left .section-label { margin-bottom: 22px; }
 
 .aud-h2 {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Onest', sans-serif;
   font-stretch: normal;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
   font-size: clamp(28px, 3.1vw, 46px);
   line-height: 1.06;
@@ -2085,9 +2085,9 @@ body.fiq-edit [data-f] { pointer-events: auto; }
   padding-top: 2px;
 }
 .aud-b-t h3 {
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Onest', sans-serif;
   font-stretch: normal;
-  font-weight: 700;
+  font-weight: 800;
   text-transform: uppercase;
   font-size: 14px;
   letter-spacing: 0.01em;
@@ -2314,9 +2314,9 @@ body.fiq-edit [data-f] { pointer-events: auto; }
 
 .pl-name {
   display: block;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Onest', sans-serif;
   font-stretch: normal;
-  font-weight: 700;
+  font-weight: 800;
   font-size: 19px;
   line-height: 1.14;
   text-transform: uppercase;
@@ -2486,9 +2486,9 @@ html.coarse [contenteditable="true"] { cursor: auto; }
 .pl-gname { pointer-events: auto; }
 .pl-gname {
   position: absolute; top: 0; left: 0;
-  font-family: 'Space Grotesk', sans-serif;
+  font-family: 'Onest', sans-serif;
   font-stretch: normal;
-  font-weight: 700;
+  font-weight: 800;
   font-size: 15px; letter-spacing: 0.05em; text-transform: uppercase;
   color: rgba(184,255,0,0.72);
   white-space: nowrap;
@@ -2720,8 +2720,8 @@ a.pl-node:hover .pl-go { transform: translateX(3px); opacity: 1; }
   border-bottom: 1px solid rgba(245,245,240,0.08);
   text-align: left;
   text-decoration: none;
-  font-family: 'Space Grotesk', sans-serif;
-  font-weight: 700;
+  font-family: 'Onest', sans-serif;
+  font-weight: 800;
   font-size: clamp(18px, 2.2vw, 28px);
   line-height: 1.1;
   text-transform: uppercase;
@@ -2932,8 +2932,8 @@ html.coarse .af-btn, html.coarse .wh-cta, html.coarse .pill.on { cursor: auto; }
   .pl-gbtn {
     width: 100%;
     display: block;
-    font-family: 'Space Grotesk', sans-serif;
-    font-weight: 700;
+    font-family: 'Onest', sans-serif;
+    font-weight: 800;
     font-size: 15px;
     letter-spacing: 0.04em;
     text-transform: uppercase;

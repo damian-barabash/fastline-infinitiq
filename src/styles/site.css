@@ -1,0 +1,317 @@
+/* ═══ SITE v3 — wspólna warstwa wyglądu całej strony (2026-10-14) ═══════════
+   Właściciel: „cały serwis w stylu strony /ai-doradca, tym samym krojem".
+   Arkusz wstrzykuje KAŻDA publiczna strona (/, /agenci-ai, /ai-doradca,
+   /kontakt, dokumenty prawne) ZA swoim arkuszem, a edytor — za arkuszem
+   edytowanej strony. Jedno miejsce zamiast bliźniaczych bloków w pięciu plikach.
+
+   Zasady:
+   1) nagłówki — Onest 800 (Space Grotesk zniknął ze strony, podmiana w arkuszach);
+   2) „cyber" mono (IBM Plex Mono) zostaje tylko na podpisach sekcji i dopiskach,
+      ale GRUBIEJ: etykiety sekcji 700, dopiski 600, jasne, bez rozstrzelenia ponad 0.16em;
+   3) przyciski i plakietki — tylko pełne wypełnienie, bez obrysów (Onest 700);
+   4) tekst nigdy nie leży na gołej sieci neuronów: karty mają pełne tło,
+      swobodny tekst na środku ekranu dostaje ciemną „poduszkę";
+   5) „↓ następna sekcja ↓" na dole okna (nextHint.js) na każdej stronie z sekcjami. */
+
+:root {
+  --fiq-card: #121310;
+  --fiq-card-2: #181A14;
+  --fiq-chip: #1D2017;
+  --fiq-line: rgba(245,245,240,0.12);
+}
+
+/* ---------- 1) nagłówki: Onest 800 ---------- */
+.hero-h1, .ag-h1, .sec-head h2, .ad-h2, .ag-final h2, .what-left h2, .services-head h2,
+.model-panel h2, .who-h2, .team-head h2, .parent-inner h2, .cta-slide-inner h2, .aud-left h2,
+.diff-text h3, .svc-title, .who-item h3, .wh-h, .team-card h3, .step h3, .faq-item h3,
+.cost-price, .contact-left h1, .form-title-h, .legal-doc h1, .legal-doc h2 {
+  font-family: 'Onest', 'Schibsted Grotesk', sans-serif;
+  font-weight: 800;
+  font-stretch: normal;
+}
+
+/* ---------- 2a) etykiety sekcji: mono, grubo ---------- */
+.section-label {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.16em;
+  line-height: 1.3;
+}
+.section-label::before { height: 2px; }
+
+/* ---------- 2b) dopiski i małe podpisy: mono 600, jasne ---------- */
+.aud-meta, .aud-note, .cta-note, .cta-alt, .hero-cta-note, .svc-foot, .svc-hint, .who-tag,
+.wh-stat-l, .diff-num, .svc-num, .aud-b-n, .af-lab, .af-step-n, .af-step-t, .parent-sign,
+.team-hint, .tm-meta, .menu-cap, .footer-bar p, .svc-chip i, .svc-cap, .pl-head-l,
+.ag-role, .ag-chan, .ag-checks li, .ag-cta-note, .chg-col-h, .cost-note, .cost-tag, .dm-cap,
+.dm-foot, .faq-num, .step-num, .tm-badge, .ag-footer,
+.bf-lab, .f-row label, .bf-cap, .bf-note, .bf-step-n, .bf-step-t, .form-title, .direct,
+.send-note, .step h3 span, .plan-note b,
+.ad-ask-cap, .ad-way-tag, .ad-way-when, .ad-terms dt, .ad-vs-cap, .ad-vs-row, .hb-c,
+.legal-meta, .legal-num, .ck-cap {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600;
+}
+.aud-meta, .aud-note, .cta-note, .hero-cta-note, .svc-hint, .ag-cta-note, .cost-note,
+.send-note, .bf-note, .team-hint, .parent-sign {
+  font-size: 12.5px;
+  letter-spacing: 0.1em;
+  color: rgba(245,245,240,0.84);
+}
+.cta-alt { font-size: 12.5px; letter-spacing: 0.1em; }
+.svc-foot, .who-tag, .wh-stat-l, .chg-col-h, .cost-tag, .dm-cap, .dm-foot, .ag-role,
+.ag-chan, .ag-checks li, .tm-badge, .af-lab, .bf-lab, .f-row label, .form-title, .menu-cap {
+  letter-spacing: 0.1em;
+}
+.af-lab, .bf-lab, .f-row label { font-size: 12px; color: rgba(245,245,240,0.86); }
+.af-step-t { font-size: 13px; letter-spacing: 0.1em; color: rgba(245,245,240,0.62); }
+.af-step.on .af-step-t { color: #F5F5F0; }
+.svc-chip i { font-size: 11px; letter-spacing: 0.04em; color: rgba(245,245,240,0.74); }
+.diff-num, .svc-num, .aud-b-n, .faq-num, .step-num { font-weight: 700; }
+/* „Za darmo · bez zobowiązań · bez newslettera" — dopisek pod formularzem */
+.aud-meta { font-size: 13px; color: rgba(245,245,240,0.9); }
+
+/* ---------- 3) przyciski i plakietki: pełne, bez obrysów ---------- */
+.btn-primary, .btn-ghost, .btn-dark, .nav-cta, .menu-cta, .af-btn, .bf-btn, .btn-send,
+.wh-cta, .ck-btn, .fb-cta-btn, .pl-gbtn {
+  font-family: 'Onest', 'Schibsted Grotesk', sans-serif;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+.btn-primary, .btn-ghost, .btn-dark { font-size: 13.5px; }
+.nav-cta { font-size: 12.5px; }
+/* drugi przycisk („zostaw dane…") — pełna ciemna płyta zamiast kwasowej ramki */
+.btn-ghost {
+  color: #F5F5F0;
+  background: var(--fiq-chip);
+  border: 0;
+  box-shadow: inset 0 0 0 0 transparent;
+}
+.btn-ghost:hover { background: #262A1D; color: var(--green); }
+/* na kwasowej płycie finału: drugi przycisk to półprzezroczysta czerń, nie obrys */
+.btn-dark.ghost { background: rgba(13,13,13,0.14); color: #0D0D0D; border: 0; }
+.btn-dark.ghost:hover { background: rgba(13,13,13,0.24); }
+/* burger */
+.menu-btn { border: 0; background: var(--fiq-chip); }
+.menu-btn:hover { background: #262A1D; }
+/* kroki formularza audytu: nieaktywne numery na pełnym tle */
+.af-step-n { border: 0; background: var(--fiq-chip); color: rgba(245,245,240,0.62); padding: 5px 7px; font-size: 12px; }
+.af-step.on .af-step-n { background: var(--green); color: #0D0D0D; }
+.af-step.done .af-step-n { background: rgba(184,255,0,0.16); color: var(--green); }
+/* chipsy produktów w mapie procesu */
+.svc-chip { border: 0; background: var(--fiq-chip); }
+/* pigułki formularza briefingu (/kontakt) */
+.pill, .bf-pill, .bf-slot, .bf-day { border-color: transparent !important; background: var(--fiq-chip); }
+.pill.ready { box-shadow: inset 3px 0 0 var(--green); }
+.pill.on, .pill.ready.on, .bf-pill.on, .bf-slot.on { background: var(--green); color: #0D0D0D; }
+/* przykładowe pytania przy demo /ai-doradca */
+.ad-ask-q { border: 0; background: var(--fiq-chip); }
+.hb-c { border: 0; }
+/* telefon: przyciski grup pod CTA */
+.pl-gbtn { border: 0 !important; background: var(--fiq-chip) !important; color: var(--green) !important; }
+
+/* ---------- 4) czytelność: pełne tła kart ---------- */
+.frost-c { display: none !important; }       /* szkło usunięte — patrz landingEngine.js */
+.what-board .diff-item, .svc-row, .who-item, .af, .step, .faq-item, .cost-card {
+  background: var(--fiq-card) !important;
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+.what-board .diff-item, .svc-row, .who-item { box-shadow: inset 0 1px 0 rgba(255,255,255,0.05); }
+.cost-card.acid { background: linear-gradient(158deg, #1E2A08 0%, var(--fiq-card) 70%) !important; }
+.wh-hero { background: linear-gradient(158deg, #1A2108 0%, var(--fiq-card) 75%) !important; }
+.ad-steps .step.lit { background: #1A2108 !important; }
+.diff-text p, .svc-row p, .who-item p, .step p, .faq-item p, .cost-card p { color: #F5F5F0; }
+.diff-text p, .who-item p { font-size: 16px; line-height: 1.55; }
+
+/* swobodny tekst na środku ekranu — ciemna poduszka pod literami (sieć jest za nią) */
+.cta-slide-inner, .parent-inner, .contact-left, .chg-grid {
+  position: relative;
+  isolation: isolate;   /* poduszka (z-index: -1) zostaje NAD canvasem tła, pod tekstem */
+}
+.cta-slide-inner::after, .parent-inner::after, .contact-left::after, .chg-grid::after {
+  content: '';
+  position: absolute;
+  inset: -40px -60px;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(closest-side, rgba(13,13,13,0.94), rgba(13,13,13,0.82) 60%, rgba(13,13,13,0));
+}
+.chg-grid::after { inset: -30px -40px; background: radial-gradient(farthest-side, rgba(13,13,13,0.92), rgba(13,13,13,0.85) 70%, rgba(13,13,13,0)); }
+
+/* „Co się zmienia": wiersze na pełnym tle zamiast na sieci */
+.chg-now, .chg-fix, .chg-arrow { background: rgba(13,13,13,0.6); }
+
+/* lista „AI-native" na kwasowej płycie: zwykły tekst zamiast drobnego mono */
+.model-points li {
+  font-family: 'Schibsted Grotesk', sans-serif;
+  font-size: 16.5px;
+  font-weight: 500;
+  letter-spacing: 0;
+  line-height: 1.45;
+  color: #0D0D0D;
+}
+.model-points li b, .model-points li strong { font-weight: 700; }
+
+/* nawigacja: pełne tło zamiast rozmycia — `backdrop-filter` nad żywym canvasem
+   przeliczał rozmycie paska w każdej klatce (jeden z powodów zacinania się) */
+nav, nav.shrunk {
+  -webkit-backdrop-filter: none !important;
+  backdrop-filter: none !important;
+}
+nav { background: rgba(13,13,13,0.94); }
+nav.shrunk { background: rgba(16,17,13,0.97); }
+.menu-overlay { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+
+/* ---------- 5) „↓ następna sekcja ↓" ---------- */
+#scrollHint, .scroll-hint { display: none !important; }
+.next-hint {
+  position: fixed; left: 50%; bottom: 18px; z-index: 80;
+  transform: translateX(-50%);
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px 16px;
+  font-family: 'Onest', 'Schibsted Grotesk', sans-serif; font-weight: 800;
+  font-size: 13px; letter-spacing: 0.08em; text-transform: uppercase; line-height: 1;
+  color: #0D0D0D; background: var(--green); border: 0; cursor: pointer;
+  box-shadow: 0 10px 30px -12px rgba(0,0,0,0.8);
+  transition: opacity 0.45s ease 0.1s, transform 0.45s cubic-bezier(0.22, 1, 0.36, 1) 0.1s, box-shadow 0.25s;
+}
+.next-hint:hover { box-shadow: 0 0 30px rgba(184,255,0,0.45); }
+.next-hint .nh-name { white-space: nowrap; }
+.next-hint .nh-arrow { width: 16px; height: 16px; flex: 0 0 auto; animation: nhDrop 1.5s ease-in-out infinite; }
+@keyframes nhDrop { 0%, 100% { transform: translateY(-3px); } 50% { transform: translateY(3px); } }
+.next-hint.moving, .next-hint.end { opacity: 0; transform: translateX(-50%) translateY(10px); pointer-events: none; transition-delay: 0s; transition-duration: 0.12s; }
+html.menu-open .next-hint, body.fiq-edit .next-hint { display: none; }
+
+/* ---------- kula hero: nazwy grup bez ramek, na kulach-satelitach ---------- */
+.pl-gname, .pl-gname.in, .pl-gname.on {
+  font-family: 'Onest', 'Schibsted Grotesk', sans-serif;
+  font-weight: 800;
+  background: none;
+  border: 0;
+  padding: 6px 8px;
+  max-width: none;
+  text-align: center;
+  color: var(--green);
+  font-size: 16px;
+  letter-spacing: 0.04em;
+  /* napis leży na punktach satelity — ciemna obwódka liter zamiast podkładki */
+  text-shadow: 0 0 6px rgba(13,13,13,0.95), 0 0 2px #0D0D0D, 0 1px 0 #0D0D0D;
+  transition: color 0.3s ease, font-size 0.3s ease;
+  will-change: transform;
+}
+.pl-gname.on { color: #F5F5F0; font-size: 17px; z-index: 3; }
+.pl-stage[data-mode="list"] .pl-gname { font-size: 12px; max-width: 112px; white-space: normal; line-height: 1.15; padding: 4px 6px; }
+
+/* ---------- tryb lite (perf.js): słaby sprzęt — bez pętli animacji CSS i poświat ---------- */
+html.fiq-lite .svc-beam, html.fiq-lite .wm-scan { display: none; }
+html.fiq-lite .lk-vis *, html.fiq-lite .way-vis *, html.fiq-lite .hc-sep,
+html.fiq-lite .dm-live i, html.fiq-lite .next-hint .nh-arrow { animation: none !important; }
+html.fiq-lite .wm-s { animation: none !important; }
+
+/* /kontakt: lead był szary (0.6) — pełna biel */
+.contact-left .lead { color: rgba(245,245,240,0.92); }
+
+/* ---------- telefon ---------- */
+@media (max-width: 900px) {
+  /* Onest jest szerszy od starego kroju: hero i CTA w pasku muszą się zmieścić */
+  #start .hero-h1 { font-size: clamp(26px, 7.6vw, 38px); }
+  .nav-cta { font-size: 11px; letter-spacing: 0.03em; }
+  .af-step-t { font-size: 11.5px; letter-spacing: 0.05em; }
+  .af-step + .af-step::before { width: 12px; }
+  .af-steps { gap: 7px; }
+  .section-label { font-size: 12px; letter-spacing: 0.12em; }
+  .aud-meta, .aud-note, .cta-note, .hero-cta-note, .svc-hint, .ag-cta-note, .cost-note { font-size: 12px; letter-spacing: 0.06em; }
+  .next-hint { bottom: 12px; padding: 10px 12px; font-size: 12px; gap: 9px; max-width: calc(100vw - 32px); }
+  .next-hint .nh-name { overflow: hidden; text-overflow: ellipsis; }
+  .model-points li { font-size: 15.5px; }
+  .cta-slide-inner::after, .parent-inner::after, .contact-left::after, .chg-grid::after { inset: -20px 0; }
+}
+
+/* ---------- edytor: poduszki i plakietki nie przeszkadzają w edycji ---------- */
+body.fiq-edit .cta-slide-inner::after, body.fiq-edit .parent-inner::after,
+body.fiq-edit .contact-left::after, body.fiq-edit .chg-grid::after { display: none; }
+
+/* hero głównej: na dole okna stoi plakietka „↓ następna sekcja ↓" — treść hero
+   (przycisk i nota pod nim) kończy się nad nią, a nie pod nią */
+html.mode-desk #start .hero-content { padding-bottom: 82px; }
+html.fiq-last .counter { opacity: 0; transition: opacity 0.3s; }
+
+/* kwasowa płyta „AI-native": akapity ciemne i pełne (były wyblakłe na kwasie) */
+.model-panel p { color: rgba(13,13,13,0.88); font-size: 17px; }
+
+/* ===== Poprawki po audycie UX (2026-10-14, druga runda) ===== */
+
+/* /agenci-ai, telefon: tabela „teraz → z agentami" w jednej kolumnie
+   (reguła z 2026-09-10 bez media query nadpisywała wersję mobilną) */
+@media (max-width: 1000px) {
+  .chg-grid { grid-template-columns: 1fr !important; }
+  .chg-now, .chg-fix { background: none; }
+}
+
+/* licznik „01 / 07" — pamiątka po bębnie; nachodził na tekst przy 1280×720
+   i znikał na kwasowej płycie. Rolę „gdzie jestem / co dalej" pełni plakietka. */
+.counter, #counter { display: none !important; }
+
+/* sekcje mają u dołu miejsce na plakietkę „↓ następna sekcja ↓" */
+html.mode-desk .slide { padding-bottom: 72px; }
+
+/* pasek po przewinięciu: przyklejony do góry, pełna szerokość, pełne tło —
+   pływająca ramka z przerwą pokazywała treść nad sobą */
+nav.shrunk {
+  top: 0 !important; left: 0 !important; right: 0 !important;
+  border-color: transparent !important;
+  border-bottom-color: rgba(245,245,240,0.08) !important;
+  background: #0D0D0D !important;
+  box-shadow: 0 10px 30px -18px rgba(0,0,0,0.9);
+}
+
+/* menu pod burgerem: pełne tło — nagłówki strony prześwitywały pod pozycjami */
+.menu-overlay { background: #0D0D0D !important; }
+
+/* /kontakt: skok z menu do bloku nie chowa nagłówka pod paskiem */
+[data-msec] { scroll-margin-top: 96px; }
+
+/* /kontakt: lista problemów pokazuje pełne rzędy (3,4 rzędu), podpowiedź z odstępem;
+   na telefonie bez wewnętrznego przewijania — wszystkie 18 opcji widać */
+.bf-pills { max-height: 150px; }
+.bf-hint { margin-top: 18px; color: rgba(245,245,240,0.75); }
+@media (max-width: 1000px) { .bf-pills { max-height: none; overflow: visible; } }
+
+/* plakietki bez obrysów: zakładki kanałów w scenach, chipsy w kartach dróg, linki dokumentów */
+.dm-tab, .way-list span, .legal-links a { border-color: transparent !important; background: var(--fiq-chip); }
+.dm-screen .dm-tab { background: #EEF0EA; }
+.dm-screen .dm-tab.on { background: #DCE8FF; }
+
+/* nazwy grup na kuli: ciemna, pełna podkładka pod literami (bez ramki) */
+.pl-gname, .pl-gname.on { background: rgba(13,13,13,0.82); padding: 4px 9px; }
+@media (max-width: 900px) { .pl-stage[data-mode="list"] .pl-gname { font-size: 12.5px; } }
+
+/* karty produktów w kuli: opis zawsze ucięty równo, na dwóch wierszach z „…" */
+.pl-desc { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+
+/* stopki: drobny tekst czytelny */
+.footer-bar p, .ag-footer, footer p, .footer-legal a { font-size: 12px; color: rgba(245,245,240,0.72); }
+
+/* dokumenty prawne: tekst na pełnym tle, nie na sieci */
+.legal-doc { background: #0D0D0D; padding: 40px clamp(20px, 4vw, 48px); }
+@media (max-width: 900px) { .legal-doc { padding: 24px 16px; } }
+
+/* /ai-doradca, karta ceny: sieć w tle ledwie widoczna pod tekstem */
+.ad-price-main > .ad-neuro { opacity: 0.18 !important; }
+
+/* cookies: pełne tło, przycisk jak wszystkie (Onest), plakietka „↓" nie wchodzi pod okienko */
+body .ck { background: #121310; border-color: transparent; }
+body .ck .ck-btn { font-family: 'Onest', 'Schibsted Grotesk', sans-serif; font-weight: 700; letter-spacing: 0.06em; font-size: 12.5px; }
+body:has(.ck.on) .next-hint { opacity: 0; pointer-events: none; }
+
+/* drobne mono podpisy min. 12 px */
+.svc-cap, .svc-foot { font-size: 12px; }
+.wm-tag { font-size: 11px; }
+
+/* nagłówki bez sierot w ostatnim wierszu */
+.hero-h1, .ag-h1, .sec-head h2, .ad-h2, .ag-final h2, .what-left h2, .who-h2, .cta-slide-inner h2, .aud-left h2, .model-panel h2 { text-wrap: balance; }
+
+/* własny kursor niewidoczny, dopóki mysz się nie ruszy (stał na środku ekranu) */
+html:not(.has-pointer) .cursor-dot, html:not(.has-pointer) .cursor-ring { opacity: 0 !important; }

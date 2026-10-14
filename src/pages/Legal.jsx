@@ -6,6 +6,7 @@ import { initKontakt } from '../engine/kontaktEngine.js';
 import { wipeTo } from '../engine/wipe.js';
 import kontaktCss from '../styles/kontakt.css?inline';
 import legalCss from '../styles/legal.css?inline';
+import siteCss from '../styles/site.css?inline';
 
 /* Strony /polityka-prywatnosci, /polityka-cookies, /regulamin, /usuwanie-danych.
    Rama i silnik jak na /kontakt (kursor, menu pod burgerem, claim, siatka),
@@ -25,7 +26,7 @@ export default function Legal({ slug }) {
 
   return (
     <>
-      <style dangerouslySetInnerHTML={{ __html: kontaktCss + legalCss }} />
+      <style dangerouslySetInnerHTML={{ __html: kontaktCss + legalCss + siteCss }} />
       <LegalShell doc={doc} slug={slug} />
     </>
   );

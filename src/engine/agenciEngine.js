@@ -9,6 +9,8 @@ import { interceptInternalLinks } from './wipe.js';
 import { initTeam } from './team.js';
 import { watchNavClaim, initClaimScramble } from './navClaim.js';
 import { initMenu } from './menu.js';
+import { initNextHint } from './nextHint.js';
+import { renderDpr, skipFrame, makeBuckets, pushLine, strokeBuckets } from './perf.js';
 
 export function initAgenci({ onNavigate }) {
   const ac = new AbortController();
@@ -109,37 +111,10 @@ export function initAgenci({ onNavigate }) {
     updateNext();
   }
 
-  /* ===== „Dalej: <następna sekcja>" — strzałka na dole okna =====
-     Tylko strony, które mają `#nextHint` w markupie. Nazwa jak w menu: tekst
-     `.section-label` następnej sekcji (CMS), awaryjnie nazwa z railu. Znika od
-     razu przy przewijaniu, wraca po zatrzymaniu; w ostatniej sekcji jej nie ma. */
-  const nextHint = document.getElementById('nextHint');
-  const nextName = nextHint ? nextHint.querySelector('[data-next]') : null;
-  const railNames = railItems.map((b) => ((b.querySelector('.rail-name') || {}).textContent || '').trim());
-  const secName = (i) => {
-    const raw = ((slides[i].querySelector('.section-label') || {}).textContent || '').trim();
-    return raw.replace(/^(\/\/|\d+\s*[—–-])\s*/, '') || railNames[i] || slides[i].id;
-  };
-  function updateNext() {
-    if (!nextHint) return;
-    const last = activeIdx >= N - 1;
-    // telefon: sekcje są dłuższe niż ekran i plakietka zasłaniałaby treść — tylko na pierwszym ekranie
-    nextHint.classList.toggle('end', last || (SMALL && activeIdx > 0));
-    if (!last && nextName) {
-      const name = secName(activeIdx + 1);
-      if (nextName.textContent !== name) nextName.textContent = name;
-    }
-  }
-  if (nextHint) {
-    let stopT = 0;
-    addEventListener('scroll', () => {
-      if (!nextHint.classList.contains('moving')) nextHint.classList.add('moving');
-      clearTimeout(stopT);
-      stopT = setTimeout(() => nextHint.classList.remove('moving'), 280);
-    }, { passive: true, signal });
-    nextHint.addEventListener('click', () => goTo(activeIdx + 1), { signal });
-    addEventListener('fiq:content-ready', updateNext, { signal }); // CMS mógł zmienić nazwy sekcji
-  }
+  /* ===== „↓ nazwa następnej sekcji ↓" — wspólny moduł nextHint.js =====
+     (od 2026-10-14 na każdej stronie z sekcjami, bez słowa „Dalej") */
+  const nextHint = initNextHint({ slides, goTo, small: SMALL, signal });
+  function updateNext() { nextHint.update(activeIdx); }
 
   // Aktywna jest sekcja najbliżej środka okna.
   // Prostokąty czytamy tylko po przewinięciu / zmianie układu, nie co klatkę.
@@ -182,7 +157,7 @@ export function initAgenci({ onNavigate }) {
   /* ===== фон: нейро-сеть ===== */
   const canvas = document.getElementById('neural');
   const ctx = canvas.getContext('2d');
-  const DPR = Math.min(devicePixelRatio || 1, WEAK ? 1.5 : 2);
+  const DPR = renderDpr(WEAK ? 1.25 : 1.5); // tło nie potrzebuje Retina 2× (perf.js)
   const COUNT = SMALL ? (WEAK ? 46 : 64) : (WEAK ? 90 : 120);
   const nodes = [];
   for (let i = 0; i < COUNT; i++) {
@@ -243,6 +218,7 @@ export function initAgenci({ onNavigate }) {
     const L = Math.min(120, Math.max(80, vw * 0.07));
     const L2 = L * L;
     ctx.lineWidth = 1;
+    // linie paczkami po jasności — kilka `stroke()` zamiast setek (perf.js)
     for (let i = 0; i < COUNT; i++) {
       const a = nodes[i];
       for (let j = i + 1; j < COUNT; j++) {
@@ -252,16 +228,13 @@ export function initAgenci({ onNavigate }) {
         if (d2 > L2) continue;
         const near = 1 - Math.sqrt(d2) / L;
         const dep = (a.depth + b.depth) * 0.5;
-        ctx.strokeStyle = `rgba(184,255,0,${(near * (0.04 + dep * 0.14)).toFixed(3)})`;
-        ctx.beginPath();
-        ctx.moveTo(a.sx, a.sy);
-        ctx.lineTo(b.sx, b.sy);
-        ctx.stroke();
+        pushLine(linkB, near * (0.04 + dep * 0.14), 0.18, a.sx, a.sy, b.sx, b.sy);
         if (!SMALL && pulses.length < 10 && Math.random() < 0.001) {
           pulses.push({ i, j, t: 0, sp: 0.018 + Math.random() * 0.02 });
         }
       }
     }
+    strokeBuckets(ctx, linkB, '184,255,0', 0.18);
 
     for (let k = pulses.length - 1; k >= 0; k--) {
       const p = pulses[k];
@@ -278,14 +251,22 @@ export function initAgenci({ onNavigate }) {
     for (const n of nodes) {
       const flicker = 0.65 + 0.35 * Math.sin(time * 0.0011 + n.ph);
       const a = (0.09 + n.depth * 0.42) * flicker;
-      ctx.fillStyle = n.ph % 1 < 0.22
-        ? `rgba(184,255,0,${a.toFixed(3)})`
-        : `rgba(245,245,240,${(a * 0.8).toFixed(3)})`;
+      const k = Math.min(5, Math.floor(a * 6 / 0.51));
+      dotB[(n.ph % 1 < 0.22 ? 6 : 0) + k].push(n.sx, n.sy, 1 + n.depth * 1.7);
+    }
+    for (let b = 0; b < 12; b++) {
+      const arr = dotB[b];
+      if (!arr.length) continue;
+      const al = (((b % 6) + 0.5) / 6) * 0.51;
+      ctx.fillStyle = b >= 6 ? `rgba(184,255,0,${al.toFixed(3)})` : `rgba(245,245,240,${(al * 0.8).toFixed(3)})`;
       ctx.beginPath();
-      ctx.arc(n.sx, n.sy, 1 + n.depth * 1.7, 0, Math.PI * 2);
+      for (let i = 0; i < arr.length; i += 3) { ctx.moveTo(arr[i] + arr[i + 2], arr[i + 1]); ctx.arc(arr[i], arr[i + 1], arr[i + 2], 0, Math.PI * 2); }
       ctx.fill();
+      arr.length = 0;
     }
   }
+  const linkB = makeBuckets();
+  const dotB = Array.from({ length: 12 }, () => []);
 
   let teamNear = true;
   function frame(time) {
@@ -308,7 +289,8 @@ export function initAgenci({ onNavigate }) {
       team.tick(time, teamNear, Math.round(scrollY), teamNear);
     }
     updateFlat();
-    if (!document.hidden) drawNeural(time);
+    // tło w spoczynku co druga klatka (perf.js)
+    if (!document.hidden && !skipFrame(time, 'neural')) drawNeural(time);
     rafId = requestAnimationFrame(frame);
   }
   rafId = requestAnimationFrame(frame);
@@ -414,6 +396,7 @@ export function initAgenci({ onNavigate }) {
     timers.forEach((id) => { clearTimeout(id); clearInterval(id); });
     timers.clear();
     if (claim) claim.destroy();
+    nextHint.destroy();
     if (closeMenu) closeMenu();
     unwatchClaim();
     ac.abort();

@@ -7,6 +7,8 @@
    Rysowane własną projekcją 3D na canvasie 2D (jak neuro-słup i sylwetki
    zespołu): zero zależności, pełna kontrola nad kolorem i timingiem. */
 
+import { renderDpr, skipFrame } from './perf.js';
+
 const GROUPS = ['a', 'b', 'c', 'd'];
 // Który wycinek zajmuje która grupa (znak x, znak y w układzie ekranu).
 // Strona kart wynika ze znaku x, więc wystarczy zmienić tę mapę, żeby przełożyć
@@ -63,7 +65,7 @@ export function initHeroSphere() {
 
   const WEAK = (navigator.deviceMemory && navigator.deviceMemory <= 4)
     || (navigator.hardwareConcurrency && navigator.hardwareConcurrency <= 4);
-  const DPR = Math.min(devicePixelRatio || 1, WEAK ? 1.5 : 2);
+  const DPR = renderDpr(WEAK ? 1.25 : 1.5);   // perf.js: dekoracja bez Retina 2×
   const COARSE = matchMedia('(hover: none), (pointer: coarse)').matches;   // telefon: leave nie gasi wyboru
 
   /* ===== punkty kuli (spirala golden-angle) ===== */
@@ -111,7 +113,7 @@ export function initHeroSphere() {
     // inaczej górny łuk wychodzi poza canvas i jest ucięty
     R = mode === 'list'
       ? Math.min(W * 0.27, 104)
-      : Math.min(W * 0.15, H * 0.36, 172);
+      : Math.min(W * 0.15, H * 0.32, 168);   // zapas w pionie na kule-satelity z nazwami grup
     // Telefon: kula na górze, karty pod nią (rezerwuje je `padding-top` w `.pl-nodes`).
     // Zapas R*1.35 + 22 to miejsce na pierścień strzałek i podpis nad nim.
     cy = mode === 'list' ? R * 1.35 + 22 : H / 2;
@@ -119,62 +121,141 @@ export function initHeroSphere() {
     renderGroups();
   }
 
-  /* ===== podpisy wycinków ===== */
-  // Podpis nieaktywnej grupy stoi przy swoim wycinku, aktywnej — nad kolumną kart
-  // (inaczej karty by go zasłoniły). Do każdego biegnie linia do kuli.
+  /* ===== podpisy wycinków = małe kule-satelity (2026-10-14) =====
+     Właściciel: bez ramek przy nazwach grup — nazwa ma stać na małej kuli, która
+     WYLATUJE SPOD dużej przy najechaniu albo przy automatycznym otwarciu grupy.
+     · nic nie jest otwarte → cztery satelity stoją w okienkach między łukami
+       (przekątne), nazwa wycentrowana na kuli;
+     · grupa otwarta → jej satelita wyłania się spod dużej kuli i leci nad
+       kolumnę kart, pozostałe chowają się pod dużą kulę (maleją i gasną);
+     · zamknięcie → wszystkie wylatują spod kuli na swoje miejsca.
+     Silnik liczy tu tylko CELE; pozycję, skalę i jasność dociąga co klatkę
+     `stepSats()` (tą samą sprężyną, co wysunięcie wycinków). */
+  const sat = {};                         // stan bieżący: x, y (środek), s (skala), a (jasność)
+  const tgt = {};                         // cel
+  const satR = () => (mode === 'list' ? Math.max(20, R * 0.27) : clamp(R * 0.25, 26, 44));
   const labelBox = {};
   function placeLabels(colTop) {
+    const rs = satR();
     for (const g of GROUPS) {
       const el = labelOf[g];
       if (!el) continue;
       const q = QUAD[g];
-      el.classList.toggle('l', q.sx < 0);
-      el.classList.toggle('r', q.sx > 0);
       el.classList.toggle('on', g === active);
-      const h = el.offsetHeight || 18;
-      let x, y;
+      const w = el.offsetWidth || 120, h = el.offsetHeight || 20;
+      let t;
       if (g === active && mode !== 'list' && colTop) {
-        // Podpis trzyma się krawędzi kolumny kart. Szerokość mierzymy po zdjęciu
-        // sztywnej wartości — font-size zmienia się bez animacji, więc pomiar jest
-        // wiarygodny, a długie nazwy nie wychodzą poza scenę.
-        el.style.width = '';
-        const lw = el.offsetWidth || colTop.w;
-        x = clamp(QUAD[g].sx > 0 ? colTop.lx : colTop.lx + colTop.w - lw, 4, Math.max(4, W - lw - 4));
-        y = clamp(colTop.y - h - 10, 4, Math.max(4, H - h - 10));
-        el.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
-        labelBox[g] = { x, y, w: lw, h };
-        continue;
-      }
-      el.style.width = '';
-      const w = el.offsetWidth || 0;
-      {
-        // Gdy któraś grupa jest otwarta, pozostałe podpisy „wsysają się" do środka
-        // kuli (i mają własną podkładkę, żeby dało się je czytać na punktach).
-        if (active && mode !== 'list') {
-          const d = R * 0.5;
-          x = cx + q.sx * d * 0.62 - (q.sx > 0 ? 0 : w);
-          y = cy - q.sy * d * 0.62 - h / 2;
-          el.classList.add('in');
-        } else {
-          // Podpis siada DOKŁADNIE w okienku między łukami strzałek — łuki stoją na
-          // górze/dole/lewo/prawo (±0,5 rad), więc wolne są przekątne. Narożnik
-          // prostokąta bliższy środkowi kładziemy tuż za pierścieniem.
-          // Na telefonie nazwa łamie się na dwa wiersze (CSS), inaczej nie zmieściłaby
-          // się w rogu przy 390 px.
-          const out = R * 1.2 + (mode === 'list' ? 8 : 16);
-          const dx = q.sx * Math.SQRT1_2 * out;
-          const dy = -q.sy * Math.SQRT1_2 * out;
-          x = cx + dx - (q.sx > 0 ? 0 : w);
-          y = cy + dy - (q.sy > 0 ? h : 0);
-          el.classList.remove('in');
+        // nad kolumną kart, wyrównany do jej krawędzi bliższej kuli
+        const x0 = q.sx > 0 ? colTop.lx : colTop.lx + colTop.w - w;
+        const x = clamp(x0, 4, Math.max(4, W - w - 4)) + w / 2;
+        const y = clamp(colTop.y - h / 2 - 16, h / 2 + 4, H - h / 2 - 4);
+        t = { x, y, s: 0.78, a: 1 };
+      } else if (active && mode !== 'list') {
+        // pod dużą kulę: w stronę swojej ćwiartki, mała i zgaszona
+        t = { x: cx + q.sx * R * 0.22, y: cy - q.sy * R * 0.22, s: 0.2, a: 0 };
+      } else {
+        // okienko między łukami, CAŁY satelita i napis poza pierścieniem strzałek.
+        // Najpierw przekątna (45°); gdy scena jest niska i satelita wyszedłby za
+        // górną/dolną krawędź — kąt bliżej poziomu (łuki kończą się na ~31°).
+        const ring = R * 1.2 + (mode === 'list' ? 6 : 12);
+        const hw = Math.max(w / 2, rs), hh = Math.max(h / 2, rs);
+        let best = null;
+        for (const deg of [45, 41, 37, 34]) {
+          const ca = Math.cos(deg * Math.PI / 180), sa = Math.sin(deg * Math.PI / 180);
+          let d = ring + rs;
+          for (let k = 0; k < 80; k++) {
+            const ox = d * ca, oy = d * sa;
+            // najbliższy środkowi punkt prostokąta (napis + kula) musi leżeć za pierścieniem
+            const nx = Math.max(0, ox - hw), ny = Math.max(0, oy - hh);
+            if (Math.hypot(nx, ny) >= ring) break;
+            d += 3;
+          }
+          const x = cx + q.sx * d * ca, y = cy - q.sy * d * sa;
+          best = { x, y };
+          if (y - hh >= 2 && y + hh <= H - 2 && x - hw >= 2 && x + hw <= W - 2) break;
         }
+        const x = clamp(best.x, hw + 2, W - hw - 2);
+        const y = clamp(best.y, hh + 2, H - hh - 2);
+        t = { x, y, s: 1, a: 1 };
       }
-      if (g === active) el.classList.remove('in');
-      x = clamp(x, 4, Math.max(4, W - w - 4));
-      y = clamp(y, 4, Math.max(4, H - h - 10));
-      el.style.transform = `translate3d(${Math.round(x)}px, ${Math.round(y)}px, 0)`;
-      labelBox[g] = { x, y, w, h };
+      tgt[g] = t;
+      // pierwsze ułożenie: satelity startują spod kuli (efekt „wylatywania")
+      if (!sat[g]) sat[g] = { x: cx, y: cy, s: 0.2, a: 0, px: -1, py: -1, pa: -1 };
     }
+  }
+
+  // świeżo otwarta grupa: jej satelita startuje spod dużej kuli
+  function launchFromUnder(g) {
+    if (!g || !sat[g]) return;
+    const q = QUAD[g];
+    Object.assign(sat[g], { x: cx + q.sx * R * 0.22, y: cy - q.sy * R * 0.22, s: 0.2, a: 0 });
+  }
+
+  function stepSats(step) {
+    for (const g of GROUPS) {
+      const el = labelOf[g], c = sat[g], t = tgt[g];
+      if (!el || !c || !t) continue;
+      c.x += (t.x - c.x) * step; c.y += (t.y - c.y) * step;
+      c.s += (t.s - c.s) * step; c.a += (t.a - c.a) * step;
+      const w = el.offsetWidth || 0, h = el.offsetHeight || 0;
+      const x = Math.round(c.x - w / 2), y = Math.round(c.y - h / 2);
+      // DOM tylko przy realnej zmianie (zasada projektu)
+      if (x !== c.px || y !== c.py) { el.style.transform = `translate3d(${x}px, ${y}px, 0)`; c.px = x; c.py = y; }
+      const op = Math.round(clamp((c.a - 0.25) / 0.75, 0, 1) * 100) / 100;
+      if (op !== c.pa) {
+        el.style.opacity = String(op);
+        el.style.pointerEvents = op < 0.5 ? 'none' : '';
+        c.pa = op;
+      }
+      labelBox[g] = { x: c.x - w / 2, y: c.y - h / 2, w, h };
+    }
+  }
+
+  function satSettled() {
+    for (const g of GROUPS) {
+      const c = sat[g], t = tgt[g];
+      if (c && t && (Math.abs(c.x - t.x) > 0.4 || Math.abs(c.y - t.y) > 0.4 || Math.abs(c.a - t.a) > 0.01)) return false;
+    }
+    return true;
+  }
+
+  // kulka satelity: ~230 punktów spirali, obraca się szybciej niż duża kula
+  const SAT_PTS = [];
+  for (let i = 0; i < 230; i++) {
+    const y = 1 - (2 * (i + 0.5)) / 230;
+    const r = Math.sqrt(Math.max(0, 1 - y * y));
+    SAT_PTS.push([Math.cos(i * 2.39996) * r, y, Math.sin(i * 2.39996) * r]);
+  }
+  function drawSat(g, now, under) {
+    const c = sat[g];
+    if (!c || c.a < 0.02) return;
+    if ((c.s < 0.55) !== under) return;        // pod dużą kulą rysujemy PRZED nią
+    const rs = satR() * c.s;
+    const spin = now * 0.00045 + GROUPS.indexOf(g) * 1.3;
+    const cs = Math.cos(spin), sn = Math.sin(spin);
+    const hot = g === active ? 1 : 0;
+    const front = [], back = [];
+    for (const p of SAT_PTS) {
+      const x = p[0] * cs + p[2] * sn, z = -p[0] * sn + p[2] * cs, y = p[1];
+      const sx = c.x + x * rs, sy = c.y - y * rs;
+      // pas pod napisem przygaszony — litery muszą być czytelne na kuli
+      const band = Math.abs(y) < 0.3 ? 0.35 : 1;
+      (z > 0 ? front : back).push(sx, sy, band);
+    }
+    const sz = Math.max(1.2, rs * 0.06);
+    const paint = (arr, al) => {
+      for (let i = 0; i < arr.length; i += 3) {
+        ctx.globalAlpha = al * arr[i + 2] * c.a;
+        ctx.fillRect(arr[i] - sz / 2, arr[i + 1] - sz / 2, sz, sz);
+      }
+    };
+    ctx.fillStyle = hot ? '#C8FF3A' : '#A6E21C';
+    paint(back, 0.22);
+    paint(front, hot ? 0.95 : 0.75);
+    ctx.globalAlpha = 1;
+    ctx.strokeStyle = `rgba(184,255,0,${(0.28 * c.a).toFixed(3)})`;
+    ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(c.x, c.y, rs, 0, TAU); ctx.stroke();
   }
 
   /* ===== rozstawienie kart aktywnej grupy ===== */
@@ -202,7 +283,7 @@ export function initHeroSphere() {
 
     // Gęstość dobierana do wysokości sceny. Limit uwzględnia miejsce na nazwę
     // grupy u góry i margines na dole — inaczej ostatnia karta ucieka poza ekran.
-    const TOPGAP = 46, BOTGAP = 10;   // TOPGAP mieści nazwę grupy nad kolumną   // TOPGAP: miejsce na nazwę grupy nad kolumną
+    const TOPGAP = 62, BOTGAP = 10;   // TOPGAP: miejsce na satelitę z nazwą grupy nad kolumną
     let gap = 10;
     if (nodesBox) {
       const need = () => list.reduce((s2, n) => s2 + (n.offsetHeight || 60), 0) + (M - 1) * gap;
@@ -291,6 +372,7 @@ export function initHeroSphere() {
     reveal = 0;                                        // każde wejście rysuje się od nowa
     nodes.forEach(n => n.classList.remove('ready'));
     place();
+    if (g && mode !== 'list') launchFromUnder(g);
     renderGroups();
   }
 
@@ -519,25 +601,27 @@ export function initHeroSphere() {
   function drawLabelLinks() {
     if (mode === 'list') { drawListArrow(); return; }
     for (const g of GROUPS) {
-      const box = labelBox[g];
-      if (!box) continue;
+      const c = sat[g];
+      if (!c || c.a < 0.05 || c.s < 0.5) continue;
       const q = QUAD[g];
       const k = prog[g];
       const off = (0.014 + k * 0.042) * R;
       const ang = Math.atan2(-q.sy, q.sx);
       const tx = cx + Math.cos(ang) * R * 1.02 + q.sx * off;
       const ty = cy + Math.sin(ang) * R * 1.02 - q.sy * off;
-      const sx = q.sx > 0 ? box.x : box.x + box.w;
-      const sy = box.y + box.h / 2;
+      // linia startuje z brzegu satelity, od strony dużej kuli
+      const rs = satR() * c.s;
+      const sx = c.x - q.sx * rs * Math.SQRT1_2;
+      const sy = c.y + q.sy * rs * Math.SQRT1_2;
       const mx = (sx + tx) / 2;
-      ctx.strokeStyle = `rgba(184,255,0,${0.18 + 0.5 * k})`;
+      ctx.strokeStyle = `rgba(184,255,0,${((0.18 + 0.5 * k) * c.a).toFixed(3)})`;
       ctx.lineWidth = 1;
       ctx.beginPath();
       ctx.moveTo(sx, sy);
       ctx.lineTo(mx, sy);
       ctx.lineTo(tx, ty);
       ctx.stroke();
-      ctx.fillStyle = `rgba(184,255,0,${0.35 + 0.55 * k})`;
+      ctx.fillStyle = `rgba(184,255,0,${((0.35 + 0.55 * k) * c.a).toFixed(3)})`;
       ctx.fillRect(tx - 2, ty - 2, 4, 4);
     }
   }
@@ -572,14 +656,21 @@ export function initHeroSphere() {
       const step2 = 0.85 / Math.max(1, anchors.length);
       anchors.forEach((a, i) => { if (reveal >= (i + 0.35) * step2) a.node.classList.add('ready'); });
     }
+    let settled = satSettled() && (reveal >= 1 || !active);
     for (const g of GROUPS) {
       const target = g === active ? 1 : 0;
+      if (Math.abs(target - prog[g]) > 0.004) settled = false;
       prog[g] += (target - prog[g]) * step;
     }
+    // spoczynek (nic nie leci, nikt nie rusza myszą): co druga klatka — perf.js
+    if (settled && skipFrame(now, 'sphere')) return;
 
+    stepSats(step);
     ctx.clearRect(0, 0, W, H);
+    for (const g of GROUPS) drawSat(g, now, true);     // pod dużą kulą
     drawSphere(now);
     drawLabelLinks();
+    for (const g of GROUPS) drawSat(g, now, false);    // nad nią
   }
 
   /* ===== start ===== */

@@ -6,6 +6,7 @@ import { initAgenci } from '../engine/agenciEngine.js';
 import { wipeTo } from '../engine/wipe.js';
 import { SB_URL, SB_KEY } from '../lib/supabase-config.js';
 import agenciCss from '../styles/agenci.css?inline';
+import siteCss from '../styles/site.css?inline';
 
 /* LP zbiorcza czterech agentów (AI Sprzedawca · AI Doradca · AI Recepcjonistka ·
    AI Asystent). Teksty przeniesione 1:1 z makiety właściciela
@@ -71,6 +72,7 @@ export default function Agenci() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: agenciCss }} />
+      <style dangerouslySetInnerHTML={{ __html: siteCss }} />
       <AgenciShell />
     </>
   );
