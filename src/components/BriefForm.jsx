@@ -46,6 +46,54 @@ const DEMO = {
   }],
 };
 
+/* Lista problemów jako rozwijane menu z wielokrotnym wyborem (2026-10-15 —
+   18 pigułek naraz zajmowało pół formularza). Zamyka klik poza listą i Esc;
+   wybór nie zamyka listy, bo można zaznaczyć kilka problemów. */
+function PainSelect({ options, picked, onToggle }) {
+  const [open, setOpen] = useState(false);
+  const box = useRef(null);
+  useEffect(() => {
+    if (!open) return undefined;
+    const out = (e) => { if (box.current && !box.current.contains(e.target)) setOpen(false); };
+    const esc = (e) => { if (e.key === 'Escape') setOpen(false); };
+    document.addEventListener('pointerdown', out);
+    document.addEventListener('keydown', esc);
+    return () => { document.removeEventListener('pointerdown', out); document.removeEventListener('keydown', esc); };
+  }, [open]);
+  const summary = picked.length === 0 ? 'Wybierz z listy'
+    : picked.length === 1 ? picked[0]
+    : `${picked[0]} + ${picked.length - 1} ${picked.length - 1 === 1 ? 'inny' : picked.length - 1 < 5 ? 'inne' : 'innych'}`;
+  return (
+    <div className={`bf-sel${open ? ' open' : ''}`} ref={box}>
+      <button
+        type="button" className={`bf-sel-btn${picked.length ? ' has' : ''}`}
+        aria-haspopup="listbox" aria-expanded={open} aria-labelledby="bfPainsLab"
+        onClick={() => setOpen((o) => !o)}
+      >
+        <span className="bf-sel-val">{summary}</span>
+        <span className="bf-sel-arr" aria-hidden="true">▾</span>
+      </button>
+      {open && (
+        <div className="bf-sel-list" role="listbox" aria-multiselectable="true" aria-labelledby="bfPainsLab">
+          {options.map((name) => {
+            const on = picked.includes(name);
+            return (
+              <button
+                key={name} type="button" role="option" aria-selected={on}
+                className={`bf-sel-opt${on ? ' on' : ''}`}
+                onClick={() => onToggle(name)}
+              >
+                <i className="bf-sel-box" aria-hidden="true">{on ? '✓' : ''}</i>{name}
+              </button>
+            );
+          })}
+          <button type="button" className="bf-sel-done" onClick={() => setOpen(false)}>Gotowe</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function BriefForm() {
   const [step, setStep] = useState(1);            // 1 dane · 2 analiza + kalendarz · 3 gotowe
   const [form, setForm] = useState({ name: '', company: '', email: '', site: '' });
@@ -88,7 +136,12 @@ export default function BriefForm() {
   useEffect(() => () => { if (fxRef.current) fxRef.current.stop(); }, []);
 
   const set = (k) => (e) => { setForm((f) => ({ ...f, [k]: e.target.value })); setErr(''); };
-  const toggle = (name) => setPicked((p) => (p.includes(name) ? p.filter((x) => x !== name) : p.concat(name)));
+  // „Jeszcze nie wiem" wyklucza konkretne problemy i odwrotnie
+  const toggle = (name) => setPicked((p) => {
+    if (p.includes(name)) return p.filter((x) => x !== name);
+    if (name === UNSURE) return [UNSURE];
+    return p.filter((x) => x !== UNSURE).concat(name);
+  });
 
   /* ---- krok 1 → animacja → krok 2 ---- */
   async function next(e) {
@@ -206,16 +259,8 @@ export default function BriefForm() {
           </div>
 
           <div className="bf-picks">
-            <span className="bf-lab">Co u Was najbardziej uwiera? <i>(opcjonalnie)</i></span>
-            <div className="bf-pills">
-              {PAIN_LABELS.concat(UNSURE).map((name) => (
-                <button
-                  key={name} type="button"
-                  className={`bf-pill${picked.includes(name) ? ' on' : ''}`}
-                  onClick={() => toggle(name)}
-                >{name}</button>
-              ))}
-            </div>
+            <span className="bf-lab" id="bfPainsLab">Co u Was najbardziej uwiera? <i>(opcjonalnie)</i></span>
+            <PainSelect options={PAIN_LABELS.concat(UNSURE)} picked={picked} onToggle={toggle} />
           </div>
 
           <div className="bf-actions">

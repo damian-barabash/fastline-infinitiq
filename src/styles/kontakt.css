@@ -760,7 +760,7 @@ body.fiq-edit #neural { display: none; }
 .cursor-dot.acid { background: #0D0D0D; }
 .cursor-ring.acid { border-color: rgba(13,13,13,0.55); background: rgba(13,13,13,0.06); }
 .cursor-ring.acid.link { border-color: #0D0D0D; background: rgba(13,13,13,0.10); }
-.model-panel, .ag-final, .btn-primary, .btn-send, .bf-btn, .bf-pill.on, .bf-slot.on, .nav-cta, .menu-cta,
+.model-panel, .ag-final, .btn-primary, .btn-send, .bf-btn, .bf-sel-done, .bf-pill.on, .bf-slot.on, .nav-cta, .menu-cta,
 .af-btn, .af-btn-a, .wh-cta, .fb-cta-btn, .pill.on,
 html.mode-3d .btn-primary, html.mode-3d .nav-cta, html.mode-3d .menu-cta,
 html.mode-3d .af-btn, html.mode-3d .btn-send, html.mode-3d .bf-btn, html.mode-3d .wh-cta {
@@ -1116,3 +1116,45 @@ main .bf-actions { position: static; background: none; padding: 0; margin-top: 8
   main .contact-left .lead { font-size: 16.5px; }
   main .form-card { margin-top: 26px; padding: 24px 18px 26px; }
 }
+
+/* ===== Problemy jako rozwijane menu (2026-10-15) =====
+   Pełne tła, bez obrysów (zasada serwisu). Lista leży nad resztą formularza. */
+.bf-sel { position: relative; }
+.bf-sel-btn {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 13px 16px; background: #22242A; border: none; color: rgba(245,245,240,0.55);
+  font-family: 'Schibsted Grotesk', sans-serif; font-size: 16px; text-align: left; cursor: pointer;
+  transition: background 0.2s;
+}
+.bf-sel-btn:hover, .bf-sel.open .bf-sel-btn { background: #2A2D33; }
+.bf-sel-btn.has { color: #F5F5F0; }
+.bf-sel-val { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bf-sel-arr { color: var(--green); font-size: 14px; transition: transform 0.2s; }
+.bf-sel.open .bf-sel-arr { transform: rotate(180deg); }
+.bf-sel-list {
+  position: absolute; left: 0; right: 0; top: calc(100% + 6px); z-index: 20;
+  max-height: 320px; overflow-y: auto; padding: 6px;
+  background: #22242A; box-shadow: 0 18px 50px rgba(0,0,0,0.6);
+  scrollbar-width: thin; scrollbar-color: rgba(184,255,0,0.45) transparent;
+}
+.bf-sel-opt {
+  width: 100%; display: flex; align-items: center; gap: 12px; padding: 10px 10px;
+  background: none; border: none; color: rgba(245,245,240,0.85); text-align: left; cursor: pointer;
+  font-family: 'Schibsted Grotesk', sans-serif; font-size: 15px; line-height: 1.35;
+}
+.bf-sel-opt:hover { background: rgba(245,245,240,0.06); color: #F5F5F0; }
+.bf-sel-opt.on { color: #F5F5F0; }
+.bf-sel-box {
+  flex: 0 0 auto; width: 18px; height: 18px; display: grid; place-items: center;
+  background: rgba(245,245,240,0.12); color: #0D0D0D; font-style: normal; font-size: 13px; font-weight: 700;
+}
+.bf-sel-opt.on .bf-sel-box { background: var(--green); }
+.bf-sel-done {
+  display: block; margin: 6px 4px 2px auto; padding: 9px 18px; border: none; cursor: pointer;
+  background: var(--green); color: #0D0D0D; font-family: 'Onest', sans-serif; font-weight: 700;
+  font-size: 13px; letter-spacing: 0.06em; text-transform: uppercase;
+}
+@media (max-width: 1000px) { .bf-sel-list { max-height: 60vh; } }
+/* otwarta lista ma leżeć nad mailem i stopką (karta ma własny kontekst przez animację `.in`) */
+main { z-index: 3; }
+main .form-card { z-index: 2; }
