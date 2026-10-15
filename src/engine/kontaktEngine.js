@@ -104,7 +104,7 @@ export function initKontakt({ onNavigate }) {
 
   function drawNeural(time) {
     ctx.clearRect(0, 0, vw, vh);
-    const cx = FLAT ? vw * 0.5 : vw * 0.30;
+    const cx = vw * 0.5;   // treść stoi na środku (2026-10-15)
     const cy = vh * 0.5;
     const baseR = Math.min(vw, vh) * (FLAT ? 0.34 : 0.24);
     const H = vh * 1.4;

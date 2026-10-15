@@ -1074,3 +1074,45 @@ html.coarse .af-btn, html.coarse .wh-cta, html.coarse .pill.on { cursor: auto; }
 .plan-note { margin-bottom: 18px; padding: 12px 14px; border: 1px solid var(--green, #B8FF00); background: rgba(184,255,0,0.08); display: grid; gap: 4px; }
 .plan-note b { font-family: 'IBM Plex Mono', monospace; font-size: 11.5px; letter-spacing: 0.08em; text-transform: uppercase; color: #B8FF00; font-weight: 500; }
 .plan-note span { font-size: 14px; line-height: 1.45; color: rgba(245,245,240,0.88); }
+
+/* ===== Kontakt v3 — jedna kolumna na środku (2026-10-15) =====
+   Właściciel: „za dużo wszystkiego, formularz na środek". Nagłówek nad kartą,
+   karta formularza na środku, mail pod nią. Karta nie ma już własnego sufitu
+   i przewijania (kwasowe paski po prawej i na dole) — przewija się strona.
+   Selektory z `main` — `site.css` jest wstrzykiwany ZA tym arkuszem. */
+main {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  max-width: 880px;
+  min-height: 0;
+  gap: 0;
+  padding: 124px 24px 64px;
+}
+main .contact-left { display: block; width: 100%; text-align: center; }
+main .contact-left .section-label { justify-content: center; margin-bottom: 18px; }
+main .contact-left h1 { font-size: clamp(30px, 4vw, 54px); margin-bottom: 16px; }
+main .contact-left .lead { max-width: 640px; margin: 0 auto; font-size: 18px; line-height: 1.6; }
+main .form-card {
+  width: 100%;
+  max-width: 760px;
+  margin: 34px 0 0;
+  padding: 30px 36px 32px;
+  max-height: none;
+  overflow: visible;
+}
+main .direct { margin-top: 26px; text-align: center; }
+main .bf-lab i { font-style: normal; text-transform: none; letter-spacing: 0.02em; color: rgba(245,245,240,0.45); }
+main .bf-pills { max-height: none; overflow: visible; padding-right: 0; }
+main .bf-picks::after { display: none; }
+main .bf-actions { position: static; background: none; padding: 0; margin-top: 8px; }
+
+@media (min-width: 1001px) and (max-height: 820px) {
+  main { padding-top: 104px; }
+  main .form-card { padding: 24px 30px 26px; margin-top: 26px; }
+}
+@media (max-width: 1000px) {
+  main { padding: 112px 16px 48px; }
+  main .contact-left .lead { font-size: 16.5px; }
+  main .form-card { margin-top: 26px; padding: 24px 18px 26px; }
+}

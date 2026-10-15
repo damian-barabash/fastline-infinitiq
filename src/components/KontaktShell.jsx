@@ -67,54 +67,21 @@ export default function KontaktShell() {
         </a>
       </nav>
 
+      {/* Jedna kolumna na środku (2026-10-15): nagłówek → formularz → mail.
+          Trzy kroki „Briefing / Diagnoza / Retainer" i drugi nagłówek w karcie
+          formularza zniknęły — powtarzały to, co mówi lead. */}
       <main>
-        <div className="contact-left">
-          <div
-            className="kt-intro"
-            data-msec="Briefing"
-            data-hideable="kt:intro"
-            data-hide-label="Kontakt — nagłówek"
-          >
-            <div className="section-label in in1" data-edit="kt_label">Kontakt — Zacznij tutaj</div>
-            <h1 className="in in1" data-edit="kt_h1" data-edit-type="html">Briefing<br /><em>strategiczny.</em></h1>
-            <p className="lead in in2" data-edit="kt_lead" data-edit-type="html">
-              Pierwsze spotkanie to briefing strategiczny — <strong>bez umów, bez zobowiązań.</strong>{' '}
-              Sprawdzamy, czy do siebie pasujemy i gdzie AI realnie zarobi u Was na siebie.
-            </p>
-          </div>
-
-          <div
-            className="steps in in3"
-            data-msec="Jak pracujemy"
-            data-hideable="kt:steps"
-            data-hide-label="Kontakt — trzy kroki"
-          >
-            <div className="step" data-hideable="kt:step1" data-hide-label="Krok 01">
-              <div className="step-num">01</div>
-              <div>
-                <h3><span className="st-name" data-edit="kt_s1_h">Briefing</span> <span data-edit="kt_s1_t">~30 min</span></h3>
-                <p data-edit="kt_s1_p" data-edit-type="html">Rozmowa o Twojej marce, celach i wolumenie komunikacji. Bez prezentacji sprzedażowej.</p>
-              </div>
-            </div>
-            <div className="step" data-hideable="kt:step2" data-hide-label="Krok 02">
-              <div className="step-num">02</div>
-              <div>
-                <h3><span className="st-name" data-edit="kt_s2_h">Diagnoza &amp; roadmapa</span> <span data-edit="kt_s2_t">do 7 dni</span></h3>
-                <p data-edit="kt_s2_p" data-edit-type="html">Mapujemy potencjał AI dla Twojej marki i wracamy z konkretną propozycją transformacji.</p>
-              </div>
-            </div>
-            <div className="step" data-hideable="kt:step3" data-hide-label="Krok 03">
-              <div className="step-num">03</div>
-              <div>
-                <h3><span className="st-name" data-edit="kt_s3_h">Retainer</span> <span data-edit="kt_s3_t">od 6 miesięcy</span></h3>
-                <p data-edit="kt_s3_p" data-edit-type="html">Dedykowany zespół AI — strategy + execution. Systemy uczą się, strategie ewoluują.</p>
-              </div>
-            </div>
-          </div>
-
-          <p className="direct in in4" data-hideable="kt:direct" data-hide-label="Kontakt — mail bezpośredni">
-            <span data-edit="kt_direct_l">Wolisz maila?</span>{' '}
-            <a href="mailto:infinitiq@fastline.pl" data-edit="kt_direct_mail">infinitiq@fastline.pl</a>
+        <div
+          className="contact-left kt-intro"
+          data-msec="Briefing"
+          data-hideable="kt:intro"
+          data-hide-label="Kontakt — nagłówek"
+        >
+          <div className="section-label in in1" data-edit="kt_label">Kontakt — Zacznij tutaj</div>
+          <h1 className="in in1" data-edit="kt_h1" data-edit-type="html">Briefing <em>strategiczny.</em></h1>
+          <p className="lead in in2" data-edit="kt_lead" data-edit-type="html">
+            <strong>Bez umów, bez zobowiązań.</strong> Zostaw dane i adres strony: przeczytamy ją,
+            powiemy, co u Was przejmie AI, a potem sam wybierzesz termin rozmowy.
           </p>
         </div>
 
@@ -124,13 +91,13 @@ export default function KontaktShell() {
           data-hideable="kt:form"
           data-hide-label="Kontakt — formularz briefingu"
         >
-          <div className="form-title" data-edit="kt_form_title">★ Formularz briefingu</div>
-          <p className="form-lead" data-edit="kt_form_lead" data-edit-type="html">
-            Zostaw dane i adres strony — przeczytamy ją, powiemy, co u Was przejmie AI,
-            a potem sam wybierzesz termin rozmowy.
-          </p>
           <BriefForm />
         </div>
+
+        <p className="direct in in3" data-hideable="kt:direct" data-hide-label="Kontakt — mail bezpośredni">
+          <span data-edit="kt_direct_l">Wolisz maila?</span>{' '}
+          <a href="mailto:infinitiq@fastline.pl" data-edit="kt_direct_mail">infinitiq@fastline.pl</a>
+        </p>
       </main>
 
       <footer data-hideable="kt:footer" data-hide-label="Kontakt — stopka">

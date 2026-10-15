@@ -200,13 +200,13 @@ export default function BriefForm() {
               {siteState.s === 'checking' && <><i className="bf-dot" />Sprawdzam, czy strona odpowiada…</>}
               {siteState.s === 'ok' && <><i className="bf-ok" />Strona działa{siteState.title ? ` — „${siteState.title}”` : ''}</>}
               {siteState.s === 'bad' && <><i className="bf-no" />{siteState.reason}</>}
-              {siteState.s === 'idle' && 'Przeczytamy ją, zanim porozmawiamy.'}
+              
             </span>
           </label>
           </div>
 
           <div className="bf-picks">
-            <span className="bf-lab">Co u Was najbardziej uwiera?</span>
+            <span className="bf-lab">Co u Was najbardziej uwiera? <i>(opcjonalnie)</i></span>
             <div className="bf-pills">
               {PAIN_LABELS.concat(UNSURE).map((name) => (
                 <button
@@ -216,7 +216,6 @@ export default function BriefForm() {
                 >{name}</button>
               ))}
             </div>
-            <p className="bf-hint">Zaznacz, co Was boli — dobranie rozwiązania zostaw nam. Możesz też nic nie zaznaczać.</p>
           </div>
 
           <div className="bf-actions">
