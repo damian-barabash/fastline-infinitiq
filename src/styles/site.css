@@ -319,3 +319,46 @@ html:not(.has-pointer) .cursor-dot, html:not(.has-pointer) .cursor-ring { opacit
 /* otwarta grupa: pozostałe nazwy siedzą na dużej kuli (silnik: klasa `.docked`) */
 .pl-gname.docked { font-size: 13px; color: rgba(184,255,0,0.9); background: rgba(13,13,13,0.86); }
 .pl-gname.docked:hover { color: #F5F5F0; }
+
+/* ---------- Formularz darmowego audytu — wyraźniej (2026-10-15) ----------
+   Właściciel: „ten blok ma być wyraźniejszy". Karta na jaśniejszej, pełnej płycie
+   z kwasowym paskiem u góry i poświatą; pole jako wypełniony prostokąt tej samej
+   wysokości co przycisk; większy krok, etykieta i przycisk; link do briefingu
+   kwasowy. Bez obrysów (zasada serwisu) — narożniki-obrysy karty zdjęte. */
+.af {
+  background: linear-gradient(160deg, #1D2116 0%, #17181B 46%, #141518 100%) !important;
+  border: 0 !important;
+  padding: 34px 36px 32px !important;
+  box-shadow: 0 30px 80px rgba(0,0,0,0.55), 0 0 0 1px rgba(184,255,0,0.10), 0 0 60px -12px rgba(184,255,0,0.22);
+}
+.af::before {
+  top: 0; left: 0; right: 0; width: auto; height: 4px; border: 0;
+  background: linear-gradient(90deg, var(--green), rgba(184,255,0,0.35));
+}
+.af::after { display: none; }
+.af-steps { margin-bottom: 26px; }
+.af-step-n { font-size: 14px; padding: 6px 9px; font-weight: 700; }
+.af-step-t { font-size: 14px; font-weight: 700; }
+.af-lab { font-size: 13px; color: #F5F5F0; margin-bottom: 12px; }
+.af-row { align-items: stretch; }
+.af-input {
+  background: #26282E; border-bottom: 2px solid transparent;
+  font-size: 19px; padding: 16px 18px 14px; color: #F5F5F0;
+}
+.af-input::placeholder { color: rgba(245,245,240,0.42); }
+.af-input:focus { background: #2C2F35; border-bottom-color: var(--green); }
+.af-btn { font-family: 'Onest', sans-serif; font-weight: 800; font-size: 15px; letter-spacing: 0.08em; padding: 0 30px; min-height: 56px; }
+.af-btn-a { padding: 18px 30px; }
+.af-row-c .af-btn { padding: 0 34px; }
+.af-hint { font-size: 17px; color: rgba(245,245,240,0.86); }
+.af-hint strong { color: var(--green); }
+.aud-right .aud-alt { color: var(--green); border-bottom-color: rgba(184,255,0,0.45); font-size: 13.5px; }
+.aud-right .aud-note { color: rgba(245,245,240,0.8); }
+body.fiq-edit .af { box-shadow: none; }
+@media (max-width: 900px) {
+  .af { padding: 28px 18px 24px !important; }
+  .af-input { font-size: 17px; padding: 14px 14px 12px; }
+  .af-btn { width: 100%; min-height: 54px; }
+  .af-step-n, .af-step-t { font-size: 12.5px; }
+  .af-hint { font-size: 15.5px; }
+}
