@@ -8,6 +8,7 @@ import Kontakt from './pages/Kontakt.jsx';
 import Agenci from './pages/Agenci.jsx';
 import Doradca from './pages/Doradca.jsx';
 import Legal from './pages/Legal.jsx';
+import Shop from './pages/Shop.jsx';
 
 // SSG renderuje synchronicznie — wszystkie strony publiczne są gotowe od razu
 registerPage('Home', Home);
@@ -15,6 +16,7 @@ registerPage('Kontakt', Kontakt);
 registerPage('Agenci', Agenci);
 registerPage('Doradca', Doradca);
 registerPage('Legal', Legal);
+registerPage('Shop', Shop);
 
 export function render(url) {
   return renderToString(

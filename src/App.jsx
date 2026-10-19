@@ -10,6 +10,7 @@ const Kontakt = page('Kontakt');
 const Agenci = page('Agenci');
 const Doradca = page('Doradca');
 const Legal = page('Legal');
+const Shop = page('Shop');
 
 // Не-пререндеренные роуты — lazy: supabase-js + редакторский код не попадают
 // в основной бандл лендинга.
@@ -71,6 +72,8 @@ export default function App() {
         <Route path="/kontakt" element={<Kontakt />} />
         <Route path="/agenci-ai" element={<Agenci />} />
         <Route path="/ai-doradca" element={<Doradca />} />
+        {/* witryna produktów — ceny z RPC shop_products(), zakup jeszcze wyłączony */}
+        <Route path="/shop" element={<Shop />} />
         {/* dokumenty prawne — statyczne, pełne w SSG; /usuwanie-danych wymaga Meta (aplikacja „Infinitiq") */}
         <Route path="/polityka-prywatnosci" element={<Legal slug="polityka-prywatnosci" />} />
         <Route path="/polityka-cookies" element={<Legal slug="polityka-cookies" />} />

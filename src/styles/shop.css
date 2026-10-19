@@ -1,0 +1,177 @@
+/* ===== /shop — witryna produktów (nakładka na kontakt.css, site.css idzie ZA nią) =====
+   Sprzedaż jeszcze nie działa: karty `.off` są wyszarzone, przycisk zakupu wyłączony.
+   Bez obrysów (zasada serwisu) — tylko pełne tła. */
+main.shop {
+  display: block;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 136px 40px 80px;
+  position: relative;
+  z-index: 2;
+  min-height: 100vh;
+}
+
+.shop-head { max-width: 780px; margin-bottom: 46px; }
+.shop-head .section-label { margin-bottom: 16px; }
+.shop-head h1 {
+  font-family: 'Onest', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: clamp(32px, 4.6vw, 60px);
+  line-height: 1.02;
+  letter-spacing: -0.01em;
+  margin: 0 0 18px;
+}
+.shop-head .lead { font-size: 19px; line-height: 1.6; color: rgba(245,245,240,0.88); }
+.shop-note {
+  margin-top: 16px;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600;
+  font-size: 12.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: rgba(245,245,240,0.72);
+}
+
+.shop-group { margin-top: 44px; }
+.shop-gname {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-family: 'Onest', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: clamp(19px, 2vw, 24px);
+  letter-spacing: 0.02em;
+  margin-bottom: 18px;
+}
+.shop-gletter {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  background: var(--green);
+  color: #0D0D0D;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 700;
+  font-size: 15px;
+}
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+  gap: 16px;
+}
+
+.shop-card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 300px;
+  padding: 22px 22px 20px;
+  background: var(--fiq-card, #121310);
+}
+.shop-card h3 {
+  font-family: 'Onest', sans-serif;
+  font-weight: 800;
+  text-transform: uppercase;
+  font-size: 19px;
+  line-height: 1.15;
+  margin: 16px 0 10px;
+}
+.shop-desc { font-size: 15px; line-height: 1.55; color: rgba(245,245,240,0.82); margin-bottom: 18px; }
+
+.shop-top { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.shop-ic {
+  display: inline-grid;
+  place-items: center;
+  width: 42px;
+  height: 42px;
+  background: #1D2016;
+  color: var(--green);
+}
+.shop-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 6px 10px;
+  background: #2A2B2E;
+  color: #B9BAB4;
+}
+
+.shop-price { margin: auto 0 16px; display: grid; gap: 8px; }
+.shop-price div { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.shop-price dt {
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 600;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(245,245,240,0.7);
+}
+.shop-price dd { font-family: 'Onest', sans-serif; font-weight: 800; font-size: 21px; white-space: nowrap; }
+.shop-price dd small { font-size: 13px; font-weight: 600; color: rgba(245,245,240,0.7); }
+.shop-price .shop-ask { font-size: 15px; font-weight: 700; }
+
+.shop-buy {
+  width: 100%;
+  padding: 14px 16px;
+  border: 0;
+  font-family: 'Onest', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+.shop-buy:disabled { background: #2A2B2E; color: #8E8F8A; cursor: not-allowed; }
+.shop-more {
+  margin-top: 12px;
+  align-self: flex-start;
+  font-family: 'Onest', sans-serif;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--green);
+  text-decoration: none;
+}
+.shop-more:hover { text-decoration: underline; }
+
+/* „jeszcze niedostępne": cała karta w szarości, ale tekst czytelny */
+.shop-card.off { background: #141515; }
+.shop-card.off h3, .shop-card.off .shop-desc, .shop-card.off .shop-price { opacity: 0.6; }
+.shop-card.off .shop-ic { background: #232427; color: #8E8F8A; }
+/* link do strony produktu zostaje zielony — produkt można już poznać, tylko nie kupić */
+
+/* szkielet przed wczytaniem */
+.shop-card.skel { min-height: 300px; background: linear-gradient(100deg, #121310 30%, #1A1C17 50%, #121310 70%); background-size: 300% 100%; animation: shopSkel 1.4s linear infinite; }
+@keyframes shopSkel { from { background-position: 100% 0; } to { background-position: -100% 0; } }
+
+.shop-empty { font-size: 17px; color: rgba(245,245,240,0.8); background: var(--fiq-card, #121310); padding: 20px 22px; }
+
+.shop-cta {
+  margin-top: 64px;
+  padding: 32px;
+  background: var(--fiq-card, #121310);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.shop-cta p { font-family: 'Onest', sans-serif; font-weight: 800; font-size: clamp(18px, 2vw, 24px); text-transform: uppercase; }
+.shop-cta .btn-primary {
+  display: inline-block;
+  padding: 16px 30px;
+  background: var(--green);
+  color: #0D0D0D;
+  text-decoration: none;
+}
+
+@media (max-width: 900px) {
+  main.shop { padding: 112px 16px 56px; }
+  .shop-head .lead { font-size: 17px; }
+  .shop-card { min-height: 0; }
+  .shop-cta { padding: 22px 18px; }
+  .shop-cta .btn-primary { width: 100%; text-align: center; }
+}

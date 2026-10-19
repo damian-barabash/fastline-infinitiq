@@ -96,6 +96,20 @@ const legalHead = (slug) => `<!--head-->
 <meta property="og:locale" content="pl_PL">
 <!--/head-->`;
 
+const SHOP_HEAD = `<!--head-->
+<title>Sklep — produkty AI | Fastline InfinitiQ</title>
+<meta name="description" content="Wszystkie produkty AI Fastline InfinitiQ z cenami: agenci AI, marketing, sprzedaż i zarządzanie. Sprzedaż online wkrótce.">
+<link rel="canonical" href="https://fastlineinfinitiq.pl/shop">
+<meta name="theme-color" content="#0D0D0D">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Fastline InfinitiQ">
+<meta property="og:title" content="Sklep — produkty AI | Fastline InfinitiQ">
+<meta property="og:description" content="Wszystkie produkty AI Fastline InfinitiQ z cenami. Sprzedaż online wkrótce.">
+<meta property="og:url" content="https://fastlineinfinitiq.pl/shop">
+<meta property="og:image" content="https://fastlineinfinitiq.pl/assets/og/og.jpg">
+<meta property="og:locale" content="pl_PL">
+<!--/head-->`;
+
 const FALLBACK_HEAD = `<!--head-->
 <title>Fastline InfinitiQ — AI-Native Agency</title>
 <meta name="robots" content="noindex">
@@ -141,6 +155,10 @@ writeFileSync(resolve(dist, 'agenci-ai', 'index.html'), page('/agenci-ai', AGENC
 mkdirSync(resolve(dist, 'ai-doradca'), { recursive: true });
 writeFileSync(resolve(dist, 'ai-doradca', 'index.html'), page('/ai-doradca', DORADCA_HEAD, 'src/pages/Doradca.jsx'));
 
+// /shop/ — witryna produktów (lista dochodzi z bazy po hydracji)
+mkdirSync(resolve(dist, 'shop'), { recursive: true });
+writeFileSync(resolve(dist, 'shop', 'index.html'), page('/shop', SHOP_HEAD, 'src/pages/Shop.jsx'));
+
 // dokumenty prawne
 for (const slug of Object.keys(LEGAL_META)) {
   mkdirSync(resolve(dist, slug), { recursive: true });
@@ -150,4 +168,4 @@ for (const slug of Object.keys(LEGAL_META)) {
 // 404.html — SPA fallback (editor/login/audyt и любые прямые заходы), noindex
 writeFileSync(resolve(dist, '404.html'), template.replace(HEAD_RE, FALLBACK_HEAD));
 
-console.log('prerender done: /, /kontakt, /agenci-ai, /ai-doradca, 4 dokumenty prawne, 404.html');
+console.log('prerender done: /, /kontakt, /agenci-ai, /ai-doradca, /shop, 4 dokumenty prawne, 404.html');

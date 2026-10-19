@@ -16,6 +16,7 @@ const loaders = {
   Agenci: () => import('../pages/Agenci.jsx'),
   Doradca: () => import('../pages/Doradca.jsx'),
   Legal: () => import('../pages/Legal.jsx'),
+  Shop: () => import('../pages/Shop.jsx'),
 };
 
 const LEGAL = ['/polityka-prywatnosci', '/polityka-cookies', '/regulamin', '/usuwanie-danych'];
@@ -30,6 +31,7 @@ export function keyForPath(pathname) {
   if (p === '/agenci-ai') return 'Agenci';
   if (p === '/ai-doradca') return 'Doradca';
   if (LEGAL.includes(p)) return 'Legal';
+  if (p === '/shop') return 'Shop';
   return null;
 }
 
