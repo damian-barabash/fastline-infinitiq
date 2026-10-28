@@ -4,6 +4,7 @@ import LandingShell from '../components/LandingShell.jsx';
 import { ensureFIQ } from '../engine/fiq.js';
 import { initLanding } from '../engine/landingEngine.js';
 import { initHeroSphere } from '../engine/heroSphere.js';
+import { initHeroMobile } from '../engine/heroMobile.js';
 import { renderHeroProducts, LANDING_PRODUCTS_QUERY } from '../engine/heroProducts.js';
 import { wipeTo } from '../engine/wipe.js';
 import { SB_URL, SB_KEY } from '../lib/supabase-config.js';
@@ -18,6 +19,7 @@ export default function Home() {
     ensureFIQ();
     let destroy = initLanding({ onNavigate: (to) => wipeTo(navigate, to) });
     let destroyPlanet = initHeroSphere();
+    let destroyMobile = initHeroMobile();
     if (window.__fiq) window.__fiq.set(72); // движок поднят
 
     if (document.fonts && document.fonts.ready) {
@@ -84,6 +86,7 @@ export default function Home() {
         // Silnik kuli trzyma listę kart z chwili startu — po przebudowie z katalogu
         // musi ją przeczytać jeszcze raz (chyba że i tak wstał przy ukrytych graniach).
         if (rebuilt && !sphereReinited) { destroyPlanet(); destroyPlanet = initHeroSphere(); }
+        if (rebuilt) { destroyMobile(); destroyMobile = initHeroMobile(); }
       })
       .catch(() => {})
       .finally(() => {
@@ -93,7 +96,7 @@ export default function Home() {
         if (window.__fiq) window.__fiq.done();
       });
 
-    return () => { alive = false; ac.abort(); destroyPlanet(); destroy(); };
+    return () => { alive = false; ac.abort(); destroyPlanet(); destroyMobile(); destroy(); };
   }, [navigate]);
 
   return (

@@ -1,6 +1,7 @@
 import React, { useEffect, lazy, Suspense } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import CookieNotice from './components/CookieNotice.jsx';
+import Checkout from './components/Checkout.jsx';
 import { page } from './lib/pages.jsx';
 
 // Strony publiczne (SSG) — każda w swojej paczce JS; strona z adresu jest
@@ -18,6 +19,7 @@ const Login = lazy(() => import('./pages/Login.jsx'));
 const Editor = lazy(() => import('./pages/Editor.jsx'));
 const Audit = lazy(() => import('./pages/Audit.jsx'));
 const Katalog = lazy(() => import('./pages/Katalog.jsx'));
+const Order = lazy(() => import('./pages/Order.jsx'));
 
 // #wipe живёт в App (переживает смену роутов). CSS шторки есть в стилях каждой
 // страницы (байт-в-байт из исходников), плюс минимальный fallback в index.html.
@@ -57,8 +59,15 @@ function WipeController() {
 // komunikat o cookies tylko na stronach publicznych (nie w edytorze, logowaniu, audycie, katalogu)
 function CookieGate() {
   const { pathname } = useLocation();
-  if (/^\/(editor|login|audyt|katalog)/.test(pathname)) return null;
+  if (/^\/(editor|login|audyt|katalog|zamowienie|zaplac|platnosc-testowa|faktura|platnosc)/.test(pathname)) return null;
   return <CookieNotice />;
+}
+
+// koszyk tylko tam, gdzie są przyciski zakupu (LP produktu, /shop)
+function CheckoutGate() {
+  const { pathname } = useLocation();
+  if (!/^\/(ai-doradca|shop)\/?$/.test(pathname)) return null;
+  return <Checkout />;
 }
 
 export default function App() {
@@ -66,6 +75,7 @@ export default function App() {
     <>
       <WipeController />
       <CookieGate />
+      <CheckoutGate />
       <Suspense fallback={null}>
       <Routes>
         <Route path="/" element={<Home />} />
@@ -79,6 +89,12 @@ export default function App() {
         <Route path="/polityka-cookies" element={<Legal slug="polityka-cookies" />} />
         <Route path="/regulamin" element={<Legal slug="regulamin" />} />
         <Route path="/usuwanie-danych" element={<Legal slug="usuwanie-danych" />} />
+        {/* po koszyku (noindex, bez SSG): podziękowanie, zaległa faktura, bramka testowa */}
+        <Route path="/zamowienie" element={<Order mode="thanks" />} />
+        <Route path="/zaplac" element={<Order mode="pay" />} />
+        <Route path="/platnosc-testowa" element={<Order mode="test" />} />
+        <Route path="/faktura" element={<Order mode="invoice" />} />
+        <Route path="/platnosc" element={<Order mode="card" />} />
         <Route path="/login" element={<Login />} />
         <Route path="/editor" element={<Editor />} />
         <Route path="/audyt/:slug" element={<Audit />} />

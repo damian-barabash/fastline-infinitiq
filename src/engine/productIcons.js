@@ -74,3 +74,23 @@ export function iconSvgHtml(name, id) {
     return `<path d="${p.d}"${extra} />`;
   }).join('') + '</svg>';
 }
+
+/* Ikony GRUP (kafelki zakładek w mobilnym hero, nagłówki grup w /shop) —
+   zastąpiły litery A/B/C/D (2026-10-28). Klucz = litera grupy z katalogu. */
+export const GROUP_ICON_PATHS = {
+  // Marketing — megafon
+  a: [{ d: 'M4 10v4h3l7 4V6l-7 4z' }, { d: 'M7 14v4.5h2.5V14' }, { d: 'M17.5 9.5a3.5 3.5 0 010 5' }],
+  // Sprzedaż — wykres w górę
+  b: [{ d: 'M3 17l6-6 4 4 8-8' }, { d: 'M15 7h6v6' }],
+  // Obsługa klienta — słuchawki
+  c: [{ d: 'M4 14v-2a8 8 0 0116 0v2' }, { d: 'M4 14h3v6H5.5A1.5 1.5 0 014 18.5zM20 14h-3v6h1.5a1.5 1.5 0 001.5-1.5z' }],
+  // Zarządzanie — siatka modułów
+  d: [{ d: 'M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z' }],
+};
+
+export function groupSvgHtml(g, size = 20) {
+  const paths = GROUP_ICON_PATHS[String(g || '').toLowerCase()] || GROUP_ICON_PATHS.d;
+  return `<svg class="g-ic" viewBox="0 0 24 24" width="${size}" height="${size}" fill="none" stroke="currentColor"`
+    + ' stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">'
+    + paths.map((p) => `<path d="${p.d}"/>`).join('') + '</svg>';
+}

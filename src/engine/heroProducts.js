@@ -14,11 +14,11 @@ const GROUPS = ['a', 'b', 'c', 'd'];
    katalogowe zmieniają się przy każdej rewizji oferty. Pierwsza taka strona
    jest zbiorcza: agenci bez własnej LP prowadzą na jeden adres; AI Doradca ma
    już swoją (/ai-doradca, 2026-10-12). */
+/* 2026-10-28 (właściciel): do sprzedaży jest tylko AI Doradca — pozostałe
+   produkty stoją na szaro i NIE prowadzą nigdzie (także do /agenci-ai), dopóki
+   nie ruszy ich sprzedaż. Nowy produkt w sprzedaży = wpis tutaj. */
 const PRODUCT_PAGES = [
-  { re: /sprzedawc/i, href: '/agenci-ai' },
   { re: /doradc/i, href: '/ai-doradca' },
-  { re: /asystent/i, href: '/agenci-ai' },
-  { re: /recepcj/i, href: '/agenci-ai' },
 ];
 
 /** Adres strony produktu albo '' — wtedy karta prowadzi do sekcji audytu. */
@@ -60,10 +60,11 @@ export function renderHeroProducts(rows) {
       const href = productHref(r.name);
       // produkt ze stroną = prawdziwy <a> (bot widzi link, `data-wipe` daje przejście
       // z kurtyną); reszta zostaje przyciskiem prowadzącym do sekcji audytu
+      // produkt niedostępny = szara karta „Wkrótce", bez linku i bez skoku do audytu
       const open = href
-        ? `<a class="pl-node has-page" href="${href}" data-wipe data-g="${g}" data-i="${i}" data-pid="${r.id}">`
-        : `<div class="pl-node" role="button" tabindex="0" data-goto="1" data-goto-id="audyt" data-g="${g}" data-i="${i}" data-pid="${r.id}">`;
-      const go = href ? '<i class="pl-go" aria-hidden="true">→</i>' : '';
+        ? `<a class="pl-node has-page live" href="${href}" data-wipe data-g="${g}" data-i="${i}" data-pid="${r.id}">`
+        : `<div class="pl-node locked" aria-disabled="true" data-g="${g}" data-i="${i}" data-pid="${r.id}">`;
+      const go = href ? '<i class="pl-go" aria-hidden="true">→</i>' : '<i class="pl-soon">Wkrótce</i>';
       html += open
         + `<div class="pl-top">${iconSvgHtml(r.name, r.id)}<span class="pl-num">${pad(i + 1)}</span>${go}</div>`
         + `<b class="pl-name">${esc(r.name)}</b>${desc}${href ? '</a>' : '</div>'}`;

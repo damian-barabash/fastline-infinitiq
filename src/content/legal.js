@@ -4,17 +4,21 @@
 // Administrator: Greywolf Group (marka Fastline InfinitiQ). Dane rejestrowe (NIP, adres)
 // uzupełnia właściciel — patrz ADMIN poniżej.
 
+// Dane z wykazu podatników VAT (MF) dla NIP 5214163067, pobrane 2026-10-28.
+// Ta sama spółka wystawia faktury za abonamenty (edge `billing`, stała SELLER).
 export const ADMIN = {
-  name: 'Greywolf Group',
+  name: 'FASTLINE INFINITIQ sp. z o.o.',
   brand: 'Fastline InfinitiQ',
   email: 'infinitiq@fastline.pl',
   site: 'https://fastlineinfinitiq.pl',
-  address: '', // np. „ul. …, 00-000 Warszawa" — puste = nie pokazujemy wiersza
-  nip: '',
+  address: 'ul. Wita Stwosza 48/103, 02-661 Warszawa', // puste = nie pokazujemy wiersza
+  nip: '5214163067',
+  krs: '0001237811',
+  regon: '544613419',
 };
 const UPDATED = '15 września 2026';
 const adminLine = () =>
-  `${ADMIN.name} (marka ${ADMIN.brand})${ADMIN.address ? `, ${ADMIN.address}` : ''}${ADMIN.nip ? `, NIP ${ADMIN.nip}` : ''}, e-mail: ${ADMIN.email}`;
+  `${ADMIN.name} (marka ${ADMIN.brand})${ADMIN.address ? `, ${ADMIN.address}` : ''}${ADMIN.krs ? `, KRS ${ADMIN.krs}` : ''}${ADMIN.nip ? `, NIP ${ADMIN.nip}` : ''}${ADMIN.regon ? `, REGON ${ADMIN.regon}` : ''}, e-mail: ${ADMIN.email}`;
 
 export const LEGAL = {
   'polityka-prywatnosci': {
@@ -125,14 +129,25 @@ export const LEGAL = {
   regulamin: {
     label: 'Dokumenty — 03',
     title: 'Regulamin serwisu',
-    lead: 'Zasady korzystania ze strony fastlineinfinitiq.pl, formularzy i bezpłatnego audytu. Warunki usług dla klientów określa osobna umowa.',
+    lead: 'Zasady korzystania ze strony fastlineinfinitiq.pl, formularzy, bezpłatnego audytu oraz zakupu abonamentu AI Doradca online.',
     updated: UPDATED,
     sections: [
       {
         h: 'Postanowienia ogólne',
         p: [
           `Serwis prowadzi ${adminLine()}. Regulamin określa zasady korzystania ze strony, formularzy kontaktowych oraz bezpłatnego audytu AI.`,
-          'Korzystanie z serwisu jest bezpłatne i nie wymaga rejestracji. Panele klienta są dostępne wyłącznie dla firm, z którymi zawarliśmy umowę.',
+          'Korzystanie z serwisu jest bezpłatne i nie wymaga rejestracji. Panele klienta są dostępne dla firm, które kupiły abonament online albo zawarły z nami umowę.',
+        ],
+      },
+      {
+        h: 'Zakup abonamentu online (AI Doradca)',
+        p: [
+          'Abonament kupują wyłącznie przedsiębiorcy (sprzedaż B2B). W koszyku podajesz NIP; dane firmy pobieramy z wykazu podatników VAT i możesz je poprawić przed płatnością. Ceny na stronie są cenami netto; do zapłaty doliczamy VAT 23%, a kwotę brutto widzisz przed płatnością.',
+          'Umowa zostaje zawarta z chwilą zaksięgowania pierwszej płatności. Zaraz potem zakładamy konto w panelu i wysyłamy na podany e-mail login, hasło jednorazowe oraz fakturę VAT. Zaznaczając zgodę w koszyku, prosisz o rozpoczęcie usługi od razu po płatności.',
+          'Abonament jest miesięczny i odnawia się automatycznie: na początku każdego okresu wystawiamy fakturę i obciążamy kartę zapisaną przy pierwszej płatności (płatności obsługuje ING Pay — ING Bank Śląski S.A.; nie przechowujemy danych kart). Abonament możesz anulować w każdej chwili w panelu, w zakładce „Płatności" — działa do końca opłaconego okresu, bez okresu wypowiedzenia i bez dalszych obciążeń.',
+          'Opcja „z wdrożeniem" obejmuje jednorazową konfigurację przez nasz zespół (baza wiedzy, ton marki, osadzenie na stronie) w ciągu 5 dni roboczych od otrzymania materiałów od klienta.',
+          'Jeśli płatność za kolejny okres się nie powiedzie, informujemy o tym mailem i prosimy o zapłatę. Po 7 dniach od terminu działanie AI Doradcy zostaje wstrzymane (dane i ustawienia zachowujemy), a po 14 dniach subskrypcja wygasa. Po opłaceniu zaległej faktury usługa wraca od razu.',
+          'Zakres abonamentu (limit rozmów, kanały, liczba pozycji katalogu) opisuje strona produktu w dniu zakupu. Rozmowy ponad limit rozliczamy według stawki podanej na stronie produktu.',
         ],
       },
       {

@@ -175,3 +175,39 @@ main.shop {
   .shop-cta { padding: 22px 18px; }
   .shop-cta .btn-primary { width: 100%; text-align: center; }
 }
+
+/* ===== Produkt w sprzedaży na górze witryny (2026-10-28) ===== */
+.shop-live { margin-top: 8px; }
+.shop-live-cap {
+  display: flex; align-items: center; gap: 10px;
+  font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 12.5px;
+  letter-spacing: 0.14em; text-transform: uppercase; color: var(--green);
+  margin-bottom: 14px;
+}
+.shop-live-cap .dot { width: 8px; height: 8px; background: var(--green); box-shadow: 0 0 12px var(--green); animation: shopPulse 1.8s ease-in-out infinite; }
+@keyframes shopPulse { 50% { opacity: 0.35; } }
+.shop-card.live {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+  gap: 36px;
+  min-height: 0;
+  padding: 30px 32px;
+  background: linear-gradient(150deg, #1D2116 0%, #141518 70%);
+  box-shadow: 0 0 0 1px rgba(184,255,0,0.45), 0 0 48px rgba(184,255,0,0.14);
+}
+.shop-card.live::before { content: ''; position: absolute; left: 0; top: 0; right: 0; height: 4px; background: var(--green); }
+.shop-card.live h3 { font-size: clamp(24px, 2.6vw, 34px); margin-top: 18px; }
+.shop-card.live .shop-desc { font-size: 17px; max-width: 520px; }
+.shop-card.live .shop-ic { background: var(--green); color: #0D0D0D; }
+.shop-badge.on { background: var(--green); color: #0D0D0D; }
+.shop-live-main { display: flex; flex-direction: column; }
+.shop-live-buy { display: flex; flex-direction: column; justify-content: flex-end; gap: 10px; }
+.shop-live-buy .shop-price { margin: 0 0 8px; }
+.shop-live-buy .shop-price dd { font-size: 26px; }
+.shop-buy.go { background: var(--green); color: #0D0D0D; cursor: pointer; }
+.shop-buy.alt { background: #F5F5F0; color: #0D0D0D; cursor: pointer; }
+.shop-buy.go:hover, .shop-buy.alt:hover { filter: brightness(1.08); }
+.shop-gletter .g-ic { display: block; }
+@media (max-width: 900px) {
+  .shop-card.live { grid-template-columns: 1fr; gap: 22px; padding: 24px 18px; }
+}

@@ -7,9 +7,9 @@ import { IcGlobe, IcCheck, IcUsers, IcCalendar, IcClock, IcDoc, IcSpark, IcArrow
    Teksty 1:1 ze struktury właściciela (2026-10-12). Wszystkie mają `data-edit`
    z prefiksem `ad_` i siedzą w wierszu `site_content` o id `ai-doradca`.
 
-   Adresy przycisków zakupu trzyma `BUY` — koszyka jeszcze nie ma, więc do czasu
-   bramki płatności oba prowadzą do /kontakt z parametrem `plan` (strona pokazuje
-   wtedy, co klient zamawia). Gdy powstanie koszyk, zmienia się tylko ta stała. */
+   Adresy przycisków zakupu trzyma `BUY`. Od 2026-10-28 kliknięcie w link
+   `/kontakt?plan=…` przechwytuje koszyk (`components/Checkout.jsx`) i otwiera
+   okno zakupu; sam adres zostaje jako zapas bez JS (formularz /kontakt). */
 
 export const BUY = {
   call: '/kontakt',
@@ -34,7 +34,6 @@ export default function DoradcaShell() {
             <div className="menu-cap">{'// produkty'}</div>
             <div className="menu-list" id="menuProducts">
               <a className="menu-link" href="/ai-doradca" data-wipe><span className="menu-num">→</span><span>AI Doradca</span></a>
-              <a className="menu-link" href="/agenci-ai" data-wipe><span className="menu-num">→</span><span>Agenci AI</span></a>
             </div>
             <a className="menu-cta" href="/#audyt" data-wipe>Darmowy audyt AI</a>
           </div>

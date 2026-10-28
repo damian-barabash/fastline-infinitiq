@@ -1,5 +1,6 @@
 import React from 'react';
-import ProductIcon from './productIcons.jsx';
+import ProductIcon, { GroupIcon } from './productIcons.jsx';
+import { PLANS } from '../lib/plans.js';
 import { productHref } from '../engine/heroProducts.js';
 
 /* Witryna /shop — wszystkie aktywne produkty katalogu z cenami „od".
@@ -10,7 +11,7 @@ import { productHref } from '../engine/heroProducts.js';
 
 const fmt = (n) => String(Math.round(Number(n))).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
 
-export default function ShopShell({ groups, state }) {
+export default function ShopShell({ groups, live, state }) {
   return (
     <>
       <canvas id="neural"></canvas>
@@ -27,7 +28,6 @@ export default function ShopShell({ groups, state }) {
             <div className="menu-cap">{'// produkty'}</div>
             <div className="menu-list" id="menuProducts">
               <a className="menu-link" href="/ai-doradca" data-wipe><span className="menu-num">→</span><span>AI Doradca</span></a>
-              <a className="menu-link" href="/agenci-ai" data-wipe><span className="menu-num">→</span><span>Agenci AI</span></a>
             </div>
             <a className="menu-cta" href="/#audyt" data-wipe>Darmowy audyt AI</a>
           </div>
@@ -67,8 +67,8 @@ export default function ShopShell({ groups, state }) {
           <div className="section-label in in1">Sklep</div>
           <h1 className="in in1">Wszystkie produkty AI</h1>
           <p className="lead in in2">
-            Pełna oferta Fastline InfinitiQ w jednym miejscu. Sprzedaż online ruszy wkrótce,
-            na razie każdy produkt uruchamiamy po krótkiej rozmowie.
+            Pełna oferta Fastline InfinitiQ w jednym miejscu. AI Doradcę kupisz od ręki,
+            kolejne produkty wejdą do sprzedaży wkrótce.
           </p>
           <p className="shop-note in in2">Ceny netto · wdrożenie jednorazowo · abonament miesięcznie</p>
         </header>
@@ -83,12 +83,36 @@ export default function ShopShell({ groups, state }) {
           </div>
         )}
 
+        {live && (
+          <section className="shop-live" data-msec="W sprzedaży">
+            <div className="shop-live-cap"><span className="dot"></span>Dostępny od dziś</div>
+            <article className="shop-card live">
+              <div className="shop-live-main">
+                <div className="shop-top">
+                  <span className="shop-ic"><ProductIcon id={live.id} name={live.name} /></span>
+                  <span className="shop-badge on">W sprzedaży</span>
+                </div>
+                <h3>{live.name}</h3>
+                <p className="shop-desc">{live.descr}</p>
+                <a className="shop-more" href={productHref(live.name)} data-wipe>Więcej o produkcie →</a>
+              </div>
+              <div className="shop-live-buy">
+                <dl className="shop-price">
+                  <div><dt>Abonament</dt><dd>{fmt(PLANS.start.monthly_net)} zł<small> / mies. netto</small></dd></div>
+                  <div><dt>Wdrożenie przez nas</dt><dd><small>opcjonalnie</small> {fmt(PLANS.wdrozenie.setup_net)} zł</dd></div>
+                </dl>
+                <button className="shop-buy go" type="button" data-buy="start">Kup teraz</button>
+                <button className="shop-buy alt" type="button" data-buy="wdrozenie">Kup z wdrożeniem</button>
+              </div>
+            </article>
+          </section>
+        )}
+
         {groups.map((g) => (
           <section className="shop-group" key={g.key} data-msec={g.name}>
-            <h2 className="shop-gname"><span className="shop-gletter">{g.key.toUpperCase()}</span>{g.name}</h2>
+            <h2 className="shop-gname"><span className="shop-gletter"><GroupIcon g={g.key} size={19} /></span>{g.name}</h2>
             <div className="shop-grid">
               {g.items.map((p) => {
-                const href = productHref(p.name);
                 const priced = p.impl_from != null || p.sub_from != null;
                 return (
                   <article className="shop-card off" key={p.id} aria-disabled="true">
@@ -113,7 +137,6 @@ export default function ShopShell({ groups, state }) {
                       )}
                     </dl>
                     <button className="shop-buy" type="button" disabled>Wkrótce w sprzedaży</button>
-                    {href && <a className="shop-more" href={href} data-wipe>Więcej o produkcie →</a>}
                   </article>
                 );
               })}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ShopShell from '../components/ShopShell.jsx';
+import { productHref } from '../engine/heroProducts.js';
 import { initKontakt } from '../engine/kontaktEngine.js';
 import { wipeTo } from '../engine/wipe.js';
 import { SB_URL, SB_KEY } from '../lib/supabase-config.js';
@@ -35,9 +36,23 @@ function toGroups(rows) {
   return [...map.values()].sort((a, b) => a.key.localeCompare(b.key));
 }
 
+/* Produkt w sprzedaży (dziś tylko AI Doradca) wychodzi z grupy na samą górę
+   witryny, jako osobny, świecący blok. Reszta zostaje w grupach, na szaro. */
+function splitLive(groups) {
+  let live = null;
+  const rest = groups.map((g) => {
+    const items = g.items.filter((p) => {
+      if (!live && productHref(p.name)) { live = { ...p, groupKey: g.key, groupName: g.name }; return false; }
+      return true;
+    });
+    return { ...g, items };
+  }).filter((g) => g.items.length);
+  return { live, rest };
+}
+
 export default function Shop() {
   const navigate = useNavigate();
-  const [groups, setGroups] = useState([]);
+  const [data, setData] = useState({ live: null, rest: [] });
   const [state, setState] = useState('loading');
 
   useEffect(() => {
@@ -52,7 +67,7 @@ export default function Shop() {
       .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
       .then((rows) => {
         if (!alive) return;
-        setGroups(toGroups(Array.isArray(rows) ? rows : []));
+        setData(splitLive(toGroups(Array.isArray(rows) ? rows : [])));
         setState('ready');
       })
       .catch(() => alive && setState('error'))
@@ -64,7 +79,7 @@ export default function Shop() {
   return (
     <>
       <style dangerouslySetInnerHTML={{ __html: kontaktCss + shopCss + siteCss }} />
-      <ShopShell groups={groups} state={state} />
+      <ShopShell groups={data.rest} live={data.live} state={state} />
     </>
   );
 }

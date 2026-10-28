@@ -80,9 +80,10 @@ export function initMenu({ signal, goTo } = {}) {
       const el = document.createElement(href ? 'a' : 'span');
       el.className = 'menu-link' + (href ? '' : ' off');
       if (href) { el.setAttribute('href', href); el.setAttribute('data-wipe', ''); }
-      else el.title = 'Strona produktu w przygotowaniu';
-      el.innerHTML = `<span class="menu-num">${href ? '→' : '·'}</span><span></span>`;
-      el.lastElementChild.textContent = r.name;
+      else { el.title = 'Wkrótce w sprzedaży'; el.setAttribute('aria-disabled', 'true'); }
+      el.innerHTML = `<span class="menu-num">${href ? '→' : '·'}</span><span></span>`
+        + (href ? '' : '<span class="menu-soon">Wkrótce</span>');
+      el.children[1].textContent = r.name;
       prodBox.appendChild(el);
     });
   }

@@ -168,4 +168,11 @@ for (const slug of Object.keys(LEGAL_META)) {
 // 404.html — SPA fallback (editor/login/audyt и любые прямые заходы), noindex
 writeFileSync(resolve(dist, '404.html'), template.replace(HEAD_RE, FALLBACK_HEAD));
 
+// strony po płatności — ten sam szkielet co 404.html, ale z kodem 200 (bramka
+// płatności wraca na /zamowienie/, mail windykacyjny prowadzi na /zaplac/)
+for (const slug of ['zamowienie', 'zaplac', 'platnosc-testowa', 'faktura', 'platnosc']) {
+  mkdirSync(resolve(dist, slug), { recursive: true });
+  writeFileSync(resolve(dist, slug, 'index.html'), template.replace(HEAD_RE, FALLBACK_HEAD));
+}
+
 console.log('prerender done: /, /kontakt, /agenci-ai, /ai-doradca, /shop, 4 dokumenty prawne, 404.html');

@@ -362,3 +362,154 @@ body.fiq-edit .af { box-shadow: none; }
   .af-step-n, .af-step-t { font-size: 12.5px; }
   .af-hint { font-size: 15.5px; }
 }
+
+/* ===== Tylko AI Doradca w sprzedaży (2026-10-28) =====
+   Pozostałe produkty: szare karty bez linku z plakietką „Wkrótce" (kula hero,
+   menu, /shop). Doradca świeci — kwasowa krawędź i poświata. */
+.pl-node.locked { cursor: default !important; }
+.pl-node.locked .pl-name { color: rgba(245,245,240,0.42); }
+.pl-node.locked .pl-desc { color: rgba(245,245,240,0.34); }
+.pl-node.locked .pl-ic { color: rgba(245,245,240,0.32); opacity: 1; }
+.pl-node.locked::after { background: rgba(245,245,240,0.16); }
+.pl-node.locked, .pl-node.locked:hover {
+  background: linear-gradient(158deg, rgba(30,31,32,0.95) 0%, rgba(18,18,19,0.94) 100%);
+  border-color: rgba(245,245,240,0.08);
+  box-shadow: 0 10px 30px rgba(0,0,0,0.35);
+}
+.pl-node.locked:hover .pl-name { color: rgba(245,245,240,0.5); }
+.pl-node.locked:hover::after { width: 3px; }
+.pl-soon {
+  margin-left: auto;
+  font-style: normal;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 700;
+  font-size: 10.5px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 3px 7px;
+  background: #2A2B2E;
+  color: #9A9B96;
+}
+.pl-node.l .pl-soon { margin-left: 0; margin-right: auto; }
+.pl-node.live {
+  border-color: rgba(184,255,0,0.6);
+  box-shadow: 0 0 0 1px rgba(184,255,0,0.25), 0 0 34px rgba(184,255,0,0.22), 0 12px 34px rgba(0,0,0,0.45);
+}
+.pl-node.live .pl-name { color: #fff; }
+.pl-node.live::after { width: 4px; background: var(--green); }
+.pl-node.live .pl-go { opacity: 1; }
+.menu-soon {
+  margin-left: auto;
+  align-self: center;
+  font-family: 'IBM Plex Mono', monospace;
+  font-weight: 700;
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  padding: 4px 8px;
+  background: #1E1F21;
+  color: rgba(245,245,240,0.42);
+}
+
+/* ===== Mobilny hero v5 (2026-10-28, ≤640 px) =====
+   Zakładki grup z ikonami + karty (bez zaokrągleń), kula z punktów jako tło:
+   kopuła nad zakładkami, dolna połowa pod paskiem i kartami (pełne tła).
+   Desktop i tablet zostają przy kuli z satelitami. */
+.mh { display: none; }
+@media (max-width: 640px) {
+  #start .pl-stage, #start .pl-groups { display: none !important; }
+  .mh { display: block; position: relative; grid-column: 1; grid-row: 2; margin-top: 4px; }
+  .mh[hidden] { display: none; }
+  #start .hero-h1 { text-align: left; font-size: clamp(28px, 8.4vw, 38px); line-height: 1.02; }
+  #start .hero-sub { text-align: left; margin-left: 0; font-size: 15.5px; }
+  #start .hero-col { align-items: flex-start; text-align: left; }
+  #start .hero-actions { align-items: stretch; margin-top: 18px; width: 100%; max-width: none; }
+  #start .hero-actions .btn-primary { width: 100%; max-width: none; text-align: center; }
+  #start .hero-cta-note { text-align: center; }
+
+  .mh-sphere {
+    display: block;
+    width: 100%;
+    height: 170px;
+    margin-bottom: -46px;          /* kopuła wchodzi pod pasek zakładek */
+    pointer-events: none;
+  }
+  .mh-tabs {
+    position: relative;
+    z-index: 1;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 4px;
+    padding: 5px;
+    background: #17181A;
+    box-shadow: 0 -18px 30px rgba(13,13,13,0.55);
+  }
+  .mh-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 11px 2px 9px;
+    border: 0;
+    background: transparent;
+    color: rgba(245,245,240,0.66);
+    font-family: 'Onest', sans-serif;
+    font-weight: 700;
+    font-size: 11.5px;
+    letter-spacing: 0.01em;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease;
+  }
+  .mh-tab span { white-space: nowrap; }
+  .mh-tab.on { background: var(--green); color: #0D0D0D; }
+  .mh-tab:focus-visible { outline: 2px solid var(--green); outline-offset: 2px; }
+
+  .mh-cards { position: relative; z-index: 1; display: grid; gap: 8px; margin-top: 8px; }
+  .mh-cards.in > * { animation: mhIn 0.32s ease both; }
+  .mh-cards.in > *:nth-child(2) { animation-delay: 0.05s; }
+  .mh-cards.in > *:nth-child(3) { animation-delay: 0.1s; }
+  @keyframes mhIn { from { opacity: 0; transform: translateY(10px); } }
+  .mh-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+
+  .mh-card {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    padding: 16px 16px 15px;
+    background: #17181A;
+    color: #F5F5F0;
+    text-decoration: none;
+    min-height: 0;
+  }
+  .mh-top { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 14px; min-height: 24px; }
+  .mh-card .pl-ic { width: 22px; height: 22px; color: var(--green); }
+  .mh-name { display: block; font-family: 'Onest', sans-serif; font-weight: 800; font-size: 17px; line-height: 1.15; }
+  .mh-desc { display: block; margin-top: 6px; font-style: normal; font-size: 13.5px; line-height: 1.4; color: rgba(245,245,240,0.72); }
+  .mh-cap { font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; }
+  .mh-soon { font-family: 'IBM Plex Mono', monospace; font-weight: 700; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; padding: 3px 6px; background: #26272A; color: #8E8F8A; }
+
+  /* szeroka karta u góry zakładki */
+  .mh-card.wide { padding: 18px 18px 20px; min-height: 150px; }
+  .mh-card.wide .mh-name { font-size: 25px; margin-top: auto; }
+  .mh-card.wide .mh-desc { font-size: 14.5px; max-width: 92%; }
+  .mh-card.wide.live { background: var(--green); color: #0D0D0D; }
+  .mh-card.wide.live .mh-desc { color: rgba(13,13,13,0.78); }
+  .mh-card.wide.live .mh-cap { color: #0D0D0D; }
+  .mh-go { display: grid; place-items: center; width: 38px; height: 38px; background: #0D0D0D; color: var(--green); font-size: 17px; font-weight: 700; }
+  .mh-card.tile.live .mh-go, .mh-card.row.live .mh-go { width: 28px; height: 28px; font-size: 13px; background: var(--green); color: #0D0D0D; }
+
+  /* niedostępne: szare */
+  .mh-card.locked { background: #141516; }
+  .mh-card.locked .mh-name { color: rgba(245,245,240,0.5); }
+  .mh-card.locked .mh-desc { color: rgba(245,245,240,0.36); }
+  .mh-card.locked .pl-ic { color: rgba(245,245,240,0.3); }
+  .mh-card.wide.locked .mh-cap { color: rgba(245,245,240,0.42); }
+
+  /* ostatnia nieparzysta = wiersz */
+  .mh-card.row { flex-direction: row; align-items: center; gap: 14px; padding: 14px 16px; }
+  .mh-card.row .pl-ic { flex: 0 0 auto; }
+  .mh-rowt { flex: 1; min-width: 0; }
+  .mh-card.row .mh-desc { margin-top: 3px; }
+  .mh-chev { color: rgba(245,245,240,0.4); font-size: 22px; line-height: 1; }
+  .mh-card.live:active { filter: brightness(1.08); }
+}

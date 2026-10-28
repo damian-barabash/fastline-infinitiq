@@ -25,7 +25,6 @@ export default function LandingShell() {
                 linkiem, pozostałe stoją na szaro — widać całą ofertę i to, co gotowe */}
             <div className="menu-list" id="menuProducts">
               <a className="menu-link" href="/ai-doradca" data-wipe><span className="menu-num">→</span><span>AI Doradca</span></a>
-              <a className="menu-link" href="/agenci-ai" data-wipe><span className="menu-num">→</span><span>Agenci AI</span></a>
             </div>
             <a className="menu-cta" href="/#audyt" data-wipe>Darmowy audyt AI</a>
           </div>
@@ -95,6 +94,14 @@ export default function LandingShell() {
 
               </div>
 
+              {/* telefon (≤640 px): zakładki grup + karty, kula jako tło — buduje
+                  heroMobile.js z kart kuli; na desktopie ukryte */}
+              <div className="mh" id="mHero" hidden>
+                <canvas className="mh-sphere" aria-hidden="true"></canvas>
+                <div className="mh-tabs" role="tablist" aria-label="Obszary"></div>
+                <div className="mh-cards"></div>
+              </div>
+
               <div className="pl-stage rv rv4" id="plStage">
                 <canvas className="pl-canvas" id="plCanvas" aria-hidden="true"></canvas>
                 {/* podpisy wycinków — widoczne zawsze, aktywny się rozświetla */}
@@ -105,88 +112,88 @@ export default function LandingShell() {
                   <div className="pl-gname" data-g="d">Operacje i zarządzanie</div>
                 </div>
                 <div className="pl-nodes" id="plNodes">
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="a" data-i="0">
-                    <div className="pl-top"><ProductIcon id={1} /><span className="pl-num">01</span></div>
+                  <div className="pl-node locked" aria-disabled="true" data-g="a" data-i="0">
+                    <div className="pl-top"><ProductIcon id={1} /><span className="pl-num">01</span><i className="pl-soon">Wkrótce</i></div>
                     <b className="pl-name">Fabryka Kontentu</b>
                     <i className="pl-desc">Copy i grafiki w tonie marki, z planem na miesiąc.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="a" data-i="1">
-                    <div className="pl-top"><ProductIcon id={2} /><span className="pl-num">02</span></div>
+                  <div className="pl-node locked" aria-disabled="true" data-g="a" data-i="1">
+                    <div className="pl-top"><ProductIcon id={2} /><span className="pl-num">02</span><i className="pl-soon">Wkrótce</i></div>
                     <b className="pl-name">SEO &amp; GEO Autopilot</b>
                     <i className="pl-desc">Auto-blog pod Google i widoczność w odpowiedziach AI.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="a" data-i="2">
-                    <div className="pl-top"><ProductIcon id={3} /><span className="pl-num">03</span></div>
+                  <div className="pl-node locked" aria-disabled="true" data-g="a" data-i="2">
+                    <div className="pl-top"><ProductIcon id={3} /><span className="pl-num">03</span><i className="pl-soon">Wkrótce</i></div>
                     <b className="pl-name">AI Reputation Guard</b>
                     <i className="pl-desc">Monitoring i obsługa opinii głosem marki.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="b" data-i="3">
-                    <div className="pl-top"><ProductIcon id={4} /><span className="pl-num">04</span></div>
+                  <div className="pl-node locked" aria-disabled="true" data-g="b" data-i="3">
+                    <div className="pl-top"><ProductIcon id={4} /><span className="pl-num">04</span><i className="pl-soon">Wkrótce</i></div>
                     <b className="pl-name">AI Łowca Leadów</b>
                     <i className="pl-desc">Autonomiczne pozyskiwanie leadów w wielu kanałach.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="b" data-i="4">
-                    <div className="pl-top"><ProductIcon id={5} /><span className="pl-num">05</span></div>
+                  <div className="pl-node locked" aria-disabled="true" data-g="b" data-i="4">
+                    <div className="pl-top"><ProductIcon id={5} /><span className="pl-num">05</span><i className="pl-soon">Wkrótce</i></div>
                     <b className="pl-name">AI CRM</b>
                     <i className="pl-desc">Więcej niż CRM: strategia relacji i kontrola 100% rozmów.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="b" data-i="5">
-                    <div className="pl-top"><ProductIcon id={6} /><span className="pl-num">06</span></div>
+                  <div className="pl-node locked" aria-disabled="true" data-g="b" data-i="5">
+                    <div className="pl-top"><ProductIcon id={6} /><span className="pl-num">06</span><i className="pl-soon">Wkrótce</i></div>
                     <b className="pl-name">AI Generator Ofert</b>
                     <i className="pl-desc">Oferta z briefu w minuty, z trackingiem i follow-upem.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="b" data-i="6">
-                    <div className="pl-top"><ProductIcon id={7} /><span className="pl-num">07</span></div>
+                  <div className="pl-node locked" aria-disabled="true" data-g="b" data-i="6">
+                    <div className="pl-top"><ProductIcon id={7} /><span className="pl-num">07</span><i className="pl-soon">Wkrótce</i></div>
                     <b className="pl-name">Loyalty Engine</b>
                     <i className="pl-desc">Własna aplikacja lojalnościowa z gamifikacją i AI push.</i>
                   </div>
-                  <a className="pl-node has-page" href="/agenci-ai" data-wipe data-g="c" data-i="7">
-                    <div className="pl-top"><ProductIcon id={8} /><span className="pl-num">08</span><i className="pl-go" aria-hidden="true">→</i></div>
+                  <div className="pl-node locked" aria-disabled="true" data-g="c" data-i="7">
+                    <div className="pl-top"><ProductIcon id={8} /><span className="pl-num">08</span><i className="pl-soon">Wkrótce</i></div>
                     <b className="pl-name">AI Sprzedawca</b>
                     <i className="pl-desc">Pierwsza linia: łapie zapytanie w sekundę i domyka.</i>
-                  </a>
-                  <a className="pl-node has-page" href="/ai-doradca" data-wipe data-g="c" data-i="8">
+                  </div>
+                  <a className="pl-node has-page live" href="/ai-doradca" data-wipe data-g="c" data-i="8">
                     <div className="pl-top"><ProductIcon id={9} /><span className="pl-num">09</span><i className="pl-go" aria-hidden="true">→</i></div>
                     <b className="pl-name">AI Doradca</b>
                     <i className="pl-desc">Dobiera wariant, rozbraja wątpliwości, prowadzi do zakupu.</i>
                   </a>
-                  <a className="pl-node has-page" href="/agenci-ai" data-wipe data-g="c" data-i="9">
-                    <div className="pl-top"><ProductIcon id={10} /><span className="pl-num">10</span><i className="pl-go" aria-hidden="true">→</i></div>
+                  <div className="pl-node locked" aria-disabled="true" data-g="c" data-i="9">
+                    <div className="pl-top"><ProductIcon id={10} /><span className="pl-num">10</span><i className="pl-soon">Wkrótce</i></div>
                     <b className="pl-name">AI Recepcja 24/7</b>
                     <i className="pl-desc">Odbiera telefon o każdej porze, umawia i pilnuje kalendarza.</i>
-                  </a>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="d" data-i="10">
-                    <div className="pl-top"><ProductIcon id={11} /><span className="pl-num">11</span></div>
+                  </div>
+                  <div className="pl-node locked" aria-disabled="true" data-g="d" data-i="10">
+                    <div className="pl-top"><ProductIcon id={11} /><span className="pl-num">11</span><i className="pl-soon">Wkrótce</i></div>
                     <b className="pl-name">AI Data Hub</b>
                     <i className="pl-desc">Rozmawiaj z danymi firmy: odpowiedź, wykres albo akcja.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="d" data-i="11">
-                    <div className="pl-top"><ProductIcon id={12} /><span className="pl-num">12</span></div>
+                  <div className="pl-node locked" aria-disabled="true" data-g="d" data-i="11">
+                    <div className="pl-top"><ProductIcon id={12} /><span className="pl-num">12</span><i className="pl-soon">Wkrótce</i></div>
                     <b className="pl-name">Inteligentny Magazyn</b>
                     <i className="pl-desc">AI przejmuje zakupy i stany magazynowe.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="d" data-i="12">
-                    <div className="pl-top"><ProductIcon id={13} /><span className="pl-num">13</span></div>
+                  <div className="pl-node locked" aria-disabled="true" data-g="d" data-i="12">
+                    <div className="pl-top"><ProductIcon id={13} /><span className="pl-num">13</span><i className="pl-soon">Wkrótce</i></div>
                     <b className="pl-name">Market Radar</b>
                     <i className="pl-desc">Wywiad rynkowy: konkurencja, popyt i warstwa cenowa.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="d" data-i="13">
-                    <div className="pl-top"><ProductIcon id={14} /><span className="pl-num">14</span></div>
+                  <div className="pl-node locked" aria-disabled="true" data-g="d" data-i="13">
+                    <div className="pl-top"><ProductIcon id={14} /><span className="pl-num">14</span><i className="pl-soon">Wkrótce</i></div>
                     <b className="pl-name">AI Project Manager</b>
                     <i className="pl-desc">Twój projekt manager AI.</i>
                   </div>
-                  <a className="pl-node has-page" href="/agenci-ai" data-wipe data-g="d" data-i="14">
-                    <div className="pl-top"><ProductIcon id={15} /><span className="pl-num">15</span><i className="pl-go" aria-hidden="true">→</i></div>
+                  <div className="pl-node locked" aria-disabled="true" data-g="d" data-i="14">
+                    <div className="pl-top"><ProductIcon id={15} /><span className="pl-num">15</span><i className="pl-soon">Wkrótce</i></div>
                     <b className="pl-name">AI Asystent</b>
                     <i className="pl-desc">Baza wiedzy firmy: zespół pyta, asystent odpowiada.</i>
-                  </a>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="d" data-i="15">
-                    <div className="pl-top"><ProductIcon id={16} /><span className="pl-num">16</span></div>
+                  </div>
+                  <div className="pl-node locked" aria-disabled="true" data-g="d" data-i="15">
+                    <div className="pl-top"><ProductIcon id={16} /><span className="pl-num">16</span><i className="pl-soon">Wkrótce</i></div>
                     <b className="pl-name">Rekruter AI</b>
                     <i className="pl-desc">Od CV do pierwszego dnia: screening, ranking, rozmowa.</i>
                   </div>
-                  <div className="pl-node" role="button" tabIndex={0} data-goto="1" data-goto-id="audyt" data-g="d" data-i="16">
-                    <div className="pl-top"><ProductIcon id={17} /><span className="pl-num">17</span></div>
+                  <div className="pl-node locked" aria-disabled="true" data-g="d" data-i="16">
+                    <div className="pl-top"><ProductIcon id={17} /><span className="pl-num">17</span><i className="pl-soon">Wkrótce</i></div>
                     <b className="pl-name">AI Academy</b>
                     <i className="pl-desc">Onboarding, kursy, testy i certyfikaty z wiedzy firmy.</i>
                   </div>

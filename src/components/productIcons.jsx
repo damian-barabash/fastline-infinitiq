@@ -2,7 +2,7 @@
 // `engine/productIcons.js` — ten sam zestaw używany jest przy renderze kart
 // z katalogu, więc snapshot w markupie i wersja z bazy wyglądają identycznie.
 import React from 'react';
-import { ICON_PATHS, iconKey } from '../engine/productIcons.js';
+import { ICON_PATHS, GROUP_ICON_PATHS, iconKey } from '../engine/productIcons.js';
 
 export default function ProductIcon({ id, name }) {
   const paths = ICON_PATHS[iconKey(name, id)];
@@ -11,6 +11,16 @@ export default function ProductIcon({ id, name }) {
     <svg className="pl-ic" viewBox="0 0 24 24" width="22" height="22" fill="none"
       stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
       {paths.map((p, i) => <path key={i} {...p} />)}
+    </svg>
+  );
+}
+
+export function GroupIcon({ g, size = 20 }) {
+  const paths = GROUP_ICON_PATHS[String(g || '').toLowerCase()] || GROUP_ICON_PATHS.d;
+  return (
+    <svg className="g-ic" viewBox="0 0 24 24" width={size} height={size} fill="none"
+      stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      {paths.map((p, i) => <path key={i} d={p.d} />)}
     </svg>
   );
 }
