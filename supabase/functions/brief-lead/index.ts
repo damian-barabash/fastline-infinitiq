@@ -384,9 +384,12 @@ Deno.serve(async (req) => {
       // `pains` to nowy format (klient wybiera problem); `products` zostaje dla
       // zgodności ze starą wersją strony, która mogła jeszcze wisieć w przeglądarce
       const pains = Array.isArray(body.pains) ? (body.pains as unknown[]).map(p => String(p).slice(0, 120)).slice(0, 12) : [];
-      const products = pains.length
+      // produkt, z którego strony klient przyszedł (`/kontakt?produkt=<slug>`, 2026-10-28) — zawsze pierwszy
+      const fromPage = String(body.product ?? "").trim().slice(0, 80);
+      const products0 = pains.length
         ? productsForPains(pains)
         : (Array.isArray(body.products) ? (body.products as unknown[]).map(p => String(p).slice(0, 80)).slice(0, 12) : []);
+      const products = fromPage ? [fromPage, ...products0.filter(p => p.toLowerCase() !== fromPage.toLowerCase())] : products0;
       if (!EMAIL_RE.test(email)) return json({ ok: false, reason: "Ten adres e-mail wygląda na niepoprawny", field: "email" }, 400);
 
       const { count } = await db.from("brief_leads")
@@ -420,7 +423,7 @@ ${text}
 Produkty Fastline InfinitiQ:
 ${listForAi}
 
-${pains.length
+${fromPage ? `Klient przyszedł ze strony produktu ${fromPage} i chce rozmawiać właśnie o nim — pisz przede wszystkim o ${fromPage}.\n` : ""}${pains.length
   ? `Klient wskazał problemy: ${pains.join("; ")}. Rozwiązują je: ${(known.length ? known.map(k => k.name) : products).join(", ")}. Pisz o TYCH produktach, w języku jego problemu.`
   : known.length
     ? `Klient wybrał: ${known.map(k => k.name).join(", ")}.`

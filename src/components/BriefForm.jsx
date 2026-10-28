@@ -14,6 +14,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { SB_URL, SB_KEY } from '../lib/supabase-config.js';
 import { runBriefFx } from '../engine/briefFx.js';
 import { PAINS, UNSURE as UNSURE_PAIN } from '../engine/briefPains.js';
+import { productSlug } from '../engine/heroProducts.js';
 
 const FN = `${SB_URL}/functions/v1/brief-lead`;
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[a-z]{2,}$/i;
@@ -113,6 +114,24 @@ export default function BriefForm() {
   const checkSeq = useRef(0);
   const pending = useRef(null);
 
+  /* ---- produkt ze strony produktu: /kontakt?produkt=<slug> (2026-10-28) ----
+     Slug porównujemy z nazwami z katalogu (`landing_products`), więc działa dla
+     każdego produktu, także przyszłych LP — wystarczy link z `briefHref(nazwa)`. */
+  const [product, setProduct] = useState('');
+  useEffect(() => {
+    const slug = new URLSearchParams(window.location.search).get('produkt');
+    if (!slug) return;
+    fetch(`${SB_URL}/rest/v1/landing_products?select=name`, { headers: { apikey: SB_KEY, Authorization: `Bearer ${SB_KEY}` } })
+      .then((r) => (r.ok ? r.json() : []))
+      .then((rows) => {
+        const hit = (rows || []).find((r) => productSlug(r.name) === slug);
+        // brak w katalogu (np. produkt ukryty) — ładna nazwa ze sluga, żeby rozmowa i tak miała temat
+        setProduct(hit ? hit.name.replace(/\s+/g, ' ').trim()
+          : slug.split('-').map((w, i) => (i === 0 && w === 'ai' ? 'AI' : w.charAt(0).toUpperCase() + w.slice(1))).join(' '));
+      })
+      .catch(() => {});
+  }, []);
+
   /* ---- adres strony sprawdzany w locie ---- */
   const checkSite = useCallback(async (value) => {
     const v = String(value || '').trim();
@@ -171,7 +190,7 @@ export default function BriefForm() {
       ? Promise.resolve({ ok: true, ...DEMO, lead_id: 'demo' })
       : call('analyze', {
         name: form.name.trim(), company: form.company.trim(), email: form.email.trim(),
-        site: form.site.trim(), pains: picked.filter((p) => p !== UNSURE),
+        site: form.site.trim(), pains: picked.filter((p) => p !== UNSURE), product,
       });
 
     requestAnimationFrame(() => {
@@ -227,6 +246,13 @@ export default function BriefForm() {
 
       {step === 1 && (
         <form className="bf-body" onSubmit={next} noValidate>
+          {product && (
+            <div className="bf-product">
+              <span className="bf-lab">Rozmowa o produkcie</span>
+              <b>{product}</b>
+              <button type="button" aria-label="Rozmowa ogólna, bez produktu" onClick={() => setProduct('')}>×</button>
+            </div>
+          )}
           <div className="bf-grid">
             <label className="bf-field">
               <span className="bf-lab">Imię i nazwisko <em>*</em></span>
@@ -259,7 +285,7 @@ export default function BriefForm() {
           </div>
 
           <div className="bf-picks">
-            <span className="bf-lab" id="bfPainsLab">Co u Was najbardziej uwiera? <i>(opcjonalnie)</i></span>
+            <span className="bf-lab" id="bfPainsLab">{product ? 'Co jeszcze u Was uwiera?' : 'Co u Was najbardziej uwiera?'} <i>(opcjonalnie)</i></span>
             <PainSelect options={PAIN_LABELS.concat(UNSURE)} picked={picked} onToggle={toggle} />
           </div>
 

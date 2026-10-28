@@ -12,7 +12,8 @@ import { IcGlobe, IcCheck, IcUsers, IcCalendar, IcClock, IcDoc, IcSpark, IcArrow
    okno zakupu; sam adres zostaje jako zapas bez JS (formularz /kontakt). */
 
 export const BUY = {
-  call: '/kontakt',
+  // „Umów rozmowę" — formularz briefingu z produktem wpisanym z góry (`briefHref` w heroProducts.js)
+  call: '/kontakt?produkt=ai-doradca',
   now: '/kontakt?plan=start',
   setup: '/kontakt?plan=wdrozenie',
 };

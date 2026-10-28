@@ -113,13 +113,13 @@ async function nipLookup(nipRaw: string) {
   }
 }
 
-async function sendMail(to: string, subject: string, html: string) {
+async function sendMail(to: string, subject: string, html: string, attachments?: { filename: string; content: string }[]) {
   if (!RESEND_KEY || !to) return { ok: false, error: "brak RESEND_KEY lub adresu" };
   try {
     const r = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: { authorization: `Bearer ${RESEND_KEY}`, "content-type": "application/json" },
-      body: JSON.stringify({ from: MAIL_FROM, to: [to], subject, html }),
+      body: JSON.stringify({ from: MAIL_FROM, to: [to], subject, html, ...(attachments?.length ? { attachments } : {}) }),
       signal: AbortSignal.timeout(20_000),
     });
     if (!r.ok) return { ok: false, error: `Resend ${r.status}: ${(await r.text()).slice(0, 200)}` };
@@ -133,6 +133,93 @@ async function alertUs(subject: string, text: string) {
   if (/@resend\.dev\b/.test(text)) return;
   if (NOTIFY_TO) await sendMail(NOTIFY_TO, `[FIQ billing] ${subject}`, `<pre style="font:13px monospace">${esc(text)}</pre>`);
 }
+
+// ───────────────────────────────────────────────────────────────── ING Księgowość
+// Fakturę wystawia ING Księgowość (numeracja, KSeF po ich stronie) — API publiczne:
+// POST https://ksiegowosc.ing.pl/v2/api/public/create-invoice, GET …/download-invoice/{id}/pdf,
+// nagłówek `ApiUserCompanyRoleKey` (klucz: ING Księgowość → Dane i Ustawienia → Integracje).
+// Wystawiamy dopiero po zaksięgowaniu płatności (faktura = zapłacona, bez korekt).
+// Bez klucza (`INGK_API_KEY`) działa nasza faktura HTML (/faktura) — tak jak dotąd.
+// ⚠️ Nie włączać jednocześnie automatycznych faktur w panelu ING Pay (obiekt `invoice`
+// w płatności) — klient dostałby dwie faktury za to samo.
+const INGK_KEY = Deno.env.get("INGK_API_KEY") ?? "";
+const INGK = "https://ksiegowosc.ing.pl/v2/api/public";
+const ingkNo = (inv: Record<string, any>) => inv.ing_number || inv.number;
+
+function b64(bytes: Uint8Array) {
+  let s = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) s += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(s);
+}
+
+/** Wystawia fakturę w ING Księgowość (idempotentnie) i zapisuje PDF w magazynie `invoices`.
+ *  Zwraca numer do pokazania i PDF (base64) do załącznika maila — albo nic, gdy się nie da. */
+async function issueIngInvoice(invoiceId: string): Promise<{ number: string; pdf?: string } | null> {
+  const { data: inv } = await db.from("billing_invoices").select("*").eq("id", invoiceId).single();
+  if (!inv) return null;
+  // już wystawiona — oddajemy zapisany PDF
+  if (inv.ing_doc_id && inv.ing_pdf_path) {
+    const { data: f } = await db.storage.from("invoices").download(inv.ing_pdf_path);
+    return { number: ingkNo(inv), pdf: f ? b64(new Uint8Array(await f.arrayBuffer())) : undefined };
+  }
+  if (!INGK_KEY || inv.status !== "paid") return { number: inv.number };
+  const b = inv.buyer as Record<string, string>;
+  const s = inv.seller as Record<string, string>;
+  try {
+    let docId: string = inv.ing_doc_id ?? "";
+    let raw: unknown = inv.ing_raw;
+    if (!docId) {
+      const body = {
+        issuedGross: false,
+        issueDate: inv.issue_date, serviceDate: inv.sale_date,
+        currency: { code: "PLN" },
+        payment: {
+          method: "CARD", deadlineDate: inv.due_date, paidAmount: +inv.gross,
+          bankAccounts: [{ accountNumber: String(s.account).replace(/\s/g, ""), name: s.bank, countryCode: "PL" }],
+        },
+        buyer: {
+          email: b.email, fullName: b.name, addressStreet: b.street || "-", city: b.city || "-", postCode: b.postal_code || "-",
+          countryCode: "PL", taxNumber: b.nip, taxCountryCode: "PL",
+        },
+        positions: (inv.items as any[]).map((l, i) => ({
+          name: l.name, code: `fiq-${i + 1}`, quantity: l.qty, unit: l.unit || "usł.",
+          net: l.net, tax: l.vat, gross: l.gross, taxStake: "TAX_23",
+        })),
+      };
+      const r = await fetch(`${INGK}/create-invoice`, {
+        method: "POST",
+        headers: { ApiUserCompanyRoleKey: INGK_KEY, "content-type": "application/json", accept: "application/json" },
+        body: JSON.stringify(body), signal: AbortSignal.timeout(30_000),
+      });
+      raw = await r.json().catch(async () => ({ text: (await r.text().catch(() => "")).slice(0, 500) }));
+      if (!r.ok) throw new Error(`create-invoice ${r.status}: ${JSON.stringify(raw).slice(0, 300)}`);
+      const d = raw as Record<string, any>;
+      // dokumentacja mówi tylko o `id` i linku — numer bierzemy, jeśli przyjdzie
+      docId = String(d.id ?? d.documentId ?? d.document?.id ?? d.data?.id ?? "");
+      if (!docId) throw new Error("brak id dokumentu w odpowiedzi: " + JSON.stringify(d).slice(0, 300));
+      const number = d.number ?? d.fullNumber ?? d.documentNumber ?? d.document?.number ?? d.data?.number ?? null;
+      await db.from("billing_invoices").update({ ing_doc_id: docId, ing_number: number, ing_raw: d, ing_issued_at: new Date().toISOString(), ing_error: null }).eq("id", inv.id);
+      inv.ing_number = number;
+    }
+    // PDF
+    const pr = await fetch(`${INGK}/download-invoice/${encodeURIComponent(docId)}/pdf`, {
+      headers: { ApiUserCompanyRoleKey: INGK_KEY }, signal: AbortSignal.timeout(30_000),
+    });
+    if (!pr.ok) throw new Error(`download-invoice ${pr.status}`);
+    const bytes = new Uint8Array(await pr.arrayBuffer());
+    const path = `${inv.workspace_id ?? "brak"}/${inv.id}.pdf`;
+    const up = await db.storage.from("invoices").upload(path, bytes, { contentType: "application/pdf", upsert: true });
+    if (up.error) throw up.error;
+    await db.from("billing_invoices").update({ ing_pdf_path: path, ing_error: null }).eq("id", inv.id);
+    return { number: ingkNo(inv), pdf: b64(bytes) };
+  } catch (e) {
+    const msg = String((e as Error)?.message ?? e).slice(0, 500);
+    await db.from("billing_invoices").update({ ing_error: msg, ing_attempts: (inv.ing_attempts ?? 0) + 1 }).eq("id", inv.id);
+    if ((inv.ing_attempts ?? 0) === 0) await alertUs("Faktura ING Księgowość nie wyszła", `${inv.number}\n${msg}`);
+    return { number: inv.number };
+  }
+}
+const pdfAttach = (num: string, pdf?: string) => (pdf ? [{ filename: `Faktura ${num.replace(/\//g, "-")}.pdf`, content: pdf }] : undefined);
 
 // ───────────────────────────────────────────────────────────────── maile
 
@@ -362,7 +449,11 @@ async function ingHook(req: Request) {
         if (wasUnpaid && inv.subscription_id) {
           const { data: cust } = await db.from("billing_customers").select("email, invoice_email").eq("workspace_id", inv.workspace_id).maybeSingle();
           const { data: sub } = await db.from("billing_subscriptions").select("period_end").eq("id", inv.subscription_id).single();
-          if (cust) { const m = mailRenewalOk(cust.email, { ...inv, gross: +inv.gross }, sub!.period_end); await sendMail(cust.invoice_email || cust.email, m.subject, m.html); }
+          if (cust) {
+            const ing = await issueIngInvoice(inv.id).catch(() => null);
+            const m = mailRenewalOk(cust.email, { ...inv, gross: +inv.gross, number: ing?.number ?? inv.number }, sub!.period_end);
+            await sendMail(cust.invoice_email || cust.email, m.subject, m.html, pdfAttach(ing?.number ?? inv.number, ing?.pdf));
+          }
         }
       } else if (["rejected", "cancelled", "error"].includes(st) && inv.status === "unpaid" && inv.subscription_id) {
         const { data: sub } = await db.from("billing_subscriptions").select("*").eq("id", inv.subscription_id).single();
@@ -484,9 +575,10 @@ async function fulfill(orderId: string, providerToken?: string, cardLabel?: stri
       fulfilled_at: new Date().toISOString(), fulfill_error: null, workspace_id: wsId, user_id: userId, updated_at: new Date().toISOString(),
     }).eq("id", order.id);
 
-    // 5. mail powitalny
-    const m = mailWelcome(email, password, plan, inv);
-    const sent = await sendMail(email, m.subject, m.html);
+    // 5. faktura w ING Księgowość (jeśli podłączona) + mail powitalny z PDF w załączniku
+    const ing = await issueIngInvoice(inv.id).catch(() => null);
+    const m = mailWelcome(email, password, plan, { ...inv, number: ing?.number ?? inv.number });
+    const sent = await sendMail(email, m.subject, m.html, pdfAttach(ing?.number ?? inv.number, ing?.pdf));
     if (!sent.ok) await alertUs("Mail powitalny nie wyszedł", `${email}\n${sent.error}`);
     await alertUs("Nowy klient", `${c.company_name} (${c.nip}) · ${email} · ${plan.name} · ${zl(inv.gross)}`).catch(() => {});
     return { ...order, fulfilled_at: new Date().toISOString() };
@@ -515,6 +607,7 @@ async function markOrderPaid(order: Order, ref: string, token?: string, card?: s
 async function markInvoicePaid(inv: Invoice, ref: string) {
   if (inv.status === "paid") return;
   await db.from("billing_invoices").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", inv.id);
+  await issueIngInvoice(inv.id).catch(() => null);
   await db.from("billing_payments").insert({ invoice_id: inv.id, subscription_id: inv.subscription_id, kind: "manual", amount: inv.gross, status: "paid", provider: provider().name, provider_ref: ref });
   if (inv.subscription_id) {
     const { data: sub } = await db.from("billing_subscriptions").select("*").eq("id", inv.subscription_id).single();
@@ -554,8 +647,9 @@ async function tick() {
       out.renewed++;   // bramka przyjęła obciążenie — wynik (opłacona / odrzucona) przyjdzie powiadomieniem
     } else if (ch.ok) {
       await db.from("billing_invoices").update({ status: "paid", paid_at: new Date().toISOString() }).eq("id", inv.id);
-      const m = mailRenewalOk(cust.email, inv, end);
-      await sendMail(cust.invoice_email || cust.email, m.subject, m.html);
+      const ing = await issueIngInvoice(inv.id).catch(() => null);
+      const m = mailRenewalOk(cust.email, { ...inv, number: ing?.number ?? inv.number }, end);
+      await sendMail(cust.invoice_email || cust.email, m.subject, m.html, pdfAttach(ing?.number ?? inv.number, ing?.pdf));
       out.renewed++;
     } else {
       await db.from("billing_subscriptions").update({ status: "past_due", past_due_since: new Date().toISOString(), dunning: { d0: new Date().toISOString() } }).eq("id", sub.id);
@@ -595,7 +689,13 @@ async function tick() {
     }
   }
 
-  // 3. porzucone koszyki: mail po 1 h i po 24 h (Miro 3A); po 7 dniach zamówienie wygasa
+  // 3. faktury ING Księgowość, które nie wyszły (sieć, chwilowy błąd) — do 6 prób
+  if (INGK_KEY) {
+    const { data: todo } = await db.from("billing_invoices").select("id").eq("status", "paid").is("ing_pdf_path", null).lt("ing_attempts", 6).limit(10);
+    for (const t of todo ?? []) { await issueIngInvoice(t.id).catch(() => null); (out as Record<string, number>).ing = ((out as Record<string, number>).ing ?? 0) + 1; }
+  }
+
+  // 4. porzucone koszyki: mail po 1 h i po 24 h (Miro 3A); po 7 dniach zamówienie wygasa
   const { data: carts } = await db.from("billing_orders").select("*").in("status", ["new", "pending", "failed"])
     .gte("created_at", new Date(Date.now() - 8 * 864e5).toISOString()).limit(100);
   for (const o of carts ?? []) {
@@ -629,7 +729,7 @@ async function accountView(wsId: string) {
   const [{ data: sub }, { data: cust }, { data: invoices }, { data: ws }] = await Promise.all([
     db.from("billing_subscriptions").select("*").eq("workspace_id", wsId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     db.from("billing_customers").select("*").eq("workspace_id", wsId).maybeSingle(),
-    db.from("billing_invoices").select("id, number, issue_date, due_date, gross, net, status, pay_token, items").eq("workspace_id", wsId).order("created_at", { ascending: false }).limit(60),
+    db.from("billing_invoices").select("id, number, ing_number, ing_pdf_path, issue_date, due_date, gross, net, status, pay_token").eq("workspace_id", wsId).order("created_at", { ascending: false }).limit(60),
     db.from("brain_workspaces").select("billing_blocked_at").eq("id", wsId).maybeSingle(),
   ]);
   const plan = sub ? await getPlan(sub.plan_key) : null;
@@ -642,7 +742,10 @@ async function accountView(wsId: string) {
       cancel_at_period_end: sub.cancel_at_period_end, card_label: sub.card_label, past_due_since: sub.past_due_since,
     } : null,
     customer: cust ? { company_name: cust.company_name, nip: cust.nip, street: cust.street, postal_code: cust.postal_code, city: cust.city, email: cust.email, invoice_email: cust.invoice_email, phone: cust.phone, contact_name: cust.contact_name } : null,
-    invoices: (invoices ?? []).map((i) => ({ ...i, gross: +i.gross, net: +i.net, url: invoiceUrl(i), pay_url: i.status === "unpaid" ? payUrl(i) : null, items: undefined })),
+    invoices: (invoices ?? []).map((i) => ({
+      id: i.id, number: ingkNo(i), issue_date: i.issue_date, due_date: i.due_date, gross: +i.gross, net: +i.net, status: i.status,
+      ing: !!i.ing_pdf_path, url: invoiceUrl(i), pay_url: i.status === "unpaid" ? payUrl(i) : null,
+    })),
     debt: r2(unpaid.reduce((s, i) => s + +i.gross, 0)),
     blocked: !!ws?.billing_blocked_at,
   };
@@ -807,9 +910,18 @@ Deno.serve(async (req) => {
 
       // ── faktura do podglądu/druku (strona /faktura; Supabase nie serwuje HTML z edge) ──
       case "invoice.get": {
-        const { data: inv } = await db.from("billing_invoices").select("number, seller, buyer, items, net, vat, gross, issue_date, sale_date, due_date, status, paid_at, pay_token").eq("pay_token", String(body.invoice ?? "")).maybeSingle();
+        const { data: inv } = await db.from("billing_invoices").select("number, ing_number, ing_pdf_path, seller, buyer, items, net, vat, gross, issue_date, sale_date, due_date, status, paid_at, pay_token").eq("pay_token", String(body.invoice ?? "")).maybeSingle();
         if (!inv) return J({ error: "not_found" }, 404);
-        return J({ invoice: { ...inv, net: +inv.net, vat: +inv.vat, gross: +inv.gross, pay_url: inv.status === "unpaid" ? payUrl(inv) : null } });
+        // PDF z ING Księgowość — krótki podpisany link do prywatnego magazynu
+        let pdf_url: string | null = null;
+        if (inv.ing_pdf_path) {
+          const { data: su } = await db.storage.from("invoices").createSignedUrl(inv.ing_pdf_path, 600, { download: `Faktura ${String(ingkNo(inv)).replace(/\//g, "-")}.pdf` });
+          pdf_url = su?.signedUrl ?? null;
+        }
+        return J({ invoice: {
+          ...inv, number: ingkNo(inv), ing_number: undefined, ing_pdf_path: undefined,
+          net: +inv.net, vat: +inv.vat, gross: +inv.gross, pay_url: inv.status === "unpaid" ? payUrl(inv) : null, pdf_url,
+        } });
       }
 
       // ── strona „Zapłać" (link z maila windykacyjnego) ───────────────────
@@ -825,6 +937,34 @@ Deno.serve(async (req) => {
       case "tick": {
         if (!CRON_KEY || req.headers.get("x-billing-key") !== CRON_KEY) return J({ error: "auth" }, 401);
         return J({ ok: true, ...(await tick()) });
+      }
+
+      // ── admin: wszystkie faktury platformy (Ustawienia w każdym produkcie) ──
+      case "admin.invoices":
+      case "admin.invoice.retry": {
+        const u = await panelUser(String(body.token ?? ""));
+        if (!u) return J({ error: "auth" }, 401);
+        if (u.role !== "admin") return J({ error: "forbidden" }, 403);
+        if (action === "admin.invoice.retry") {
+          await db.from("billing_invoices").update({ ing_attempts: 0, ing_error: null }).eq("id", String(body.id ?? ""));
+          const r = await issueIngInvoice(String(body.id ?? ""));
+          return J({ ok: true, number: r?.number, pdf: !!r?.pdf, off: !INGK_KEY });
+        }
+        const { data: rows } = await db.from("billing_invoices")
+          .select("id, number, ing_number, ing_pdf_path, ing_error, ing_doc_id, workspace_id, buyer, issue_date, gross, net, status, pay_token")
+          .order("created_at", { ascending: false }).limit(Math.min(+(body.limit ?? 300), 1000));
+        const wsIds = [...new Set((rows ?? []).map((r) => r.workspace_id).filter(Boolean))];
+        const { data: wss } = wsIds.length ? await db.from("brain_workspaces").select("id, name").in("id", wsIds) : { data: [] };
+        const wsName = new Map((wss ?? []).map((w) => [w.id, w.name]));
+        const invoices = (rows ?? []).map((r) => ({
+          id: r.id, number: ingkNo(r), internal: r.number, company: (r.buyer as any)?.name, nip: (r.buyer as any)?.nip,
+          workspace: wsName.get(r.workspace_id) ?? null, issue_date: r.issue_date, gross: +r.gross, net: +r.net, status: r.status,
+          ing: r.ing_pdf_path ? "ok" : r.ing_error ? "error" : !INGK_KEY ? "off" : r.status === "paid" ? "pending" : "unpaid",
+          ing_error: r.ing_error, url: invoiceUrl(r),
+        }));
+        const sumPaid = r2(invoices.filter((i) => i.status === "paid").reduce((a, i) => a + i.gross, 0));
+        const sumDue = r2(invoices.filter((i) => i.status === "unpaid").reduce((a, i) => a + i.gross, 0));
+        return J({ invoices, sum_paid: sumPaid, sum_due: sumDue, ing_connected: !!INGK_KEY });
       }
 
       // ── panel klienta (sesja Brain/Hand) ───────────────────────────────

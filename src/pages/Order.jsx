@@ -147,7 +147,9 @@ function InvoiceView() {
     <main className="fv">
       <style dangerouslySetInnerHTML={{ __html: checkoutCss }} />
       <div className="fv-bar">
-        <button type="button" className="ord-btn" onClick={() => print()}>Drukuj / zapisz PDF</button>
+        {inv.pdf_url
+          ? <a className="ord-btn" href={inv.pdf_url}>Pobierz PDF (ING Księgowość)</a>
+          : <button type="button" className="ord-btn" onClick={() => print()}>Drukuj / zapisz PDF</button>}
         {inv.pay_url && <a className="ord-btn alt" href={inv.pay_url}>Zapłać {zl(inv.gross)}</a>}
       </div>
       <article className="fv-page">

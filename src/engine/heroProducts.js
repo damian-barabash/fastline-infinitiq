@@ -21,6 +21,15 @@ const PRODUCT_PAGES = [
   { re: /doradc/i, href: '/ai-doradca' },
 ];
 
+/** slug produktu z nazwy („AI Doradca" → „ai-doradca"; tak samo dla każdego przyszłego produktu). */
+export function productSlug(name) {
+  const map = { ą: 'a', ć: 'c', ę: 'e', ł: 'l', ń: 'n', ó: 'o', ś: 's', ź: 'z', ż: 'z' };
+  return String(name || '').toLowerCase().replace(/[ąćęłńóśźż]/g, (c) => map[c])
+    .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+}
+/** Link „Umów rozmowę" ze strony produktu: formularz /kontakt dostaje produkt z góry. */
+export const briefHref = (name) => `/kontakt?produkt=${productSlug(name)}`;
+
 /** Adres strony produktu albo '' — wtedy karta prowadzi do sekcji audytu. */
 export function productHref(name) {
   const n = String(name || '');
