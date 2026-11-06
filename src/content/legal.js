@@ -15,8 +15,12 @@ export const ADMIN = {
   nip: '5214163067',
   krs: '0001237811',
   regon: '544613419',
+  court: 'Sąd Rejonowy dla m.st. Warszawy w Warszawie, XIII Wydział Gospodarczy Krajowego Rejestru Sądowego',
+  capital: '10 000,00 zł',
 };
 const UPDATED = '15 września 2026';
+// Data wejścia w życie regulaminu — przy publikacji nowej wersji wpisać dzień publikacji.
+const REGULAMIN_FROM = '6 listopada 2026';
 const adminLine = () =>
   `${ADMIN.name} (marka ${ADMIN.brand})${ADMIN.address ? `, ${ADMIN.address}` : ''}${ADMIN.krs ? `, KRS ${ADMIN.krs}` : ''}${ADMIN.nip ? `, NIP ${ADMIN.nip}` : ''}${ADMIN.regon ? `, REGON ${ADMIN.regon}` : ''}, e-mail: ${ADMIN.email}`;
 
@@ -130,24 +134,44 @@ export const LEGAL = {
     label: 'Dokumenty — 03',
     title: 'Regulamin serwisu',
     lead: 'Zasady korzystania ze strony fastlineinfinitiq.pl, formularzy, bezpłatnego audytu oraz zakupu abonamentu AI Doradca online.',
-    updated: UPDATED,
+    updated: REGULAMIN_FROM,
     sections: [
       {
         h: 'Postanowienia ogólne',
         p: [
-          `Serwis prowadzi ${adminLine()}. Regulamin określa zasady korzystania ze strony, formularzy kontaktowych oraz bezpłatnego audytu AI.`,
+          `Serwis prowadzi ${ADMIN.name} z siedzibą w Warszawie${ADMIN.address ? `, ${ADMIN.address}` : ''}, wpisana do rejestru przedsiębiorców Krajowego Rejestru Sądowego prowadzonego przez ${ADMIN.court} pod numerem KRS ${ADMIN.krs}, NIP ${ADMIN.nip}, REGON ${ADMIN.regon}, kapitał zakładowy ${ADMIN.capital}, e-mail: ${ADMIN.email} (dalej: „Usługodawca"), działająca pod marką ${ADMIN.brand}.`,
+          'Regulamin określa zasady korzystania ze strony, formularzy kontaktowych i bezpłatnego audytu AI oraz zasady zakupu abonamentu online.',
           'Korzystanie z serwisu jest bezpłatne i nie wymaga rejestracji. Panele klienta są dostępne dla firm, które kupiły abonament online albo zawarły z nami umowę.',
+        ],
+      },
+      {
+        h: 'Definicje',
+        p: [
+          'Klient: przedsiębiorca, który kupuje abonament w serwisie albo korzysta z usług Usługodawcy na podstawie odrębnej umowy.',
+          'Abonament: odpłatna usługa AI Doradca świadczona drogą elektroniczną przez czas nieoznaczony, rozliczana w okresach miesięcznych, w zakresie opisanym na stronie produktu w dniu zakupu.',
+          'Przedsiębiorca na prawach Konsumenta: osoba fizyczna zawierająca umowę bezpośrednio związaną z jej działalnością gospodarczą, gdy z treści tej umowy wynika, że nie posiada ona dla niej charakteru zawodowego, wynikającego w szczególności z przedmiotu wykonywanej przez nią działalności gospodarczej, udostępnionego na podstawie przepisów o Centralnej Ewidencji i Informacji o Działalności Gospodarczej.',
+          'Serwis: strona internetowa fastlineinfinitiq.pl wraz z formularzami, raportami audytu i panelem klienta.',
         ],
       },
       {
         h: 'Zakup abonamentu online (AI Doradca)',
         p: [
           'Abonament kupują wyłącznie przedsiębiorcy (sprzedaż B2B). W koszyku podajesz NIP; dane firmy pobieramy z wykazu podatników VAT i możesz je poprawić przed płatnością. Ceny na stronie są cenami netto; do zapłaty doliczamy VAT 23%, a kwotę brutto widzisz przed płatnością.',
+          'Przedsiębiorcy na prawach Konsumenta przysługuje prawo odstąpienia od umowy (pkt 04) oraz uprawnienia reklamacyjne (pkt 09) na zasadach przewidzianych dla konsumentów.',
           'Umowa zostaje zawarta z chwilą zaksięgowania pierwszej płatności. Zaraz potem zakładamy konto w panelu i wysyłamy na podany e-mail login, hasło jednorazowe oraz fakturę VAT. Zaznaczając zgodę w koszyku, prosisz o rozpoczęcie usługi od razu po płatności.',
-          'Abonament jest miesięczny i odnawia się automatycznie: na początku każdego okresu wystawiamy fakturę i obciążamy kartę zapisaną przy pierwszej płatności (płatności obsługuje ING Pay — ING Bank Śląski S.A.; nie przechowujemy danych kart). Abonament możesz anulować w każdej chwili w panelu, w zakładce „Płatności" — działa do końca opłaconego okresu, bez okresu wypowiedzenia i bez dalszych obciążeń.',
+          'Abonament jest miesięczny i odnawia się automatycznie: na początku każdego okresu wystawiamy fakturę i obciążamy kartę zapisaną przy pierwszej płatności (płatności obsługuje ING Pay — ING Bank Śląski S.A. z siedzibą w Katowicach; nie przechowujemy danych kart). Abonament możesz anulować w każdej chwili w panelu, w zakładce „Płatności" — działa do końca opłaconego okresu, bez okresu wypowiedzenia i bez dalszych obciążeń.',
           'Opcja „z wdrożeniem" obejmuje jednorazową konfigurację przez nasz zespół (baza wiedzy, ton marki, osadzenie na stronie) w ciągu 5 dni roboczych od otrzymania materiałów od klienta.',
           'Jeśli płatność za kolejny okres się nie powiedzie, informujemy o tym mailem i prosimy o zapłatę. Po 7 dniach od terminu działanie AI Doradcy zostaje wstrzymane (dane i ustawienia zachowujemy), a po 14 dniach subskrypcja wygasa. Po opłaceniu zaległej faktury usługa wraca od razu.',
           'Zakres abonamentu (limit rozmów, kanały, liczba pozycji katalogu) opisuje strona produktu w dniu zakupu. Rozmowy ponad limit rozliczamy według stawki podanej na stronie produktu.',
+        ],
+      },
+      {
+        h: 'Prawo odstąpienia od umowy',
+        p: [
+          'Przedsiębiorca na prawach Konsumenta może odstąpić od umowy bez podania przyczyny w terminie 14 dni od dnia jej zawarcia.',
+          `Aby odstąpić od umowy, wystarczy przed upływem terminu wysłać jednoznaczne oświadczenie na adres ${ADMIN.email} albo pisemnie na adres siedziby Usługodawcy${ADMIN.address ? ` (${ADMIN.address})` : ''}. Potwierdzimy otrzymanie oświadczenia mailem.`,
+          'Jeśli na Twoje żądanie usługa rozpoczęła się przed upływem terminu na odstąpienie, płacisz za okres świadczenia usługi do chwili odstąpienia, proporcjonalnie do ceny abonamentu (a za wykonaną już część wdrożenia — proporcjonalnie do jej zakresu).',
+          'Pozostałą kwotę zwracamy w ciągu 14 dni od otrzymania oświadczenia, tą samą metodą płatności, której użyto przy zakupie, chyba że wyraźnie uzgodnimy inną. Odstąpienie od umowy nie wiąże się z żadnymi dodatkowymi kosztami.',
         ],
       },
       {
@@ -179,10 +203,18 @@ export const LEGAL = {
         ],
       },
       {
-        h: 'Reklamacje i postanowienia końcowe',
+        h: 'Reklamacje',
         p: [
-          `Reklamacje dotyczące działania serwisu przyjmujemy na adres ${ADMIN.email}; odpowiadamy w ciągu 14 dni.`,
-          `Regulamin obowiązuje od ${UPDATED}. W sprawach nieuregulowanych stosuje się prawo polskie. Spory z konsumentami rozstrzyga sąd właściwy według przepisów ogólnych; konsument może też skorzystać z platformy ODR (ec.europa.eu/consumers/odr).`,
+          'Reklamację możesz złożyć, jeśli serwis, abonament albo wdrożenie nie działają zgodnie z umową lub z tym regulaminem. Wobec Przedsiębiorcy na prawach Konsumenta Usługodawca odpowiada za zgodność usługi z umową na zasadach przewidzianych dla konsumentów w ustawie o prawach konsumenta.',
+          `Reklamację składasz mailem na adres ${ADMIN.email} albo pisemnie na adres siedziby Usługodawcy${ADMIN.address ? ` (${ADMIN.address})` : ''}.`,
+          'W reklamacji podaj: nazwę firmy i NIP (albo e-mail konta w panelu), dane do kontaktu, opis problemu wraz z datą jego wystąpienia oraz to, czego oczekujesz (np. usunięcia usterki albo obniżenia ceny).',
+          'Odpowiadamy w ciągu 14 dni od otrzymania reklamacji, tą samą drogą, którą ją złożono, chyba że wskażesz inną.',
+        ],
+      },
+      {
+        h: 'Postanowienia końcowe',
+        p: [
+          `Regulamin obowiązuje od ${REGULAMIN_FROM}. W sprawach nieuregulowanych stosuje się prawo polskie. Spory z konsumentami oraz z Przedsiębiorcami na prawach Konsumenta rozstrzyga sąd właściwy według przepisów ogólnych.`,
         ],
       },
     ],
